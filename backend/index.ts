@@ -3,18 +3,74 @@ import cors from 'cors';
 import { verifyToken } from './src/middlewares/auth.middleware';
 import dotenv from 'dotenv';
 import router from './src/routes/routes';
+import { sequelize } from './src/models/sequelize';
+import { errorHandler } from './src/middlewares/errorHandler.middleware';
+import { responseHandler } from './src/middlewares/responseHandler.middleware';
+import { runSeeders } from './src/seeders';
 
 dotenv.config();
 
 const app = express();
-
 const PORT = 8091;
 
+// Middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(cors({ origin: '*' }));
 app.options('*', cors());
 
-app.use('/api/v1', verifyToken, router);
+app.use(responseHandler);
+app.use('/api/v1', router);
+//app.use('/api/v1', verifyToken, router);
+app.use(errorHandler);
 
-app.listen(PORT, () => {
-  console.log(`server started on port ${PORT}`);
+// Функция для проверки подключения к БД
+const testDbConnection = async () => {
+  try {
+    await sequelize.authenticate();
+    console.log('Database connection has been established successfully.');
+    return true;
+  } catch (error) {
+    console.error('Unable to connect to the database:', error);
+    return false;
+  }
+};
+
+// Запуск сервера
+const startServer = async () => {
+  try {
+    // Проверяем подключение к БД
+    const dbConnected = await testDbConnection();
+    if (!dbConnected) {
+      throw new Error('Database connection failed');
+    }
+
+    // Синхронизируем модели с БД
+    await sequelize.sync({ alter: true });
+    console.log('Database synchronized');
+
+    // Запускаем сидеры
+    await runSeeders();
+    console.log('Seeders completed');
+
+    // Запускаем сервер
+    app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
+};
+
+startServer();
+
+// Обработка необработанных ошибок
+process.on('unhandledRejection', (error) => {
+  console.error('Unhandled Rejection:', error);
+});
+
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  process.exit(1);
 });

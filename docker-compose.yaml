@@ -73,13 +73,37 @@ services:
     networks:
       - ims-base-network
 
-# volumes:
-#   keycloak-db-data:
-#   mongodb_rag_data:
-#     driver: local
+  postgres:
+    image: postgres
+    restart: unless-stopped
+    env_file:
+      - ./.env/.postgres.development.env
+    volumes:
+      - iml-db-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - ims-base-network
+
+  pgadmin:
+    image: dpage/pgadmin4
+    restart: unless-stopped
+    container_name: pgadmin
+    env_file:
+      - ./.env/.pgadmin.development.env
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    networks:
+      - ims-base-network
+    depends_on:
+      - postgres
 
 volumes:
   keycloak-db-data:
+  iml-db-data:
+  pgadmin-data:
 
 networks:
   ims-base-network:
