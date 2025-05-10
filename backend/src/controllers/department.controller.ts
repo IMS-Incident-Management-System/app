@@ -5,7 +5,6 @@ import { CustomResponse } from '../middlewares/responseHandler.middleware';
 
 export const departmentController = {
   getDepartments: asyncErrorHandler(async (req: Request, res: CustomResponse) => {
-    console.log('getDepartments');
     const departments = await departmentService.getDepartments();
     res.success(departments, 'Departments retrieved successfully', {
       total: departments.length
