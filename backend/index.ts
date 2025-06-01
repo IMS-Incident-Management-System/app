@@ -53,7 +53,7 @@ const startServer = async () => {
     }
 
     // Синхронизируем модели с БД
-    await sequelize.sync({ alter: true });
+    await sequelize.sync({ alter: true, force: true });
     console.log('Database synchronized');
 
     // Запускаем сидеры
