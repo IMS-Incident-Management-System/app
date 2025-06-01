@@ -1,34 +1,65 @@
-import EventType, { EventTypeCreationAttributes } from '../models/eventType';
+import { EEventType } from '../enums/eventTypes';
+import EventType, {
+  EventTypeCreationAttributes,
+  EventTypeInstance 
+} from '../models/eventType';
 
 export const eventTypeService = {
-  getEventTypes: async () => {
-    const eventTypes = await EventType.findAll();
-    return eventTypes;
+  async getEventTypes(): Promise<EventTypeInstance[]> {
+    return await EventType.findAll({
+      order: [['type', 'ASC']]
+    });
   },
 
-  getEventType: async (id: number) => {
+  async getEventType(id: number): Promise<EventTypeInstance | null> {
+    return await EventType.findByPk(id);
+  },
+
+  async getEventTypeByEnum(type: EEventType): Promise<EventTypeInstance | null> {
+    return await EventType.findOne({
+      where: { type }
+    });
+  },
+
+  async createEventType(
+    data: EventTypeCreationAttributes
+  ): Promise<EventTypeInstance> {
+    const existing = await EventType.findOne({
+      where: { type: data.type }
+    });
+    
+    if (existing) {
+      throw new Error('Event type already exists');
+    }
+
+    return await EventType.create(data);
+  },
+
+  async updateEventType(
+    id: number,
+    data: Partial<EventTypeCreationAttributes>
+  ): Promise<EventTypeInstance | null> {
     const eventType = await EventType.findByPk(id);
-    return eventType;
+    if (!eventType) return null;
+
+    if (data.type && data.type !== eventType.type) {
+      const existing = await EventType.findOne({
+        where: { type: data.type }
+      });
+      
+      if (existing) {
+        throw new Error('Event type already exists');
+      }
+    }
+
+    return await eventType.update(data);
   },
 
-  createEventType: async (data: EventTypeCreationAttributes) => {
-    const eventType = await EventType.create(data);
-    return eventType;
-  },
-
-  updateEventType: async (id: number, data: Partial<EventType>) => {
+  async deleteEventType(id: number): Promise<boolean> {
     const eventType = await EventType.findByPk(id);
-    if (!eventType) throw new Error('Event type not found');
-
-    await eventType.update(data);
-    return eventType;
-  },
-
-  deleteEventType: async (id: number) => {
-    const eventType = await EventType.findByPk(id);
-    if (!eventType) throw new Error('Event type not found');
+    if (!eventType) return false;
 
     await eventType.destroy();
     return true;
-  },
-};
+  }
+}; 

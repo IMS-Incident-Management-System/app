@@ -1,4 +1,13 @@
+@use "./colors" as colors;
+@use "sass:color";
+
 body {
-  user-select: none;
   letter-spacing: 0.3px;
 }
+
+h2 {
+  font-size: 36px;
+  font-weight: 600;
+  color: color.adjust(colors.$primary, $lightness: -20%);
+}
+

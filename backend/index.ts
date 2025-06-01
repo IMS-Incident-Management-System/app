@@ -13,18 +13,23 @@ dotenv.config();
 const app = express();
 const PORT = 8091;
 
-// Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cors({ origin: '*' }));
-app.options('*', cors());
+const createApp = () => {
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
+  app.use(cors());
 
-app.use(responseHandler);
-app.use('/api/v1', router);
-//app.use('/api/v1', verifyToken, router);
-app.use(errorHandler);
+  // Базовый роут для проверки работы сервера
+  app.get('/health', (req, res) => {
+    res.json({ status: 'ok' });
+  });
 
-// Функция для проверки подключения к БД
+  app.use(responseHandler);
+  app.use('/api/v1', router);
+  app.use(errorHandler);
+
+  return app;
+};
+
 const testDbConnection = async () => {
   try {
     await sequelize.authenticate();
@@ -36,9 +41,11 @@ const testDbConnection = async () => {
   }
 };
 
-// Запуск сервера
 const startServer = async () => {
   try {
+    // Инициализируем приложение
+    const application = createApp();
+
     // Проверяем подключение к БД
     const dbConnected = await testDbConnection();
     if (!dbConnected) {
@@ -54,8 +61,9 @@ const startServer = async () => {
     console.log('Seeders completed');
 
     // Запускаем сервер
-    app.listen(PORT, () => {
+    application.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
+      console.log(`API is available at http://localhost:${PORT}/api/v1`);
     });
   } catch (error) {
     console.error('Failed to start server:', error);

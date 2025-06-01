@@ -1,7 +1,7 @@
 import { signInUser } from "./actions";
 import { UserResponse } from "../../../interfaces/requests/auth";
 import { selectUserSelector } from "./selectors";
-import { asyncThunkCreator, buildCreateSlice, current } from "@reduxjs/toolkit";
+import { asyncThunkCreator, buildCreateSlice } from "@reduxjs/toolkit";
 
 const initialState: UserResponse | undefined = {
   given_name: "",

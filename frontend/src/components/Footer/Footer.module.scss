@@ -1,0 +1,13 @@
+@use "../../styles/common/colors.scss" as colors;
+@use "sass:color";
+
+.container {
+  height: 50px;
+  width: 100%;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: colors.$white;
+  color: color.adjust(colors.$black, $lightness: 10%);
+}

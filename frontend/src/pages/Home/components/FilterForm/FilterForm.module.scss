@@ -1,0 +1,29 @@
+@use "../../../../styles/mixins/common" as *;
+
+.filterFormGroup {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.button {
+  display: flex;
+  justify-content: flex-end;
+  
+  &Group {
+    display: flex;
+    gap: 10px;
+  }
+}
+
+.filterFormItem {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.filterForm {
+  margin-bottom: 30px;
+  @include box-shadow;
+}
+

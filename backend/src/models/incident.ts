@@ -1,35 +1,105 @@
-import { DataTypes, Model } from 'sequelize';
+import { DataTypes, Model, Optional } from 'sequelize';
 import { sequelize } from './sequelize';
-import DepartmentModel from './department';
+import { DepartmentModelType } from './department';
+import { ObjectAttributes } from './object';
+import { EventHistoryWithRelations } from './eventHistory';
+import { PunishmentAttributes } from './punishment';
 
-export interface IncidentModelType {
-  incident_id?: number;
-  department_id: number;
+export enum SecurityDirectionEnum {
+  INFORMATION = 'INFORMATION', // ИБ
+  ECONOMIC = 'ECONOMIC', // ЭБ
+  SECURITY = 'SECURITY', // БПиО
 }
 
-const IncidentModel = sequelize.define<
-  Model<IncidentModelType>,
-  IncidentModelType
->('incidents', {
-  incident_id: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true,
-  },
-  department_id: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: DepartmentModel,
-      key: 'department_id',
+export enum IncidentStatusEnum {
+  DRAFT = 'DRAFT', // Черновик
+  IN_PROGRESS = 'IN_PROGRESS', // В работе
+  COMPLETED = 'COMPLETED', // Завершен
+  ARCHIVED = 'ARCHIVED', // В архиве
+}
+
+export interface IncidentAttributes {
+  id: number;
+  department_id: number;
+  direction: SecurityDirectionEnum;
+  object_id: number;
+  message: string;
+  is_db: boolean;
+  status: IncidentStatusEnum;
+}
+
+export interface IncidentWithRelations extends IncidentAttributes {
+  department?: DepartmentModelType;
+  object?: ObjectAttributes;
+  events?: EventHistoryWithRelations[];
+  punishments?: PunishmentAttributes[];
+}
+
+export interface IncidentCreationAttributes extends Optional<IncidentAttributes, 'id'> {}
+
+export interface IncidentInstance
+  extends Model<IncidentAttributes, IncidentCreationAttributes>,
+    IncidentWithRelations {}
+
+const Incident = sequelize.define<IncidentInstance>(
+  'incidents',
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    department_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'departments',
+        key: 'department_id',
+      },
+      comment: 'Подразделение, работающее над инцидентом',
+    },
+    direction: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: SecurityDirectionEnum.SECURITY,
+      validate: {
+        isIn: [Object.values(SecurityDirectionEnum)],
+      },
+      comment: 'Направление безопасности (ИБ/ЭБ/БПиО)',
+    },
+    object_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'objects',
+        key: 'id',
+      }
+    },
+    message: {
+      type: DataTypes.TEXT,
+      allowNull: false,
+      comment: 'Описание инцидента',
+    },
+    is_db: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      comment: 'Флаг "Дело безопасности" (ДБ). Указывает на особый статус инцидента, требующий специальной обработки'
+    },
+    status: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: IncidentStatusEnum.DRAFT,
+      validate: {
+        isIn: [Object.values(IncidentStatusEnum)],
+      },
+      comment: 'Статус инцидента',
     },
   },
-});
+  {
+    timestamps: true,
+    tableName: 'incidents',
+  }
+);
 
-// Определяем связь с департаментом
-IncidentModel.belongsTo(DepartmentModel, {
-  foreignKey: 'department_id',
-  as: 'department',
-});
-
-export default IncidentModel;
+export default Incident;

@@ -1,3 +1,3 @@
-import { UserResponse } from "../../../interfaces/requests/auth";
+import { RootState } from "../../store";
 
-export const selectUserSelector = (state: UserResponse) => state;
+export const selectUserSelector = (state: RootState) => state.user;

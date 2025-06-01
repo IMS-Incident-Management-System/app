@@ -1,40 +1,39 @@
 import { DataTypes, Model, Optional } from 'sequelize';
 import { sequelize } from './sequelize';
+import { EEventType } from '../enums/eventTypes';
 
-interface EventTypeAttributes {
+export interface EventTypeAttributes {
   id: number;
   name: string;
-  createdAt?: Date;
-  updatedAt?: Date;
+  type: EEventType;
 }
 
-export interface EventTypeCreationAttributes extends Optional<EventTypeAttributes, 'id' | 'createdAt' | 'updatedAt'> {}
+export interface EventTypeCreationAttributes
+  extends Optional<EventTypeAttributes, 'id'> {}
 
-export class EventType extends Model<EventTypeAttributes, EventTypeCreationAttributes> implements EventTypeAttributes {
-  public id!: number;
-  public name!: string;
-  public createdAt!: Date;
-  public updatedAt!: Date;
-}
+// Интерфейс для экземпляра модели
+export interface EventTypeInstance
+  extends Model<EventTypeAttributes, EventTypeCreationAttributes>,
+    EventTypeAttributes {}
 
-EventType.init(
-  {
-    id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
-      primaryKey: true,
-    },
-    name: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true,
-    },
+const EventType = sequelize.define<EventTypeInstance>('event_types', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
   },
-  {
-    sequelize,
-    tableName: 'event_types',
-    timestamps: true,
-  }
-);
+  name: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  type: {
+    type: DataTypes.STRING,
+    validate: {
+      isIn: [Object.values(EEventType)],
+    },
+    allowNull: false,
+    unique: true
+  },
+});
 
 export default EventType;
