@@ -1,42 +1,56 @@
 import React from 'react';
 import TreeManager from '../../components/TreeStructure/TreeManager';
-import { TreeConfig, TreeMutations } from '../../components/TreeStructure/types';
 import { useCreateDepartment, useUpdateDepartment, useDeleteDepartment } from '../../services/requests/departments/mutations';
+import { TreeConfig } from '../../components/TreeStructure/types';
 
-const departmentConfig: TreeConfig = {
-  apiEndpoint: '/departments',
-  idField: 'department_id',
-  title: 'Департаменты',
-  addButtonText: 'Добавить департамент',
-  editModalTitle: 'Редактировать департамент',
-  deleteModalTitle: 'Удалить департамент',
-};
-
-const Departments: React.FC = () => {
+export const Departments = () => {
   const createMutation = useCreateDepartment();
   const updateMutation = useUpdateDepartment();
   const deleteMutation = useDeleteDepartment();
 
-  const mutations: TreeMutations = {
-    createNode: async (data) => {
-      const result = await createMutation.mutateAsync(data);
-      return result;
+  const treeConfig: TreeConfig = {
+    title: 'Организационная структура',
+    apiEndpoint: '/departments',
+    addButtonText: 'Добавить департамент',
+    editModalTitle: 'Редактировать департамент',
+    deleteModalTitle: 'Удалить департамент',
+    idField: 'department_id',
+    addFormConfig: {
+      title: 'Добавить департамент',
+      fields: [
+        {
+          name: 'title',
+          label: 'Название',
+          type: 'input',
+          rules: [{ required: true, message: 'Пожалуйста, введите название' }],
+          placeholder: 'Введите название департамента'
+        }
+      ]
     },
-    updateNode: async (id, data) => {
-      const result = await updateMutation.mutateAsync({ id, data });
-      return result;
-    },
-    deleteNode: async (id) => {
-      await deleteMutation.mutateAsync(id);
-      return true;
-    },
+    editFormConfig: {
+      title: 'Редактировать департамент',
+      fields: [
+        {
+          name: 'title',
+          label: 'Название',
+          type: 'input',
+          rules: [{ required: true, message: 'Пожалуйста, введите название' }],
+          placeholder: 'Введите название департамента'
+        }
+      ]
+    }
   };
 
   return (
-    <div style={{ padding: '24px' }}>
-      <TreeManager config={departmentConfig} mutations={mutations} />
-    </div>
+    <TreeManager
+      config={treeConfig}
+      mutations={{
+        createNode: (data) => createMutation.mutateAsync(data),
+        updateNode: (id, data) => updateMutation.mutateAsync({ id, data }),
+        deleteNode: (id) => deleteMutation.mutateAsync(id)
+      }}
+    />
   );
 };
 
-export default Departments; 
+export default Departments;

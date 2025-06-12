@@ -2,11 +2,10 @@ import React from "react";
 import { createBrowserRouter } from "react-router-dom";
 import { BaseLayout } from "../layouts/baseLayout/baseLayout";
 import { Home } from "../pages/Home/Home";
-import { Incident } from "../pages/Incident/Incident";
 import { ERoutes } from "../enums/routes";
 import { Profile } from "../pages/Profile/Profile";
 import { IncidentProvider } from "../pages/IncidentProvider/IncidentProvider";
-import { Departments } from "../pages/Departments/Departments";
+import Departments from "../pages/Departments";
 import IncidentEvents from "../pages/IncidentEvents";
 
 export const router = createBrowserRouter([
@@ -17,10 +16,6 @@ export const router = createBrowserRouter([
       {
         path: ERoutes.HOME,
         element: <Home />,
-      },
-      {
-        path: ERoutes.INCIDENT,
-        element: <Incident />,
       },
       {
         path: ERoutes.INCIDENT_CREATE,
