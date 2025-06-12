@@ -1,7 +1,10 @@
-export interface DepartmentModelType {
+export interface DepartmentModelTypeTree {
   department_id: number;
-  name: string;
-  type: 'KTS' | 'FO' | 'DZK' | 'ETSKB'; // КЦ, ФО, ДЗК, ЕЦКБ
-  parent_id: number | null;
-  region_type?: string; // For FO subdivisions
+  value: string;
+  title: string;
+  children: DepartmentModelTypeTree[];
+}
+
+export interface DepartmentModelType {
+  treeData: DepartmentModelTypeTree[];
 }

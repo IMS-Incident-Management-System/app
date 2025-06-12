@@ -56,7 +56,7 @@ export const criminalCaseService = {
     options?: { transaction?: Transaction }
   ): Promise<CriminalCaseInstance> {
     // Проверяем существование события
-    const event = await EventHistory.findByPk(data.event_history_id);
+    const event = await EventHistory.findByPk(data.event_history_id, options);
     if (!event) {
       throw new Error('Event not found');
     }

@@ -1,0 +1,29 @@
+.criminalCasesWrapper {
+  margin: 20px 0;
+}
+
+.container {
+  border: 1px solid #d9d9d9;
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.criminalCasesHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.criminalCasesContainer {
+  display: flex;
+  flex-direction: column;
+}
+
+.criminalCase {
+  margin: 20px 0;
+  position: relative;
+  padding: 20px;
+  border: 1px solid #d9d9d9;
+  border-radius: 5px;
+  background-color: #fafafa;
+}

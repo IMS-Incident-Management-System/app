@@ -1,8 +1,12 @@
 import React, { useEffect } from "react";
 import { TIncidentFilter } from "../../../../interfaces/requests/incident";
-import { Button, Card, Form, DatePicker, Select } from "antd";
+import { Button, Card, Form, DatePicker, Select, TreeSelect } from "antd";
 import styles from "./FilterForm.module.scss";
 import dayjs from "dayjs";
+import { directionDict, statusDict } from "../../../../constants/incidentDict";
+import { SecurityDirectionEnum } from "../../../../enums/direction";
+import { useGetDepartments } from "../../../../services/requests/departments/getDepartments";
+import { EIncidentStatus } from "../../../../enums/incident";
 
 export const FilterForm = ({
   filter,
@@ -12,6 +16,8 @@ export const FilterForm = ({
   onFilter: (filter: TIncidentFilter) => void;
 }) => {
   const [form] = Form.useForm();
+  const { data: departments, isLoading: isDepartmentsLoading } =
+    useGetDepartments();
 
   useEffect(() => {
     const formattedFilter = {
@@ -45,30 +51,44 @@ export const FilterForm = ({
     <Card title="Фильтр" className={styles.filterForm}>
       <Form form={form} layout="vertical">
         <div className={styles.filterFormGroup}>
-          <Form.Item
-            name="department_id"
-            label="Отдел"
-            className={styles.filterFormItem}
-          >
-            <Select options={[]} placeholder="Выберите отдел" />
+          <Form.Item label="Департамент" name="department_id">
+            <TreeSelect
+              showSearch
+              dropdownStyle={{ maxHeight: 400, overflow: "auto" }}
+              placeholder="Выберите департамент"
+              allowClear
+              treeDefaultExpandAll
+              treeData={departments?.treeData}
+              loading={isDepartmentsLoading}
+              className={styles.formInput}
+            />
           </Form.Item>
 
-          <Form.Item
-            name="direction"
-            label="Направление"
-            className={styles.filterFormItem}
-          >
-            <Select options={[]} placeholder="Выберите направление" />
+          <Form.Item label="Направление" name="direction">
+            <Select
+              options={Object.values(SecurityDirectionEnum).map(
+                (direction) => ({
+                  label: directionDict[direction as SecurityDirectionEnum],
+                  value: direction,
+                }),
+              )}
+              placeholder="Выберите направление"
+              allowClear
+              className={styles.formInput}
+            />
           </Form.Item>
         </div>
 
         <div className={styles.filterFormGroup}>
-          <Form.Item
-            name="status"
-            label="Статус"
-            className={styles.filterFormItem}
-          >
-            <Select options={[]} placeholder="Выберите статус" />
+          <Form.Item name="status" label="Статус">
+            <Select
+              options={Object.values(EIncidentStatus).map((status) => ({
+                label: statusDict[status as EIncidentStatus],
+                value: status,
+              }))}
+              placeholder="Выберите статус"
+              allowClear
+            />
           </Form.Item>
 
           <Form.Item

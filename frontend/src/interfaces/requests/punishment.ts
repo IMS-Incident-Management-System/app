@@ -8,4 +8,6 @@ export interface PunishmentAttributes {
   severe_reprimands_count: number;
   fired_count: number;
   date: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }

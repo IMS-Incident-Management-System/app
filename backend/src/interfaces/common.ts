@@ -6,4 +6,7 @@ export type IModel<Q = any, T extends {} = any> = Sequelize.Model<IModel, T> &
 export type ITable<T> = {
   dataSource: T[];
   columns: { key: string; title: string; dataIndex: string }[];
+  total: number;
+  page: number;
+  limit: number;
 };

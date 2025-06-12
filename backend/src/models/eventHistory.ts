@@ -51,7 +51,7 @@ const EventHistory = sequelize.define<EventHistoryInstance>('event_history', {
     allowNull: false,
     references: {
       model: 'event_types',
-      key: 'id',
+      key: 'event_type_id',
     }
   },
   object_id: {
@@ -68,12 +68,12 @@ const EventHistory = sequelize.define<EventHistoryInstance>('event_history', {
     comment: 'ID подтипа события (тип кражи, тип пожара и т.д.)'
   },
   damage_amount: {
-    type: DataTypes.DECIMAL(10, 2),
+    type: DataTypes.INTEGER,
     allowNull: false,
     defaultValue: 0,
   },
   compensation_amount: {
-    type: DataTypes.DECIMAL(10, 2),
+    type: DataTypes.INTEGER,
     allowNull: false,
     defaultValue: 0,
   },
@@ -83,7 +83,9 @@ const EventHistory = sequelize.define<EventHistoryInstance>('event_history', {
   date: {
     type: DataTypes.DATE,
     allowNull: false,
-  }
+  },
+}, {
+  tableName: 'event_history'
 });
 
 export default EventHistory;

@@ -11,4 +11,5 @@ export interface IUseGetRequest<TFilter> {
 export type ITable<T> = {
   dataSource: T[];
   columns: { key: string; title: string; dataIndex: string }[];
+  total?: number;
 };

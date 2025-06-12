@@ -1,5 +1,5 @@
-import { EEventType } from '../enums/eventTypes';
 import EventType, { EventTypeCreationAttributes } from '../models/eventType';
+import { transliterate } from '../utils/strings';
 
 export const seedEventTypes = async () => {
   const count = await EventType.count();
@@ -8,15 +8,41 @@ export const seedEventTypes = async () => {
     return;
   }
 
-  const eventTypesSeed: EventTypeCreationAttributes[] = [
-    { type: EEventType.THEFT, name: 'Кражи' },
-    { type: EEventType.FIRE, name: 'Пожары/возгорания' },
-    { type: EEventType.DAMAGE, name: 'Повреждения/Порча имущества' },
-    { type: EEventType.PERSONNEL, name: 'Персонал' },
-    { type: EEventType.UAV, name: 'БПЛА' },
-    { type: EEventType.ARSON, name: 'Поджоги' }
+  // Создаем корневые типы событий
+  const rootTypes = [
+    { title: 'Кражи', value: transliterate('Кражи').toLowerCase() },
+    { title: 'Пожары/возгорания', value: transliterate('Пожары/возгорания').toLowerCase() },
+    { title: 'Повреждения/Порча имущества', value: transliterate('Повреждения/Порча имущества').toLowerCase() },
+    { title: 'Персонал', value: transliterate('Персонал').toLowerCase() },
+    { title: 'Поджоги', value: transliterate('Поджоги').toLowerCase() },
   ];
 
-  await EventType.bulkCreate(eventTypesSeed, { ignoreDuplicates: true });
+  const createdRootTypes = await EventType.bulkCreate(rootTypes);
+
+  // Создаем подтипы для каждого корневого типа
+  const subtypes = {
+    Кражи: ['Кража кабеля', 'Кража АКБ', 'Кража оборудования'],
+    'Пожары/возгорания': [],
+    'Повреждения/Порча имущества': [],
+    Персонал: [],
+    БПЛА: [],
+    Поджоги: [],
+  };
+
+  // Создаем подтипы для каждого корневого типа
+  for (const rootType of createdRootTypes) {
+    const rootTitle = rootType.title;
+    if (subtypes[rootTitle]) {
+      const subtypeData = subtypes[rootTitle].map((title) => ({
+        title,
+        parent_id: rootType.event_type_id,
+        value: `${transliterate(rootTitle)}_${transliterate(
+          title
+        )}`.toLowerCase(),
+      }));
+      await EventType.bulkCreate(subtypeData);
+    }
+  }
+
   console.log('Event types seeded successfully');
 };

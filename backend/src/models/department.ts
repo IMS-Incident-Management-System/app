@@ -1,13 +1,13 @@
 import { DataTypes } from 'sequelize';
 import { sequelize } from './sequelize';
 import { IModel } from '../interfaces/common';
+import { transliterate } from '../utils/strings';
 
 export interface DepartmentModelType {
   department_id: number;
-  name: string;
-  type: 'KTS' | 'FO' | 'DZK' | 'ETSKB'; // КЦ, ФО, ДЗК, ЕЦКБ
+  title: string;
+  value: string;
   parent_id: number | null;
-  region_type?: string; // For FO subdivisions
 }
 
 const DepartmentModel = sequelize.define<IModel<DepartmentModelType>, DepartmentModelType>(
@@ -18,13 +18,14 @@ const DepartmentModel = sequelize.define<IModel<DepartmentModelType>, Department
       primaryKey: true,
       autoIncrement: true,
     },
-    name: {
+    title: {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    type: {
+    value: {
       type: DataTypes.STRING,
       allowNull: false,
+      unique: true,
     },
     parent_id: {
       type: DataTypes.INTEGER,
@@ -34,10 +35,26 @@ const DepartmentModel = sequelize.define<IModel<DepartmentModelType>, Department
         key: 'department_id',
       }
     },
-    region_type: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
+  },
+  {
+    hooks: {
+      beforeValidate: async (department: any) => {
+        if (department.changed('title')) {
+          let value = transliterate(department.title);
+          
+          // Если есть parent_id, добавляем префикс из названия родителя
+          if (department.parent_id) {
+            const parent = await DepartmentModel.findByPk(department.parent_id);
+            if (parent) {
+              const parentPrefix = transliterate(parent.title);
+              value = `${parentPrefix}_${value}`.toLowerCase();
+            }
+          }
+          
+          department.value = value;
+        }
+      }
+    }
   }
 );
 

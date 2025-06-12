@@ -28,3 +28,10 @@
   justify-self: flex-end;
 }
 
+.icon {
+  font-size: 18px !important;
+
+  &Duplicate {
+    color: colors.$primary;
+  }
+}

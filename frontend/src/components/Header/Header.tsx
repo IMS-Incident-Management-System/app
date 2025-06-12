@@ -9,14 +9,28 @@ import { selectUserSelector } from "../../store/features/user/selectors";
 import { UserResponse } from "../../interfaces/requests/auth";
 import { ERoutes } from "../../enums/routes";
 import styles from "./Header.module.scss";
+import { NotificationOutlined, PartitionOutlined, TagsOutlined } from "@ant-design/icons";
 
 const items = (user: UserResponse) => {
   const menu = [];
 
-  menu.push({
-    label: "Инциденты",
-    key: ERoutes.HOME
-  });
+  menu.push(
+    {
+      label: "Инциденты",
+      key: ERoutes.HOME,
+      icon: <NotificationOutlined />,
+    },
+    {
+      label: "Департаменты",
+      key: ERoutes.DEPARTMENTS,
+      icon: <PartitionOutlined />,
+    },
+    {
+      label: "Типы событий",
+      key: ERoutes.INCIDENT_EVENTS,
+      icon: <TagsOutlined />,
+    },
+  );
 
   return menu;
 };

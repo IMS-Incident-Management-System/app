@@ -52,7 +52,7 @@ export const punishmentService = {
     options?: { transaction?: Transaction }
   ): Promise<PunishmentInstance> {
     // Проверяем существование инцидента
-    const incident = await Incident.findByPk(data.incident_id);
+    const incident = await Incident.findByPk(data.incident_id, options);
     if (!incident) {
       throw new Error('Incident not found');
     }

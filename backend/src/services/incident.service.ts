@@ -5,9 +5,12 @@ import {
   ObjectModel,
   EventHistory,
   EventType,
-  CriminalCase
+  CriminalCase,
+  Punishment,
+  sequelize
 } from '../models';
 import { SecurityDirectionEnum, IncidentStatusEnum, IncidentCreationAttributes } from '../models/incident';
+import { paginate, PaginatedQuery } from '../utils/pagination';
 
 interface CreateIncidentData {
   department_id: number;
@@ -18,7 +21,54 @@ interface CreateIncidentData {
   status: IncidentStatusEnum;
 }
 
-interface UpdateIncidentData extends Partial<CreateIncidentData> {}
+interface UpdateIncidentData {
+  department_id: number;
+  direction: SecurityDirectionEnum;
+  object_id: number;
+  message: string;
+  is_db: boolean;
+  status: IncidentStatusEnum;
+  events: {
+    id?: number;
+    event_type_id: number;
+    object_id: number;
+    damage_amount: number;
+    compensation_amount: number;
+    sub_type_id?: number;
+    description?: string;
+    date: Date;
+    criminal_cases?: {
+      id?: number;
+      transfer_date?: Date;
+      document_number?: string;
+      department_name?: string;
+      review_result?: string;
+      rejection_date?: Date;
+      rejection_reason?: string;
+      appeal_date?: Date;
+      case_date?: Date;
+      case_number?: string;
+      law_article?: string;
+      initiator?: string;
+      subject?: string;
+      detained_count?: number;
+      person_name?: string;
+      case_result?: string;
+      court_decision?: string;
+      convicted_count?: number;
+    }[];
+  }[];
+  punishments: {
+    id?: number;
+    guilty_persons_count: number;
+    punished_persons_count: number;
+    warnings_count: number;
+    reprimands_count: number;
+    severe_reprimands_count: number;
+    fired_count: number;
+    date: Date;
+  }[];
+}
 
 interface GetIncidentsFilters {
   department_id?: number;
@@ -29,7 +79,7 @@ interface GetIncidentsFilters {
 }
 
 export const incidentService = {
-  async getIncidents(filters?: GetIncidentsFilters) {
+  async getIncidents({ filters, pagination }: PaginatedQuery<GetIncidentsFilters>) {
     const where: any = {};
     
     if (filters?.department_id) {
@@ -41,8 +91,18 @@ export const incidentService = {
     if (filters?.status) {
       where.status = filters.status;
     }
-    
-    return await Incident.findAll({
+    if (filters?.date_from) {
+      where.createdAt = {
+        [Op.gte]: filters.date_from
+      };
+    }
+    if (filters?.date_to) {
+      where.createdAt = {
+        [Op.lte]: filters.date_to
+      };
+    }
+
+    const result = await paginate(Incident, {
       where,
       include: [
         {
@@ -71,8 +131,14 @@ export const incidentService = {
           ]
         }
       ],
-      order: [['createdAt', 'DESC']]
+      order: [['createdAt', 'DESC']],
+      pagination
     });
+
+    return {
+      incidents: result.items,
+      total: result.total
+    };
   },
 
   async getIncident(id: number) {
@@ -111,7 +177,85 @@ export const incidentService = {
     const incident = await Incident.findByPk(id);
     if (!incident) return null;
 
-    return await incident.update(data, options);
+    // Update main incident data
+    await incident.update({
+      department_id: data.department_id,
+      direction: data.direction,
+      object_id: data.object_id,
+      message: data.message,
+      is_db: data.is_db,
+      status: data.status
+    }, options);
+
+    // Update events - replace all events and their criminal cases
+    await EventHistory.destroy({
+      where: { incident_id: id },
+      ...options
+    });
+
+    if (data.events?.length) {
+      await Promise.all(
+        data.events.map(async event => {
+          const { criminal_cases, ...eventData } = event;
+          // Create event
+          const createdEvent = await EventHistory.create(
+            { ...eventData, incident_id: id },
+            options
+          );
+
+          // Create criminal cases if any
+          if (criminal_cases?.length) {
+            await Promise.all(
+              criminal_cases.map(criminalCase =>
+                CriminalCase.create(
+                  { ...criminalCase, event_history_id: createdEvent.id },
+                  options
+                )
+              )
+            );
+          }
+
+          return createdEvent;
+        })
+      );
+    }
+
+    // Update punishments - replace all punishments
+    await Punishment.destroy({
+      where: { incident_id: id },
+      ...options
+    });
+
+    if (data.punishments?.length) {
+      await Promise.all(
+        data.punishments.map(punishment =>
+          Punishment.create(
+            { ...punishment, incident_id: id },
+            options
+          )
+        )
+      );
+    }
+
+    // Return updated incident with all relations
+    return await Incident.findByPk(id, {
+      include: [
+        {
+          model: Department,
+          as: 'department'
+        },
+        {
+          model: ObjectModel,
+          as: 'object'
+        },
+        {
+          model: EventHistory,
+          as: 'events',
+          include: ['event_type', 'criminal_cases']
+        },
+        'punishments'
+      ]
+    });
   },
 
   async deleteIncident(

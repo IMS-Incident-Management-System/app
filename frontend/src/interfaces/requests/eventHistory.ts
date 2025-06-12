@@ -1,5 +1,5 @@
 import { CriminalCaseAttributes } from "./criminalCase";
-import { EventTypeAttributes } from "./eventType";
+import { EventTypeTree } from "./eventType";
 import { IncidentAttributes } from "./incident";
 import { ObjectAttributes } from "./object";
 import { TheftTypeAttributes } from "./theft";
@@ -17,9 +17,11 @@ export interface EventHistoryAttributes {
 }
 
 export interface EventHistoryWithRelations extends EventHistoryAttributes {
-  event_type?: EventTypeAttributes;
+  event_type?: EventTypeTree;
   object?: ObjectAttributes;
   incident?: IncidentAttributes;
   criminal_cases?: CriminalCaseAttributes[];
   sub_type?: TheftTypeAttributes;
+  createdAt?: Date;
+  updatedAt?: Date;
 }

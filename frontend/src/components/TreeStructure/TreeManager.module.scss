@@ -1,0 +1,153 @@
+.container {
+  height: 100%;
+  overflow: auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 30px 0;
+}
+
+.grid {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.card {
+  width: 100%;
+  border-radius: 8px;
+  box-shadow:
+    0 1px 2px 0 rgba(0, 0, 0, 0.03),
+    0 1px 6px -1px rgba(0, 0, 0, 0.02),
+    0 2px 4px 0 rgba(0, 0, 0, 0.02);
+  transition: all 0.2s;
+
+  &:global(.ant-card) {
+    background: #fff;
+  }
+
+  &:hover {
+    box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.08);
+  }
+
+  :global(.ant-card-head) {
+    min-height: 40px;
+    padding: 0 16px;
+    font-size: 14px;
+    border-bottom: none;
+  }
+
+  :global(.ant-card-body) {
+    padding: 16px;
+    padding-top: 0;
+  }
+
+  &.hasChildren {
+    :global(.ant-card-body) {
+      padding-top: 16px;
+    }
+  }
+}
+
+.children {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.actions {
+  display: flex;
+  gap: 4px;
+  opacity: 0.4;
+  transition: opacity 0.2s;
+
+  :global(.ant-card-head):hover & {
+    opacity: 1;
+  }
+
+  button {
+    padding: 4px 8px;
+    height: auto;
+  }
+}
+
+// Уровни вложенности
+.level0 {
+  margin-left: 0;
+  width: 100%;
+
+  &:global(.ant-card) {
+    background: #ffffff;
+  }
+}
+
+.level1 {
+  margin-left: 40px;
+  width: calc(100% - 40px);
+
+  &:global(.ant-card) {
+    background: #bae0ff;
+  }
+}
+
+.level2 {
+  margin-left: 80px;
+  width: calc(100% - 80px);
+
+  &:global(.ant-card) {
+    background: #b5f5ec;
+  }
+}
+
+.level3 {
+  margin-left: 120px;
+  width: calc(100% - 120px);
+
+  &:global(.ant-card) {
+    background: #d9f7be;
+  }
+}
+
+.level4 {
+  margin-left: 160px;
+  width: calc(100% - 160px);
+
+  &:global(.ant-card) {
+    background: #ffd591;
+  }
+}
+
+.level5 {
+  margin-left: 200px;
+  width: calc(100% - 200px);
+
+  &:global(.ant-card) {
+    background: #ffccc7;
+  }
+}
+
+.nodeTitle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding-right: 8px;
+
+  span {
+    margin-right: 16px;
+  }
+}
+
+.nodeActions {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s;
+
+  :global(.ant-tree-node-content-wrapper:hover) & {
+    opacity: 1;
+  }
+}

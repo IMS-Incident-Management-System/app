@@ -28,4 +28,7 @@ export interface CriminalCaseAttributes {
   case_result?: string; // Результат рассмотрения УД/АД
   court_decision?: string; // Решение (приговор) суда
   convicted_count?: number; // Осуждено, чел.
+
+  createdAt?: Date;
+  updatedAt?: Date;
 }

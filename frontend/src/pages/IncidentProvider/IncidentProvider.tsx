@@ -1,277 +1,175 @@
-import { useParams } from "react-router-dom";
-import { useState } from "react";
+import { useLocation, useParams, useSearchParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import {
+  Checkbox,
+  Form,
+  Button,
+  Card,
+  Steps,
+  message,
+  Select,
+  Spin,
+} from "antd";
+import { MainInfo } from "./components/MainInfo/MainInfo";
+import { IncidentEvents } from "./components/IncidentEvents/IncidentEvents";
+import { IncidentAdditionally } from "./components/IncidentAdditionally/IncidentAdditionally";
+import { IncidentPunishments } from "./components/IncidentPunishments/IncidentPunishments";
+import { EIncidentStatus } from "../../enums/incident";
+import { useGetObjects } from "../../services/requests/objects/getObjects";
+import { useGetIncident } from "../../services/requests/initiators/getIncident";
+import { useCreateIncident } from "../../services/requests/initiators/createIncident";
+import { CreateIncidentBody } from "../../interfaces/requests/incident";
+import { useForm } from "./hooks/useForm";
 import styles from "./incidentProvider.module.scss";
-import { Checkbox, Form, Radio, DatePicker, Space, Button } from "antd";
-import { getDepartments } from "../../api/initiators/getDepartments";
-import { DepartmentSelect } from "./components/DepartmentSelect";
-import { KtsSubDepartmentSelect } from "./components/KtsSubDepartmentSelect";
-import { FoRegionSelect } from "./components/FoRegionSelect";
-import { FoSubRegionSelect } from "./components/FoSubRegionSelect";
-import { DzkDepartmentSelect } from "./components/DzkDepartmentSelect";
-import { EtskbDepartmentSelect } from "./components/EtskbDepartmentSelect";
-import { EventTypeSelect } from "./components/EventTypeSelect";
-import { ObjectSelect } from "./components/ObjectSelect";
-import { IncidentDetails } from "./components/IncidentDetails";
-import { PunishmentDetails } from "./components/PunishmentDetails";
-import { IncidentDescription } from "./components/IncidentDescription";
-import { CriminalCaseModal } from "./components/CriminalCaseModal";
+import { useUpdateIncident } from "../../services/requests/initiators/updateIncident";
+import { statusDict } from "../../constants/incidentDict";
 
 export const IncidentProvider = () => {
   const { id } = useParams();
-  const [form] = Form.useForm();
-  const [departmentType, setDepartmentType] = useState<string | null>(null);
-  const [foRegion, setFoRegion] = useState<string | null>(null);
-  const [subRegion, setSubRegion] = useState<string | null>(null);
-  const [eventType, setEventType] = useState<string | null>(null);
-  const [objectType, setObjectType] = useState<string | null>(null);
-  const [uavOrArsonObjectType, setUavOrArsonObjectType] = useState<
-    string | null
-  >(null);
-  const [isCriminalCaseModalVisible, setIsCriminalCaseModalVisible] =
-    useState(false);
+  const location = useLocation();
+  const isDuplicate = location.pathname.includes("duplicate");
+  const [currentStep, setCurrentStep] = useState(0);
 
-  const handleDepartmentTypeChange = (value: string) => {
-    setDepartmentType(value);
-    setFoRegion(null);
-    setSubRegion(null);
-    setEventType(null);
-    setObjectType(null);
-    setUavOrArsonObjectType(null);
-    form.setFieldsValue({
-      department: value,
-      subDepartment: undefined,
-      region: undefined,
-      dzkDepartment: undefined,
-      etskbDepartment: undefined,
-      subRegion: undefined,
-      eventType: undefined,
-      object: undefined,
-      uavOrArsonObject: undefined,
-      theftSubType: undefined,
-      damageAmount: undefined,
-      compensatedAmount: undefined,
-      isPunished: false,
-      guiltyPersonsCount: undefined,
-      measuresTakenCount: undefined,
-      incidentDescription: undefined,
-      bsNumber: undefined,
-      bsAddress: undefined,
-      officeNumber: undefined,
-      officeAddress: undefined,
-      premiseAddress: undefined,
-      personnelFullName: undefined,
-      personnelPosition: undefined,
-      personnelId: undefined,
-    });
-
-    const guiltyCount = form.getFieldValue("guiltyPersonsCount") || 0;
-    Array.from({ length: guiltyCount }).forEach((_, index) => {
-      form.setFieldsValue({ [`punishment-${index}`]: undefined });
-    });
+  const handleSetStep = (step: number) => {
+    setCurrentStep(step);
   };
 
-  const handleFoRegionChange = (value: string) => {
-    setFoRegion(value);
-    setSubRegion(null);
-    form.setFieldsValue({ region: value, subRegion: undefined });
+  const { data: incident, isLoading: isIncidentLoading } = useGetIncident(id);
+  const { data: objects, isLoading: isObjectsLoading } = useGetObjects();
+  const { mutate: createIncident, isLoading: isCreatingIncident } =
+    useCreateIncident(handleSetStep);
+  const { mutate: updateIncident, isLoading: isUpdatingIncident } =
+    useUpdateIncident();
+
+  const { form, onFinish } = useForm({
+    incident,
+    createIncident,
+    updateIncident,
+    isDuplicate,
+  });
+
+  const steps = [
+    {
+      title: "Основная информация",
+      content: (
+        <MainInfo objects={objects || []} isObjectsLoading={isObjectsLoading} />
+      ),
+    },
+    {
+      title: "События",
+      content: (
+        <IncidentEvents
+          objects={objects || []}
+          isObjectsLoading={isObjectsLoading}
+        />
+      ),
+    },
+    {
+      title: "Наказания",
+      content: <IncidentPunishments />,
+    },
+    {
+      title: "Дополнительно",
+      content: <IncidentAdditionally />,
+    },
+  ];
+
+  const nextStep = () => {
+    form
+      .validateFields()
+      .then((values) => {
+        console.log("Form values on next step:", values);
+        setCurrentStep(currentStep + 1);
+      })
+      .catch((error) => {
+        console.log("Validation failed:", error);
+      });
   };
 
-  const handleSubRegionChange = (value: string) => {
-    setSubRegion(value);
-    form.setFieldsValue({ subRegion: value });
+  const prevStep = () => {
+    setCurrentStep(currentStep - 1);
   };
 
-  const handleEventTypeChange = (value: string) => {
-    setEventType(value);
-    setUavOrArsonObjectType(null);
-    form.setFieldsValue({
-      eventType: value,
-      theftSubType: undefined,
-      damageAmount: undefined,
-      compensatedAmount: undefined,
-      uavOrArsonObject: undefined,
-      isPunished: false,
-      guiltyPersonsCount: undefined,
-      measuresTakenCount: undefined,
-      incidentDescription: undefined,
-      bsNumber: undefined,
-      bsAddress: undefined,
-      officeNumber: undefined,
-      officeAddress: undefined,
-      premiseAddress: undefined,
-      personnelFullName: undefined,
-      personnelPosition: undefined,
-      personnelId: undefined,
-    });
-    // Сбрасываем динамические селекторы наказаний
-    const guiltyCount = form.getFieldValue("guiltyPersonsCount") || 0;
-    Array.from({ length: guiltyCount }).forEach((_, index) => {
-      form.setFieldsValue({ [`punishment-${index}`]: undefined });
-    });
-  };
+  const items = steps.map((item) => ({ key: item.title, title: item.title }));
 
-  const handleObjectTypeChange = (value: string) => {
-    setObjectType(value);
-    form.setFieldsValue({
-      object: value,
-      bsNumber: undefined,
-      bsAddress: undefined,
-      officeNumber: undefined,
-      officeAddress: undefined,
-      premiseAddress: undefined,
-      personnelFullName: undefined,
-      personnelPosition: undefined,
-      personnelId: undefined,
-    });
-  };
-
-  const handleUavOrArsonObjectTypeChange = (value: string) => {
-    setUavOrArsonObjectType(value);
-    form.setFieldsValue({
-      uavOrArsonObject: value,
-      bsNumber: undefined,
-      bsAddress: undefined,
-      officeNumber: undefined,
-      officeAddress: undefined,
-      premiseAddress: undefined,
-      personnelFullName: undefined,
-      personnelPosition: undefined,
-      personnelId: undefined,
-    });
-  };
-
-  const showCriminalCaseModal = () => {
-    setIsCriminalCaseModalVisible(true);
-  };
-
-  const handleCriminalCaseOk = () => {
-    setIsCriminalCaseModalVisible(false);
-  };
-
-  const handleCriminalCaseCancel = () => {
-    setIsCriminalCaseModalVisible(false);
-  };
-
-  const getEventTypeLabel = (type: string | null): string => {
-    switch (type) {
-      case "Theft":
-        return "Кража";
-      case "Fire":
-        return "Пожар/Возгорание";
-      case "Damage":
-        return "Повреждение имущества";
-      case "UAV":
-        return "БПЛА";
-      case "Arson":
-        return "Поджог";
-      default:
-        return "";
-    }
-  };
-
-  const onFinish = (values: any) => {
-    console.log("Form values:", values);
-  };
-
-  console.log(id);
   return (
-    <>
-      <div className={styles.header}>
-        <h2>Инцидент</h2>
-        <div className={styles.headerActions}></div>
-      </div>
-      <Form form={form} layout="vertical" onFinish={onFinish}>
-        <div className={styles.selectors}>
-          <Form.Item name="importance" className={styles.formItem}>
-            <Checkbox>Важно / Не важно</Checkbox>
-          </Form.Item>
-
-          <DepartmentSelect
-            value={departmentType}
-            onChange={handleDepartmentTypeChange}
-          />
-          <KtsSubDepartmentSelect visible={departmentType === "KTS"} />
-          <FoRegionSelect
-            value={foRegion}
-            onChange={handleFoRegionChange}
-            visible={departmentType === "FO"}
-          />
-          <FoSubRegionSelect
-            visible={
-              departmentType === "FO" &&
-              foRegion !== null &&
-              foRegion !== "Moscow"
-            }
-            region={foRegion}
-            value={subRegion}
-            onChange={handleSubRegionChange}
-          />
-          <DzkDepartmentSelect visible={departmentType === "DZK"} />
-          <EtskbDepartmentSelect visible={departmentType === "ETSKB"} />
-          <EventTypeSelect value={eventType} onChange={handleEventTypeChange} />
-          <ObjectSelect value={objectType} onChange={handleObjectTypeChange} />
-          <Form.Item
-            name="direction"
-            className={styles.formItem}
-            label="Выбор направления"
-          >
-            <Radio.Group className={styles.radios}>
-              <Radio value="type1">ИБ</Radio>
-              <Radio value="type2">ЭБ</Radio>
-              <Radio value="type3">БПиО</Radio>
-            </Radio.Group>
-          </Form.Item>
-
-          <Form.Item
-            className={styles.formItem}
-            name="date-ivent"
-            label="Дата события"
-          >
-            <Space direction="vertical">
-              <DatePicker
-                className={styles.datePicker}
-                placeholder="Дата события"
-              />
-            </Space>
-          </Form.Item>
-
-          <Form.Item
-            className={styles.formItem}
-            name="date-add-in-base"
-            label="Дата внесения инцидента в базу"
-          >
-            <Space direction="vertical">
-              <DatePicker
-                className={styles.datePicker}
-                placeholder="Дата внесения"
-              />
-            </Space>
-          </Form.Item>
-
-          {eventType && (
-            <IncidentDetails
-              eventType={getEventTypeLabel(eventType)}
-              onOpenCriminalCase={showCriminalCaseModal}
-            />
+    <Card className={styles.card}>
+      <Form<CreateIncidentBody>
+        form={form}
+        layout="vertical"
+        onFinish={onFinish}
+      >
+        <div className={styles.header}>
+          {isIncidentLoading || isCreatingIncident || isUpdatingIncident ? (
+            <Spin />
+          ) : (
+            <>
+              <h2>
+                {id && !isDuplicate
+                  ? `Инцидент - id:${incident?.id}`
+                  : "Создание инцидента"}
+              </h2>
+            </>
           )}
-          {eventType && <PunishmentDetails form={form} />}
-          {eventType && <IncidentDescription form={form} />}
+          <div className={styles.headerActions}>
+            <Form.Item<CreateIncidentBody>
+              name="status"
+              className={styles.formStatus}
+            >
+              <Select
+                options={Object.values(EIncidentStatus).map((status) => ({
+                  label: statusDict[status as EIncidentStatus],
+                  value: status,
+                }))}
+                placeholder="Выберите статус"
+                allowClear
+              />
+            </Form.Item>
+            <Form.Item<CreateIncidentBody>
+              name="is_db"
+              className={styles.formItem}
+              valuePropName="checked"
+            >
+              <Checkbox>1-ДБ</Checkbox>
+            </Form.Item>
+          </div>
         </div>
-        <Form.Item>
-          <Button
-            type="primary"
-            htmlType="submit"
-            className={styles.buttonLust}
-          >
-            Отправить на согласование
-          </Button>
-        </Form.Item>
+        <div className={styles.stepsContainer}>
+          <Steps
+            current={currentStep}
+            items={items}
+            onChange={setCurrentStep}
+          />
+          <div className={styles.stepsContent}>
+            {steps[currentStep].content}
+          </div>
+          <div className={styles.stepsActions}>
+            {currentStep > 0 && (
+              <Button style={{ margin: "0 8px" }} onClick={() => prevStep()}>
+                Назад
+              </Button>
+            )}
+            {currentStep < steps.length - 1 && (
+              <Button type="primary" onClick={() => nextStep()}>
+                Далее
+              </Button>
+            )}
+            {currentStep === steps.length - 1 && (
+              <Button
+                type="primary"
+                onClick={() => {
+                  form.validateFields().then(() => {
+                    form.submit();
+                    message.success("Форма успешно отправлена!");
+                  });
+                }}
+              >
+                {id && !isDuplicate ? "Изменить" : "Отправить на согласование"}
+              </Button>
+            )}
+          </div>
+        </div>
       </Form>
-      <CriminalCaseModal
-        visible={isCriminalCaseModalVisible}
-        onOk={handleCriminalCaseOk}
-        onCancel={handleCriminalCaseCancel}
-      />
-    </>
+    </Card>
   );
 };

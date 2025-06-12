@@ -1,7 +1,11 @@
-import { EEventType } from "../../enums/eventType";
 
-export interface EventTypeAttributes {
-  id: number;
-  name: string;
-  type: EEventType;
+export interface EventTypeTree {
+  event_type_id: number;
+  value: string;
+  title: string;
+  children: EventTypeTree[];
+}
+
+export interface EventType {
+  treeData: EventTypeTree[];
 }

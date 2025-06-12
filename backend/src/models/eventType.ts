@@ -1,15 +1,16 @@
 import { DataTypes, Model, Optional } from 'sequelize';
 import { sequelize } from './sequelize';
-import { EEventType } from '../enums/eventTypes';
+import { transliterate } from '../utils/strings';
 
 export interface EventTypeAttributes {
-  id: number;
-  name: string;
-  type: EEventType;
+  event_type_id: number;
+  title: string;
+  value: string;
+  parent_id: number | null;
 }
 
 export interface EventTypeCreationAttributes
-  extends Optional<EventTypeAttributes, 'id'> {}
+  extends Optional<EventTypeAttributes, 'event_type_id'> {}
 
 // Интерфейс для экземпляра модели
 export interface EventTypeInstance
@@ -17,23 +18,51 @@ export interface EventTypeInstance
     EventTypeAttributes {}
 
 const EventType = sequelize.define<EventTypeInstance>('event_types', {
-  id: {
+  event_type_id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
     autoIncrement: true,
   },
-  name: {
+  title: {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  type: {
+  value: {
     type: DataTypes.STRING,
-    validate: {
-      isIn: [Object.values(EEventType)],
-    },
     allowNull: false,
-    unique: true
+    unique: true,
   },
+  parent_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: {
+      model: 'event_types',
+      key: 'event_type_id',
+    }
+  },
+}, {
+  hooks: {
+    beforeValidate: async (eventType: any) => {
+      if (eventType.changed('title')) {
+        let value = transliterate(eventType.title);
+        
+        // Если есть parent_id, добавляем префикс из названия родителя
+        if (eventType.parent_id) {
+          const parent = await EventType.findByPk(eventType.parent_id);
+          if (parent) {
+            const parentPrefix = transliterate(parent.title);
+            value = `${parentPrefix}_${value}`.toLowerCase();
+          }
+        }
+        
+        eventType.value = value;
+      }
+    }
+  }
 });
+
+// Определяем связи для иерархии
+EventType.belongsTo(EventType, { as: 'parent', foreignKey: 'parent_id' });
+EventType.hasMany(EventType, { as: 'children', foreignKey: 'parent_id' });
 
 export default EventType;

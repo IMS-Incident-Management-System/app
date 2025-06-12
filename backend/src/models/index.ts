@@ -16,7 +16,8 @@ EventHistory.belongsTo(EventType, {
 
 EventHistory.belongsTo(Incident, { 
   foreignKey: 'incident_id', 
-  as: 'parent_incident' 
+  as: 'parent_incident',
+  onDelete: 'CASCADE'
 });
 
 EventHistory.belongsTo(ObjectModel, { 
@@ -26,7 +27,8 @@ EventHistory.belongsTo(ObjectModel, {
 
 EventHistory.hasMany(CriminalCase, { 
   foreignKey: 'event_history_id', 
-  as: 'criminal_cases' 
+  as: 'criminal_cases',
+  onDelete: 'CASCADE'
 });
 
 // Incident связи
@@ -42,18 +44,20 @@ Incident.belongsTo(ObjectModel, {
 
 Incident.hasMany(EventHistory, { 
   foreignKey: 'incident_id', 
-  as: 'events'
+  as: 'events',
+  onDelete: 'CASCADE'
 });
 
-Incident.hasMany(Punishment, { 
-  foreignKey: 'incident_id', 
-  as: 'punishments' 
+Incident.hasMany(Punishment, {
+  foreignKey: 'incident_id',
+  as: 'punishments',
+  onDelete: 'CASCADE'
 });
 
 // Обратные связи
 EventType.hasMany(EventHistory, {
   foreignKey: 'event_type_id',
-  as: 'event_histories'
+  as: 'event_history'
 });
 
 // CriminalCase связи

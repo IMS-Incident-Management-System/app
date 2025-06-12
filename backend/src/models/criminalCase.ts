@@ -58,7 +58,7 @@ const CriminalCase = sequelize.define<CriminalCaseInstance>(
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: 'event_histories',
+        model: 'event_history',
         key: 'id'
       }
     },
@@ -67,7 +67,7 @@ const CriminalCase = sequelize.define<CriminalCaseInstance>(
       allowNull: true,
     },
     document_number: {
-      type: DataTypes.STRING,
+      type: DataTypes.INTEGER,
       allowNull: true,
     },
     department_name: {
@@ -95,7 +95,7 @@ const CriminalCase = sequelize.define<CriminalCaseInstance>(
       allowNull: true,
     },
     case_number: {
-      type: DataTypes.STRING,
+      type: DataTypes.INTEGER,
       allowNull: true,
     },
     law_article: {

@@ -6,6 +6,8 @@ import { Incident } from "../pages/Incident/Incident";
 import { ERoutes } from "../enums/routes";
 import { Profile } from "../pages/Profile/Profile";
 import { IncidentProvider } from "../pages/IncidentProvider/IncidentProvider";
+import { Departments } from "../pages/Departments/Departments";
+import IncidentEvents from "../pages/IncidentEvents";
 
 export const router = createBrowserRouter([
   {
@@ -29,8 +31,20 @@ export const router = createBrowserRouter([
         element: <IncidentProvider />,
       },
       {
+        path: ERoutes.INCIDENT_DUPLICATE_ID,
+        element: <IncidentProvider />,
+      },
+      {
+        path: ERoutes.DEPARTMENTS,
+        element: <Departments />,
+      },
+      {
         path: ERoutes.PROFILE,
         element: <Profile />,
+      },
+      {
+        path: ERoutes.INCIDENT_EVENTS,
+        element: <IncidentEvents />,
       },
     ],
   },
