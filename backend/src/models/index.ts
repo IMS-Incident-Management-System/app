@@ -11,7 +11,8 @@ import TheftType from './incidentEvents/theft';
 // EventHistory связи
 EventHistory.belongsTo(EventType, { 
   foreignKey: 'event_type_id', 
-  as: 'event_type' 
+  as: 'event_type',
+  onDelete: 'SET NULL'
 });
 
 EventHistory.belongsTo(Incident, { 
@@ -57,7 +58,8 @@ Incident.hasMany(Punishment, {
 // Обратные связи
 EventType.hasMany(EventHistory, {
   foreignKey: 'event_type_id',
-  as: 'event_history'
+  as: 'event_history',
+  onDelete: 'SET NULL'
 });
 
 // CriminalCase связи

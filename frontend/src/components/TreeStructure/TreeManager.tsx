@@ -120,7 +120,6 @@ const TreeManager: React.FC<TreeManagerProps> = ({ config, mutations, customizat
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [form] = Form.useForm();
 
-  // Queries
   const { data: rawData, isLoading: isDataLoading, refetch } = useQuery<TreeData>(
     [config.apiEndpoint],
     async () => {
@@ -129,7 +128,6 @@ const TreeManager: React.FC<TreeManagerProps> = ({ config, mutations, customizat
     }
   );
 
-  // Process data and add keys
   const treeData = useMemo(() => {
     if (!rawData?.treeData) return [];
     
@@ -144,7 +142,6 @@ const TreeManager: React.FC<TreeManagerProps> = ({ config, mutations, customizat
     return addKeys(rawData.treeData);
   }, [rawData, config.idField]);
 
-  // Handlers
   const handleAdd = (node?: TreeNode) => {
     form.resetFields();
     setSelectedNode(node || null);

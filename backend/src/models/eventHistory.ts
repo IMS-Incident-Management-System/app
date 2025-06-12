@@ -48,7 +48,7 @@ const EventHistory = sequelize.define<EventHistoryInstance>('event_history', {
   },
   event_type_id: {
     type: DataTypes.INTEGER,
-    allowNull: false,
+    allowNull: true,
     references: {
       model: 'event_types',
       key: 'event_type_id',
