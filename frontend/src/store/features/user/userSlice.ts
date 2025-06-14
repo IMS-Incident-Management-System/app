@@ -40,4 +40,4 @@ export const userSlice = createAppSlice({
 export const { signIn } = userSlice.actions;
 export const { selectUser } = userSlice.selectors;
 
-export default userSlice.reducer;
+export const userReducer = userSlice.reducer;

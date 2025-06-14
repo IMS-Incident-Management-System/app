@@ -2,9 +2,9 @@ import axiosComponent, { AxiosInstance } from "axios";
 import { onErrorResponse, onRequest, onResponse } from "./axios.interceptors";
 
 export const axiosGatewayKeycloakUrl =
-  process?.env?.baseURLKeycloak ?? "http://localhost:8091/api/keycloak";
+  process.env.REACT_APP_BASE_URL_KEYCLOAK ?? "http://localhost:8087";
 export const axiosGatewayBackendUrl =
-  process?.env?.baseURLBackend ?? "http://localhost:8091/api/v1";
+  process.env.REACT_APP_BASE_URL_BACKEND ?? "http://localhost/api";
 
 export const setupInterceptors = (instance: AxiosInstance): AxiosInstance => {
   instance.interceptors.request.use(onRequest, onErrorResponse);

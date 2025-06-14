@@ -1,13 +1,21 @@
 import { Sequelize } from 'sequelize';
 import 'dotenv/config';
 
+console.log('Environment variables:', {
+  db: process.env.POSTGRES_DB,
+  user: process.env.POSTGRES_USER,
+  host: process.env.POSTGRES_HOST,
+  port: process.env.POSTGRES_PORT,
+  password: process.env.POSTGRES_PASSWORD
+});
+
 export const sequelize = new Sequelize(
-  process.env.POSTGRES_DB ?? 'iml',
-  process.env.POSTGRES_USER ?? 'admin',
-  process.env.POSTGRES_PASSWORD ?? 'admin',
+  process.env.POSTGRES_DB!,
+  process.env.POSTGRES_USER!,
+  process.env.POSTGRES_PASSWORD!,
   {
-    host: 'localhost',
-    port: parseInt(process.env.POSTGRES_PORT || '5432'),
+    host: process.env.POSTGRES_HOST!,
+    port: parseInt(process.env.POSTGRES_PORT!),
     dialect: 'postgres',
 
     pool: {

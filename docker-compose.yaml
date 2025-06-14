@@ -1,16 +1,28 @@
 services:
-  # nginx:
-  #   build:
-  #     context: ./frontend
-  #     dockerfile: Dockerfile
-  #   restart: unless-stopped
-  #   container_name: nginx
-  #   ports:
-  #     - 80:80
-  #   env_file:
-  #     - ./frontend/.env
-  #   networks:
-  #     - ims-base-network
+  ims-nginx:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    container_name: ims-nginx
+    ports:
+      - 80:80
+    env_file:
+      - ./frontend/.env
+    networks:
+      - ims-base-network
+
+  ims-backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    container_name: ims-backend
+    env_file:
+    #  - ./.env/.backend.development.env
+      - ./.env/.backend.prod.env
+    networks:
+      - ims-base-network
 
   # rag_mongodb:
   #   image: mongo:latest
@@ -46,26 +58,27 @@ services:
   #     retries: 3
   #     start_period: 10s
 
-  keycloak:
+  ims-keycloak:
     image: quay.io/keycloak/keycloak:latest
     restart: unless-stopped
-    container_name: keycloak
+    container_name: ims-keycloak
     env_file:
-      - ./.env/.keycloak.development.env
+    #  - ./.env/.keycloak.development.env
+      - ./.env/.keycloak.prod.env
     volumes:
       - ./keycloak:/opt/keycloak/conf
     ports:
       - "8087:8087"
     command: [ "start-dev", "--http-port=8087" ]
     depends_on:
-      - keycloak-db
+      - ims-keycloak-db
     networks:
       - ims-base-network
 
-  keycloak-db:
+  ims-keycloak-db:
     image: postgres:15-alpine
     restart: unless-stopped
-    container_name: keycloak-db
+    container_name: ims-keycloak-db
     env_file:
       - ./.env/.keycloak.development.env
     volumes:
@@ -73,32 +86,28 @@ services:
     networks:
       - ims-base-network
 
-  postgres:
+  ims-postgres:
     image: postgres
     restart: unless-stopped
     env_file:
-      - ./.env/.postgres.development.env
+      - ./.env/.postgres.prod.env
     volumes:
       - iml-db-data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
     networks:
       - ims-base-network
 
-  pgadmin:
+  ims-pgadmin:
     image: dpage/pgadmin4
     restart: unless-stopped
-    container_name: pgadmin
+    container_name: ims-pgadmin
     env_file:
       - ./.env/.pgadmin.development.env
-    ports:
-      - "5050:80"
     volumes:
       - pgadmin-data:/var/lib/pgadmin
     networks:
       - ims-base-network
     depends_on:
-      - postgres
+      - ims-postgres
 
 volumes:
   keycloak-db-data:

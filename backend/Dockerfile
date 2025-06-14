@@ -5,13 +5,16 @@ FROM node:18-alpine AS builder
 WORKDIR /app
 
 # Копируем только package.json и package-lock.json для установки зависимостей
-COPY ./package*.json ./
+COPY ./backend/package*.json ./
 
 # Устанавливаем зависимости
 RUN npm install
 
+# Копируем env файл
+COPY ./.env/.backend.prod.env ./.env
+
 # Копируем весь исходный код
-COPY . .
+COPY ./backend .
 
 # Собираем проект
 RUN npm run build
@@ -24,6 +27,9 @@ COPY --from=builder /app/dist ./dist
 
 # Копируем package.json для запуска
 COPY --from=builder /app/package*.json ./
+
+# Копируем env файл
+COPY --from=builder /app/.env ./.env
 
 # Устанавливаем только production-зависимости
 RUN npm install --production
