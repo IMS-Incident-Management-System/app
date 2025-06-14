@@ -1,7 +1,7 @@
 import { useSelector } from "react-redux";
 import { useGetInitiators } from "../../services/requests/initiators/getInitiators";
 import { selectUserSelector } from "../../store/features/user/selectors";
-import { Button, Empty, Spin, Table } from "antd";
+import { Button } from "antd";
 import type { TablePaginationConfig } from "antd/es/table";
 import styles from "./Home.module.scss";
 import { useNavigate } from "react-router-dom";
@@ -18,6 +18,7 @@ import { usePrepareTableData } from "./hooks/usePrepareTableData";
 import { ERoutes } from "../../enums/routes";
 import { queryClient } from "../../plugins/query";
 import { EQueryKeys } from "../../enums/query";
+import { Table } from "../../components/Table/Table";
 
 export const Home = () => {
   const navigate = useNavigate();
