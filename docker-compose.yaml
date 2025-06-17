@@ -6,7 +6,7 @@ services:
       context: ./sslProvider
       dockerfile: Dockerfile
     restart: unless-stopped
-    container_name: ssl-nginx
+    container_name: ims-ssl-nginx
     ports:
       - 80:80
     volumes:
