@@ -15,7 +15,7 @@ class AuthService {
 
   private constructor() {
     this.keycloakConfig = {
-      url: process.env.baseURLKeycloakFE || "http://localhost:8087",
+      url: process.env.baseURLKeycloakFE || "https://ims-mts.ru",
       realm: "ims",
       clientId: "ims_client",
     };
