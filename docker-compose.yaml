@@ -1,5 +1,40 @@
 services:
+  # SSL Provider services
+  ssl-nginx:
+    profiles: ["ssl"]
+    build:
+      context: ./sslProvider
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    container_name: ssl-nginx
+    ports:
+      - 80:80
+    volumes:
+      - certbot-www:/var/www/certbot
+    networks:
+      - ims-base-network
+
+  certbot:
+    profiles: ["ssl"]
+    image: certbot/certbot
+    volumes:
+      - ssl-certs:/etc/letsencrypt
+      - certbot-www:/var/www/certbot
+    command: certonly --webroot -w /var/www/certbot --email your@email.com -d ims-mts.ru -d www.ims-mts.ru --agree-tos --no-eff-email --force-renewal
+    depends_on:
+      - ssl-nginx
+    healthcheck:
+      test: ["CMD", "test", "-f", "/etc/letsencrypt/live/ims-mts.ru/fullchain.pem"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - ims-base-network
+
+  # Main application services
   ims-nginx:
+    profiles: ["app"]
     build:
       context: ./frontend
       dockerfile: Dockerfile
@@ -12,11 +47,14 @@ services:
       - ./frontend/.env
     volumes:
       - ssl-certs:/etc/nginx/ssl
-      - certbot-www:/var/www/certbot
+    depends_on:
+      certbot:
+        condition: service_healthy
     networks:
       - ims-base-network
 
   ims-backend:
+    profiles: ["app"]
     build:
       context: .
       dockerfile: backend/Dockerfile
@@ -29,6 +67,7 @@ services:
       - ims-base-network
 
   ims-keycloak:
+    profiles: ["app"]
     image: quay.io/keycloak/keycloak:latest
     restart: unless-stopped
     container_name: ims-keycloak
@@ -46,6 +85,7 @@ services:
       - ims-base-network
 
   ims-keycloak-db:
+    profiles: ["app"]
     image: postgres:15-alpine
     restart: unless-stopped
     container_name: ims-keycloak-db
@@ -57,6 +97,7 @@ services:
       - ims-base-network
 
   ims-postgres:
+    profiles: ["app"]
     image: postgres
     restart: unless-stopped
     env_file:
@@ -67,6 +108,7 @@ services:
       - ims-base-network
 
   ims-pgadmin:
+    profiles: ["app"]
     image: dpage/pgadmin4
     restart: unless-stopped
     container_name: ims-pgadmin
@@ -78,15 +120,6 @@ services:
       - ims-base-network
     depends_on:
       - ims-postgres
-
-  certbot:
-    image: certbot/certbot
-    volumes:
-      - ssl-certs:/etc/letsencrypt
-      - certbot-www:/var/www/certbot
-    command: certonly --webroot -w /var/www/certbot --email your@email.com -d ims-mts.ru -d www.ims-mts.ru --agree-tos --no-eff-email --force-renewal
-    networks:
-      - ims-base-network
 
 volumes:
   ssl-certs:
