@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Функция для проверки наличия сертификатов
+ # Функция для проверки наличия сертификатов
 check_certificates() {
     if [ -f "/etc/letsencrypt/live/ims-mts.ru/fullchain.pem" ]; then
         return 0
@@ -11,7 +11,7 @@ check_certificates() {
 
 # Запускаем SSL сервисы
 echo "Starting SSL services..."
-docker-compose --profile ssl up -d
+docker compose --profile ssl up --build
 
 # Ждем, пока сертификаты появятся
 echo "Waiting for SSL certificates..."
@@ -24,6 +24,6 @@ echo "SSL certificates found!"
 
 # Запускаем основное приложение
 echo "Starting main application..."
-docker-compose --profile app up -d
+docker compose --profile app up --build
 
 echo "All services are up and running!"
