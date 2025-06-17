@@ -73,9 +73,10 @@ services:
       - ./.env/.keycloak.prod.env
     volumes:
       - ./keycloak:/opt/keycloak/conf
+      - ssl-certs:/opt/keycloak/certs
     ports:
-      - "8087:8087"
-    command: [ "start-dev", "--http-port=8087" ]
+      - 8087:8087
+    command: start --https-certificate-file=/opt/keycloak/certs/live/ims-mts.ru/fullchain.pem --https-certificate-key-file=/opt/keycloak/certs/live/ims-mts.ru/privkey.pem
     depends_on:
       - ims-keycloak-db
     networks:
