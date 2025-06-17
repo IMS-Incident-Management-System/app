@@ -39,6 +39,6 @@ echo "SSL certificates found!"
 
 # Запускаем основное приложение
 echo "Starting main application..."
-docker compose --profile app up --build
+docker compose --profile app up --build -d
 
 echo "All services are up and running!"
