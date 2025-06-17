@@ -60,6 +60,12 @@ services:
     env_file:
     #  - ./.env/.backend.development.env
       - ./.env/.backend.prod.env
+    volumes:
+      - ssl-certs:/app/certs:ro
+    ports:
+      - 8091:8091
+    depends_on:
+      - ims-postgres
     networks:
       - ims-base-network
 

@@ -7,6 +7,9 @@ import { sequelize } from './src/models/sequelize';
 import { errorHandler } from './src/middlewares/errorHandler.middleware';
 import { responseHandler } from './src/middlewares/responseHandler.middleware';
 import { runSeeders } from './src/seeders';
+import https from 'https';
+import fs from 'fs';
+import path from 'path';
 
 dotenv.config();
 
@@ -60,11 +63,27 @@ const startServer = async () => {
     await runSeeders();
     console.log('Seeders completed');
 
+    // SSL configuration
+    const sslOptions = {
+      key: fs.readFileSync(path.join('/app/certs/live/ims-mts.ru/privkey.pem')),
+      cert: fs.readFileSync(path.join('/app/certs/live/ims-mts.ru/fullchain.pem'))
+    };
+
+    // Create HTTPS server
+    const server = https.createServer(sslOptions, application);
+
     // Запускаем сервер
-    application.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
-      console.log(`API is available at http://localhost:${PORT}/api/v1`);
-    });
+    if (process.env.NODE_ENV === 'development') {
+      application.listen(PORT, () => {
+        console.log(`Development server is running on port ${PORT}`);
+        console.log(`API is available at http://localhost:${PORT}/api/v1`);
+      });
+    } else {
+      server.listen(PORT, () => {
+        console.log(`Production HTTPS server is running on port ${PORT}`);
+        console.log(`API is available at https://ims-mts.ru:${PORT}/api/v1`);
+      });
+    }
   } catch (error) {
     console.error('Failed to start server:', error);
     process.exit(1);
