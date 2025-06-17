@@ -13,9 +13,6 @@ services:
     volumes:
       - ssl-certs:/etc/nginx/ssl
       - certbot-www:/var/www/certbot
-    depends_on:
-      certbot:
-        condition: service_healthy
     networks:
       - ims-base-network
 
@@ -87,12 +84,9 @@ services:
     volumes:
       - ssl-certs:/etc/letsencrypt
       - certbot-www:/var/www/certbot
-    command: certonly --webroot -w /var/www/certbot --email your@email.com -d ims-mts.ru -d www.ims-mts.ru --agree-tos --no-eff-email
-    healthcheck:
-      test: ["CMD", "test", "-f", "/etc/letsencrypt/live/ims-mts.ru/fullchain.pem"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
+    command: certonly --webroot -w /var/www/certbot --email your@email.com -d ims-mts.ru -d www.ims-mts.ru --agree-tos --no-eff-email --force-renewal
+    networks:
+      - ims-base-network
 
 volumes:
   ssl-certs:
