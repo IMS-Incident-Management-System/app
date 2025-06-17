@@ -11,7 +11,7 @@ check_certificates() {
 
 # Запускаем SSL сервисы
 echo "Starting SSL services..."
-docker compose --profile ssl up --build
+docker compose --profile ssl up --build -d
 
 # Ждем, пока сертификаты появятся
 echo "Waiting for SSL certificates..."
