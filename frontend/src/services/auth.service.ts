@@ -35,18 +35,25 @@ class AuthService {
 
   public async init(): Promise<boolean> {
     if (!this.keycloak) {
+      console.log('Starting Keycloak initialization with config:', this.keycloakConfig);
       this.keycloak = new Keycloak(this.keycloakConfig);
 
       try {
+        console.log('Calling keycloak.init with options:', this.initOptions);
         const authenticated = await this.keycloak.init(this.initOptions);
+        console.log('Keycloak init result:', authenticated);
+        
         if (authenticated) {
+          console.log('Authentication successful, token:', this.keycloak.token?.substring(0, 20) + '...');
           this._isAuthenticated = true;
           this.token = this.keycloak.token;
         } else {
+          console.log('Authentication failed');
           this._isAuthenticated = false;
         }
         return authenticated;
       } catch (error) {
+        console.error('Keycloak initialization error:', error);
         return false;
       }
     }
