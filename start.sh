@@ -1,8 +1,15 @@
 #!/bin/bash
 
- # Функция для проверки наличия сертификатов
+# Функция для проверки наличия сертификатов в volume
 check_certificates() {
-    if [ -f "/etc/letsencrypt/live/ims-mts.ru/fullchain.pem" ]; then
+    # Проверяем, что volume существует
+    if ! docker volume inspect ssl-certs >/dev/null 2>&1; then
+        echo "SSL certificates volume not found"
+        return 1
+    fi
+
+    # Проверяем наличие сертификатов в volume через временный контейнер
+    if docker run --rm -v ssl-certs:/etc/letsencrypt alpine test -f /etc/letsencrypt/live/ims-mts.ru/fullchain.pem; then
         return 0
     else
         return 1
