@@ -76,7 +76,7 @@ services:
       - ssl-certs:/etc/letsencrypt:ro
     ports:
       - 8087:8087
-    command: start-dev --https-certificate-file=/etc/letsencrypt/live/ims-mts.ru/fullchain.pem --https-certificate-key-file=/etc/letsencrypt/live/ims-mts.ru/privkey.pem
+    command: start --https-certificate-file=/etc/letsencrypt/live/ims-mts.ru/fullchain.pem --https-certificate-key-file=/etc/letsencrypt/live/ims-mts.ru/privkey.pem
     user: root
     depends_on:
       - ims-keycloak-db
