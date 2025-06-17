@@ -93,6 +93,7 @@ services:
       retries: 3
 
 volumes:
+  ssl-certs:
   keycloak-db-data:
   iml-db-data:
   pgadmin-data:
