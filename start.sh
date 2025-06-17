@@ -1,17 +1,21 @@
 #!/bin/bash
 
+# Получаем имя проекта из текущей директории
+PROJECT_NAME=$(basename $(pwd))
+VOLUME_NAME="${PROJECT_NAME}_ssl-certs"
+
 # Функция для проверки наличия сертификатов в volume
 check_certificates() {
     # Проверяем, что volume существует
-    if ! docker volume inspect app_ssl-certs >/dev/null 2>&1; then
-        echo "SSL certificates volume not found"
+    if ! docker volume inspect $VOLUME_NAME >/dev/null 2>&1; then
+        echo "SSL certificates volume not found: $VOLUME_NAME"
         return 1
     fi
 
-    echo "Checking certificates in volume app_ssl-certs..."
+    echo "Checking certificates in volume $VOLUME_NAME..."
     
     # Проверяем наличие сертификатов в volume через временный контейнер
-    if docker run --rm -v app_ssl-certs:/etc/letsencrypt alpine test -f /etc/letsencrypt/live/ims-mts.ru/fullchain.pem; then
+    if docker run --rm -v $VOLUME_NAME:/etc/letsencrypt alpine test -f /etc/letsencrypt/live/ims-mts.ru/fullchain.pem; then
         echo "Certificates found in volume!"
         return 0
     else
