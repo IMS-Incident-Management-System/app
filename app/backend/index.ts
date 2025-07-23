@@ -19,7 +19,20 @@ const PORT = 8091;
 const createApp = () => {
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
-  app.use(cors());
+  // CORS handled by nginx in development, by backend in production
+  if (process.env.NODE_ENV === 'production') {
+    app.use(cors({
+      origin: ['https://ims-mts.ru', 'https://www.ims-mts.ru'],
+      credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With']
+    }));
+  } else {
+    // В development CORS обрабатывается nginx, отключаем дублирование
+    app.use(cors({
+      origin: false
+    }));
+  }
 
   // Базовый роут для проверки работы сервера
   app.get('/health', (req, res) => {
@@ -64,21 +77,21 @@ const startServer = async () => {
     console.log('Seeders completed');
 
     // SSL configuration
-    const sslOptions = {
-      key: fs.readFileSync(path.join('/app/certs/live/ims-mts.ru/privkey.pem')),
-      cert: fs.readFileSync(path.join('/app/certs/live/ims-mts.ru/fullchain.pem'))
-    };
-
-    // Create HTTPS server
-    const server = https.createServer(sslOptions, application);
+    const sslOptions = process.env.NODE_ENV === 'production'
+      ? {
+        key: fs.readFileSync(path.join('/app/certs/live/ims-mts.ru/privkey.pem')),
+        cert: fs.readFileSync(path.join('/app/certs/live/ims-mts.ru/fullchain.pem'))
+      }
+      : undefined;
 
     // Запускаем сервер
-    if (process.env.NODE_ENV === 'development') {
+    if (!sslOptions) {
       application.listen(PORT, () => {
         console.log(`Development server is running on port ${PORT}`);
         console.log(`API is available at http://localhost:${PORT}/api/v1`);
       });
     } else {
+      const server = https.createServer(sslOptions, application);
       server.listen(PORT, () => {
         console.log(`Production HTTPS server is running on port ${PORT}`);
         console.log(`API is available at https://ims-mts.ru:${PORT}/api/v1`);

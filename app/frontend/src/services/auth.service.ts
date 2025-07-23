@@ -15,7 +15,7 @@ class AuthService {
 
   private constructor() {
     this.keycloakConfig = {
-      url: "https://ims-mts.ru:8087",
+      url: process.env.NODE_ENV === "development" ? process.env.REACT_APP_BASE_URL_KEYCLOAK : process.env.baseURLKeycloakFE,
       realm: "ims",
       clientId: "ims_client",
     };
@@ -42,7 +42,7 @@ class AuthService {
         console.log('Calling keycloak.init with options:', this.initOptions);
         const authenticated = await this.keycloak.init(this.initOptions);
         console.log('Keycloak init result:', authenticated);
-        
+
         if (authenticated) {
           console.log('Authentication successful, token:', this.keycloak.token?.substring(0, 20) + '...');
           this._isAuthenticated = true;

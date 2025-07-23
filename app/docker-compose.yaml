@@ -1,0 +1,137 @@
+services:
+  ims-env-generator:
+    profiles: ["ims-env-generator"]
+    image: nexus.code-generation.ru/docker-company-artifacts/env-generator:latest
+    env_file:
+      - ./.env-files/.env-generator.env
+    volumes:
+      - ./.env:/app/config/.env
+    restart: "no"
+
+  ims-nginx:
+    image: nginx:alpine
+    container_name: ${NGINX_CONTAINER_NAME}
+    restart: unless-stopped
+    ports:
+      - 80:80
+      - 443:443
+    env_file:
+      - ./frontend/.env
+    volumes:
+      - ./frontend/dist:/usr/share/nginx/html
+      - ./nginx/${NODE_ENV}/nginx.conf:/etc/nginx/nginx.conf:ro
+      - certs:/etc/letsencrypt:ro
+      - webroot:/var/www/certbot:ro
+    networks:
+      - ims-base-network
+
+  ims-backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    container_name: ims-backend
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - KEYCLOAK_URL=${BACKEND_KEYCLOAK_URL}
+      - KEYCLOAK_URL_ISSUER=${BACKEND_KEYCLOAK_URL_ISSUER}
+      - KEYCLOAK_REALM=${BACKEND_KEYCLOAK_REALM}
+      - KEYCLOAK_CLIENT_ID=${BACKEND_KEYCLOAK_CLIENT_ID}
+      - KEYCLOAK_CLIENT_ID_FE=${BACKEND_KEYCLOAK_CLIENT_ID_FE}
+      - KEYCLOAK_CLIENT_SECRET=${BACKEND_KEYCLOAK_CLIENT_SECRET}
+      - POSTGRES_DB=${BACKEND_POSTGRES_DB}
+      - POSTGRES_USER=${BACKEND_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${BACKEND_POSTGRES_PASSWORD}
+      - POSTGRES_HOST=${BACKEND_POSTGRES_HOST}
+      - POSTGRES_PORT=${BACKEND_POSTGRES_PORT}
+    volumes:
+      - certs:/app/certs:ro
+    ports:
+      - 8091:8091
+    depends_on:
+      - ims-postgres
+    networks:
+      - ims-base-network
+
+  ims-keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    restart: unless-stopped
+    container_name: ims-keycloak
+    environment:
+      - KC_DB=${KC_OWN_KC_DB}
+      - KC_DB_PASSWORD=${KC_OWN_KC_DB_PASSWORD}
+      - KC_DB_URL=${KC_OWN_KC_DB_URL}
+      - KC_DB_USERNAME=${KC_OWN_KC_DB_USERNAME}
+      - KC_HOSTNAME=${KC_OWN_KC_HOSTNAME}
+      - KEYCLOAK_ADMIN=${KC_OWN_KEYCLOAK_ADMIN}
+      - KEYCLOAK_ADMIN_PASSWORD=${KC_OWN_KEYCLOAK_ADMIN_PASSWORD}
+      - KEYCLOAK_FRONTEND_URL=${KC_OWN_KEYCLOAK_FRONTEND_URL}
+    volumes:
+      - ./keycloak:/opt/keycloak/conf
+      - certs:/etc/letsencrypt:ro
+    ports:
+      # - 8087:8443
+      - 8087:8080
+    # command: start --https-certificate-file=/etc/letsencrypt/live/ims-mts.ru/fullchain.pem --https-certificate-key-file=/etc/letsencrypt/live/ims-mts.ru/privkey.pem
+    command: start-dev
+    user: root
+    depends_on:
+      - ims-keycloak-db
+    networks:
+      - ims-base-network
+
+  ims-keycloak-db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    container_name: ims-keycloak-db
+    environment:
+      - POSTGRES_DB=${KC_OWN_POSTGRES_DB}
+      - POSTGRES_PASSWORD=${KC_OWN_POSTGRES_PASSWORD}
+      - POSTGRES_USER=${KC_OWN_POSTGRES_USER}
+    volumes:
+      - keycloak-db-data:/var/lib/postgresql/data
+    networks:
+      - ims-base-network
+
+  ims-postgres:
+    image: postgres
+    restart: unless-stopped
+    container_name: ims-postgres
+    environment:
+      - POSTGRES_DB=${BACKEND_POSTGRES_DB}
+      - POSTGRES_PASSWORD=${BACKEND_POSTGRES_PASSWORD}
+      - POSTGRES_USER=${BACKEND_POSTGRES_USER}
+      - POSTGRES_HOST=${BACKEND_POSTGRES_HOST}
+      - POSTGRES_PORT=${BACKEND_POSTGRES_PORT}
+      - PGDATA=${BACKEND_POSTGRES_PGDATA}
+    volumes:
+      - ims-db-data:/var/lib/postgresql/data
+    networks:
+      - ims-base-network
+
+  ims-pgadmin:
+    image: dpage/pgadmin4
+    restart: unless-stopped
+    container_name: ims-pgadmin
+    environment:
+      - DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
+      - DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    networks:
+      - ims-base-network
+    depends_on:
+      - ims-postgres
+
+volumes:
+  keycloak-db-data:
+  ims-db-data:
+  pgadmin-data:
+  certs:
+    external: true
+  webroot:
+    external: true
+
+networks:
+  ims-base-network:
+    driver: bridge

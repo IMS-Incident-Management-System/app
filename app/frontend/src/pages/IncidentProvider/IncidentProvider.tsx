@@ -1,5 +1,5 @@
-import { useLocation, useParams, useSearchParams } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useLocation, useParams } from "react-router-dom";
+import { useState } from "react";
 import {
   Checkbox,
   Form,
