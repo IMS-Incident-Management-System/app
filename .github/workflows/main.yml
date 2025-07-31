@@ -1,18 +1,18 @@
-name: Publish Infra Archive to Nexus
+name: Deploy IMS Application
 
 on:
   push:
     branches: [ main ]
 
 env:
-  NEXUS_URL: https://nexus.code-generation.ru/repository/raw-company-artifacts/infra
+  NEXUS_URL: https://nexus.code-generation.ru/repository/raw-client-artifacts/ims
   MINIO_ENDPOINT: https://s3.minio.code-generation.ru
-  MINIO_BUCKET: codegen-backup/backups/nexus/artifacts/raw-company-artifacts/infra
+  MINIO_BUCKET: codegen-backup/backups/nexus/artifacts/raw-client-artifacts/ims
 
 jobs:
   deploy-ssh:
     runs-on: self-hosted
-    environment: NEXUS
+    environment: IMS
     timeout-minutes: 20
     outputs:
       archive_name: ${{ steps.ssh-deploy.outputs.archive_name }}
@@ -24,11 +24,11 @@ jobs:
         id: ssh-deploy
         run: |
           set -e
-          ARCHIVE=infra-$(date +%Y%m%d%H%M%S).tar.gz
+          ARCHIVE=ims-$(date +%Y%m%d%H%M%S).tar.gz
           
           # Копируем папку app на сервер
           sshpass -p '${{ secrets.DEPLOY_PASSWORD }}' \
-            scp -P ${{ secrets.DEPLOY_PORT }} -o StrictHostKeyChecking=no -r ./app ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:~/infra/
+            scp -P ${{ secrets.DEPLOY_PORT }} -o StrictHostKeyChecking=no -r ./app ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:~/ims/
           
           # Деплой и создание архива на сервере
           sshpass -p '${{ secrets.DEPLOY_PASSWORD }}' \
@@ -37,26 +37,46 @@ jobs:
                 -p ${{ secrets.DEPLOY_PORT }} \
                 ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
             "set -e; \
-             mkdir -p ~/infra; \
-             cd ~/infra; \
-             echo 'Stopping all infra containers...'; \
-             docker compose --profile ssl down 2>/dev/null || true; \
-             docker compose --profile infra down 2>/dev/null || true; \
+             mkdir -p ~/ims; \
+             cd ~/ims; \
+             echo 'Stopping all containers...'; \
+             cd app 2>/dev/null && docker compose down 2>/dev/null || true; \
+             cd ..; \
              echo 'Cleaning up old containers...'; \
-             docker rm -f codegen-ssl-nginx codegen-certbot codegen-nginx-proxy codegen-vault codegen-backup-cron 2>/dev/null || true; \
-             echo 'Cleaning up unused images and networks...'; \
-             docker system prune -f; \
-             echo 'Setting up configuration...'; \
+             docker container prune -f; \
+             docker image prune -f; \
+             echo 'Starting deployment process...'; \
              cd app; \
-             echo 'VAULT_ADDR=${{ secrets.VAULT_ADDR }}' > .env; \
-             echo 'VAULT_API_ADDR=${{ secrets.VAULT_API_ADDR }}' >> .env; \
-             echo 'VAULT_CLUSTER_ADDR=${{ secrets.VAULT_CLUSTER_ADDR }}' >> .env; \
-             echo 'MINIO_ALIAS=codegen-backup' >> .env; \
-             echo 'MINIO_ROOT_USER=${{ secrets.MINIO_ROOT_USER }}' >> .env; \
-             echo 'MINIO_ROOT_PASSWORD=${{ secrets.MINIO_ROOT_PASSWORD }}' >> .env; \
-             echo 'MINIO_VAULT_BUCKET=${{ secrets.MINIO_VAULT_BUCKET }}' >> .env; \
-             echo 'Starting services...'; \
-             bash start.sh; \
+             echo 'Creating .env-files directory and secrets...'; \
+             mkdir -p .env-files; \
+             echo 'VAULT_USER=${{ secrets.VAULT_USER }}' > .env-files/.env-generator.env; \
+             echo 'VAULT_PASS=${{ secrets.VAULT_PASSWORD }}' >> .env-files/.env-generator.env; \
+             echo 'VAULT_PATH=${{ secrets.VAULT_PATH }}' >> .env-files/.env-generator.env; \
+             echo 'Step 1: Running deploy-cert.sh...'; \
+             chmod +x scripts/deploy-cert.sh; \
+             bash scripts/deploy-cert.sh production; \
+             echo 'Step 2: Running ims-env-generator...'; \
+             docker compose --profile ims-env-generator up --pull always; \
+             docker compose --profile ims-env-generator down; \
+             echo 'Step 3: Installing Node.js and building frontend...'; \
+             curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -; \
+             sudo apt-get install -y nodejs || echo 'Node.js already installed'; \
+             node --version; \
+             npm --version; \
+             cd frontend; \
+             echo 'Creating frontend .env file...'; \
+             cp ../.env .env 2>/dev/null || touch .env; \
+             sed -i 's/NODE_ENV=development/NODE_ENV=production/g' .env; \
+             echo 'Frontend NODE_ENV set to production'; \
+             echo 'Installing frontend dependencies...'; \
+             npm install; \
+             echo 'Building frontend...'; \
+             npm run build; \
+             ls -la dist/; \
+             cd ..; \
+             echo 'Step 4: Starting all services...'; \
+             docker compose up -d --build; \
+             echo 'Deployment completed successfully!'; \
              cd ..; \
              echo 'Creating archive...'; \
              tar czf $ARCHIVE app; \
@@ -65,14 +85,14 @@ jobs:
           
           # Скачиваем архив с сервера
           sshpass -p '${{ secrets.DEPLOY_PASSWORD }}' \
-            scp -P ${{ secrets.DEPLOY_PORT }} -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:~/infra/$ARCHIVE .
+            scp -P ${{ secrets.DEPLOY_PORT }} -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:~/ims/$ARCHIVE .
           
           echo "archive_name=$ARCHIVE" >> $GITHUB_OUTPUT
 
   nexus-publish:
     needs: deploy-ssh
     runs-on: self-hosted
-    environment: NEXUS
+    environment: IMS
     steps:
       - name: Публикация архива в Nexus
         env:
@@ -91,7 +111,7 @@ jobs:
   minio-backup:
     needs: [deploy-ssh, nexus-publish]
     runs-on: self-hosted
-    environment: NEXUS
+    environment: IMS
     timeout-minutes: 15
     steps:
       - name: Download archive from Nexus
