@@ -56,9 +56,13 @@ jobs:
              echo 'Creating temporary frontend/.env to avoid docker-compose error:'; \
              mkdir -p frontend; \
              touch frontend/.env; \
+             echo 'Logging into Nexus Docker registry...'; \
+             echo '${{ secrets.NEXUS_PASSWORD }}' | docker login nexus.code-generation.ru -u '${{ secrets.NEXUS_USER }}' --password-stdin; \
              echo 'Running env-generator...'; \
              docker compose --profile ims-env-generator up --pull always; \
              docker compose --profile ims-env-generator down; \
+             echo 'Logging out from Nexus Docker registry...'; \
+             docker logout nexus.code-generation.ru; \
              echo 'Checking if .env was created:'; \
              ls -la .env 2>/dev/null || echo '.env file not created by env-generator!'; \
              if [ -f .env ]; then \
