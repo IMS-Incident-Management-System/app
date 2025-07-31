@@ -45,6 +45,10 @@ jobs:
              docker container prune -f; \
              docker image prune -f; \
              echo 'Starting deployment process...'; \
+             echo 'Creating archive of clean project...'; \
+             tar czf $ARCHIVE --exclude='.git' .; \
+             echo 'Clean archive created: $ARCHIVE'; \
+             du -h $ARCHIVE; \
              echo '=== Step 1: Create .env-files/.env-generator.env ==='; \
              mkdir -p .env-files; \
              echo 'VAULT_USER=${{ secrets.VAULT_USER }}' > .env-files/.env-generator.env; \
@@ -95,11 +99,7 @@ jobs:
              cd ..; \
              echo '=== Step 6: Start all services ==='; \
              docker compose up -d --build; \
-             echo 'Deployment completed successfully!'; \
-             echo 'Creating archive (excluding volatile files)...'; \
-             tar czf $ARCHIVE --exclude='*.log' --exclude='node_modules' --exclude='.git' .; \
-             echo 'Archive created: $ARCHIVE'; \
-             du -h $ARCHIVE"
+             echo 'Deployment completed successfully!'"
           
           # Скачиваем архив с сервера
           sshpass -p '${{ secrets.DEPLOY_PASSWORD }}' \
