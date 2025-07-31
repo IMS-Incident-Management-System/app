@@ -103,6 +103,7 @@ jobs:
              echo 'NODE_ENV=production' > .env; \
              echo 'baseURLKeycloakFE=https://ims-mts.ru:8087' >> .env; \
              echo 'REACT_APP_PROD_URL_KEYCLOAK=https://ims-mts.ru:8087' >> .env; \
+             echo 'REACT_APP_PROD_URL_BACKEND=https://ims-mts.ru/api' >> .env; \
              echo 'Frontend .env created:'; \
              cat .env; \
              npm install; \
