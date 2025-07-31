@@ -58,7 +58,7 @@ jobs:
              docker volume create certs 2>/dev/null || echo 'Volume certs exists'; \
              docker volume create webroot 2>/dev/null || echo 'Volume webroot exists'; \
              mkdir -p frontend && touch frontend/.env; \
-             docker compose --profile ims-env-generator up --pull always; \
+             docker compose --profile ims-env-generator up ims-env-generator --pull always; \
              docker compose --profile ims-env-generator down; \
              docker logout nexus.code-generation.ru; \
              echo 'Checking .env file creation:'; \
