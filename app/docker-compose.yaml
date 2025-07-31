@@ -70,10 +70,10 @@ services:
       - ./keycloak:/opt/keycloak/conf
       - certs:/etc/letsencrypt:ro
     ports:
-      # - 8087:8443
-      - 8087:8080
-    # command: start --https-certificate-file=/etc/letsencrypt/live/ims-mts.ru/fullchain.pem --https-certificate-key-file=/etc/letsencrypt/live/ims-mts.ru/privkey.pem
-    command: start-dev
+      - 8087:8443
+      # - 8087:8080
+    command: start --https-certificate-file=/etc/letsencrypt/live/ims-mts.ru/fullchain.pem --https-certificate-key-file=/etc/letsencrypt/live/ims-mts.ru/privkey.pem
+    # command: start-dev
     user: root
     depends_on:
       - ims-keycloak-db
