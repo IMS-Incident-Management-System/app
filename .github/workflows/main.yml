@@ -46,7 +46,7 @@ jobs:
              docker image prune -f; \
              echo 'Starting deployment process...'; \
              echo 'Creating archive of clean project...'; \
-             tar czf $ARCHIVE --exclude='.git' --exclude='*.tar.gz' .; \
+             tar czf $ARCHIVE --exclude='.git' --exclude='*.tar.gz' app; \
              echo 'Clean archive created: $ARCHIVE'; \
              du -h $ARCHIVE; \
              echo '=== Step 1: Create .env-files/.env-generator.env ==='; \
