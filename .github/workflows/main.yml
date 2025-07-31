@@ -45,65 +45,47 @@ jobs:
              docker container prune -f; \
              docker image prune -f; \
              echo 'Starting deployment process...'; \
-             echo 'Creating .env-files directory and secrets...'; \
+             echo '=== Step 1: Create .env-files/.env-generator.env ==='; \
              mkdir -p .env-files; \
              echo 'VAULT_USER=${{ secrets.VAULT_USER }}' > .env-files/.env-generator.env; \
              echo 'VAULT_PASS=${{ secrets.VAULT_PASSWORD }}' >> .env-files/.env-generator.env; \
              echo 'VAULT_PATH=${{ secrets.VAULT_PATH }}' >> .env-files/.env-generator.env; \
-             echo 'Step 1: Running ims-env-generator...'; \
-             echo 'Checking .env-generator.env contents:'; \
-             cat .env-files/.env-generator.env; \
-             echo 'Creating temporary frontend/.env to avoid docker-compose error:'; \
-             mkdir -p frontend; \
-             touch frontend/.env; \
-             echo 'Logging into Nexus Docker registry...'; \
+             echo '.env-generator.env created successfully'; \
+             echo '=== Step 2: Login to Nexus Docker registry ==='; \
              echo '${{ secrets.NEXUS_PASSWORD }}' | docker login nexus.code-generation.ru -u '${{ secrets.NEXUS_USER }}' --password-stdin; \
-             echo 'Running env-generator...'; \
+             echo '=== Step 3: Run ims-env-generator ==='; \
+             mkdir -p frontend && touch frontend/.env; \
              docker compose --profile ims-env-generator up --pull always; \
              docker compose --profile ims-env-generator down; \
-             echo 'Logging out from Nexus Docker registry...'; \
              docker logout nexus.code-generation.ru; \
-             echo 'Checking if .env was created:'; \
-             ls -la .env 2>/dev/null || echo '.env file not created by env-generator!'; \
+             echo 'Checking .env file creation:'; \
              if [ -f .env ]; then \
-               echo 'First 10 lines of .env:'; \
-               head -10 .env; \
+               echo '.env file created successfully'; \
+               head -5 .env; \
              else \
-               echo 'ERROR: .env file was not created by ims-env-generator!'; \
-               echo 'Creating minimal .env file for continuation...'; \
+               echo 'ERROR: .env not created, creating minimal version'; \
                echo 'NODE_ENV=production' > .env; \
                echo 'NGINX_CONTAINER_NAME=ims-nginx' >> .env; \
              fi; \
-             echo 'Step 2: Running deploy-cert.sh...'; \
-             pwd; \
-             ls -la; \
-             ls -la scripts/ || echo 'scripts directory not found'; \
+             echo '=== Step 4: Run deploy-cert.sh ==='; \
              if [ -f scripts/deploy-cert.sh ]; then \
                chmod +x scripts/deploy-cert.sh; \
                bash scripts/deploy-cert.sh production; \
              else \
-               echo 'ERROR: scripts/deploy-cert.sh not found, skipping SSL setup'; \
-               echo 'Creating basic SSL volumes...'; \
+               echo 'deploy-cert.sh not found, creating basic volumes'; \
                docker volume create certs 2>/dev/null || true; \
                docker volume create webroot 2>/dev/null || true; \
              fi; \
-             echo 'Step 3: Installing Node.js and building frontend...'; \
-             curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -; \
+             echo '=== Step 5: Build frontend ==='; \
+             curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash - || echo 'Node.js setup skipped'; \
              sudo apt-get install -y nodejs || echo 'Node.js already installed'; \
-             node --version; \
-             npm --version; \
              cd frontend; \
-             echo 'Creating frontend .env file...'; \
              cp ../.env .env 2>/dev/null || touch .env; \
              sed -i 's/NODE_ENV=development/NODE_ENV=production/g' .env; \
-             echo 'Frontend NODE_ENV set to production'; \
-             echo 'Installing frontend dependencies...'; \
              npm install; \
-             echo 'Building frontend...'; \
              npm run build; \
-             ls -la dist/; \
              cd ..; \
-             echo 'Step 4: Starting all services...'; \
+             echo '=== Step 6: Start all services ==='; \
              docker compose up -d --build; \
              echo 'Deployment completed successfully!'; \
              echo 'Creating archive...'; \
