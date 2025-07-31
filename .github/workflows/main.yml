@@ -26,9 +26,9 @@ jobs:
           set -e
           ARCHIVE=ims-$(date +%Y%m%d%H%M%S).tar.gz
           
-          # Копируем папку app на сервер
+          # Копируем содержимое папки app на сервер
           sshpass -p '${{ secrets.DEPLOY_PASSWORD }}' \
-            scp -P ${{ secrets.DEPLOY_PORT }} -o StrictHostKeyChecking=no -r ./app ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:~/ims/
+            scp -P ${{ secrets.DEPLOY_PORT }} -o StrictHostKeyChecking=no -r ./app/* ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:~/ims/
           
           # Деплой и создание архива на сервере
           sshpass -p '${{ secrets.DEPLOY_PASSWORD }}' \
@@ -40,21 +40,29 @@ jobs:
              mkdir -p ~/ims; \
              cd ~/ims; \
              echo 'Stopping all containers...'; \
-             cd app 2>/dev/null && docker compose down 2>/dev/null || true; \
-             cd ..; \
+             docker compose down 2>/dev/null || true; \
              echo 'Cleaning up old containers...'; \
              docker container prune -f; \
              docker image prune -f; \
              echo 'Starting deployment process...'; \
-             cd app; \
              echo 'Creating .env-files directory and secrets...'; \
              mkdir -p .env-files; \
              echo 'VAULT_USER=${{ secrets.VAULT_USER }}' > .env-files/.env-generator.env; \
              echo 'VAULT_PASS=${{ secrets.VAULT_PASSWORD }}' >> .env-files/.env-generator.env; \
              echo 'VAULT_PATH=${{ secrets.VAULT_PATH }}' >> .env-files/.env-generator.env; \
              echo 'Step 1: Running deploy-cert.sh...'; \
-             chmod +x scripts/deploy-cert.sh; \
-             bash scripts/deploy-cert.sh production; \
+             pwd; \
+             ls -la; \
+             ls -la scripts/ || echo 'scripts directory not found'; \
+             if [ -f scripts/deploy-cert.sh ]; then \
+               chmod +x scripts/deploy-cert.sh; \
+               bash scripts/deploy-cert.sh production; \
+             else \
+               echo 'ERROR: scripts/deploy-cert.sh not found, skipping SSL setup'; \
+               echo 'Creating basic SSL volumes...'; \
+               docker volume create certs 2>/dev/null || true; \
+               docker volume create webroot 2>/dev/null || true; \
+             fi; \
              echo 'Step 2: Running ims-env-generator...'; \
              docker compose --profile ims-env-generator up --pull always; \
              docker compose --profile ims-env-generator down; \
@@ -77,9 +85,8 @@ jobs:
              echo 'Step 4: Starting all services...'; \
              docker compose up -d --build; \
              echo 'Deployment completed successfully!'; \
-             cd ..; \
              echo 'Creating archive...'; \
-             tar czf $ARCHIVE app; \
+             tar czf $ARCHIVE .; \
              echo 'Archive created: $ARCHIVE'; \
              du -h $ARCHIVE"
           
