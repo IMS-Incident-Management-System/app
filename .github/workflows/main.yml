@@ -96,8 +96,8 @@ jobs:
              echo '=== Step 6: Start all services ==='; \
              docker compose up -d --build; \
              echo 'Deployment completed successfully!'; \
-             echo 'Creating archive...'; \
-             tar czf $ARCHIVE .; \
+             echo 'Creating archive (excluding volatile files)...'; \
+             tar czf $ARCHIVE --exclude='*.log' --exclude='node_modules' --exclude='.git' .; \
              echo 'Archive created: $ARCHIVE'; \
              du -h $ARCHIVE"
           
