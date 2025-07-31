@@ -40,6 +40,8 @@ jobs:
              mkdir -p ~/ims; \
              cd ~/ims; \
              echo 'Creating archive of clean project...'; \
+             echo 'Cleaning old archives...'; \
+             rm -f *.tar.gz; \
              mkdir -p ~/temp/app; \
              cp -r * ~/temp/app/ 2>/dev/null || true; \
              cd ~/temp; \
