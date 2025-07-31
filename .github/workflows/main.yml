@@ -57,6 +57,9 @@ jobs:
              echo 'Creating temporary volumes for docker-compose...'; \
              docker volume create certs 2>/dev/null || echo 'Volume certs exists'; \
              docker volume create webroot 2>/dev/null || echo 'Volume webroot exists'; \
+             echo 'Preparing .env file...'; \
+             rm -rf .env; \
+             touch .env; \
              mkdir -p frontend && touch frontend/.env; \
              docker compose --profile ims-env-generator up ims-env-generator --pull always; \
              docker compose --profile ims-env-generator down; \
