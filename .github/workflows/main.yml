@@ -39,16 +39,16 @@ jobs:
             "set -e; \
              mkdir -p ~/ims; \
              cd ~/ims; \
+             echo 'Creating archive of clean project...'; \
+             tar czf $ARCHIVE --exclude='.git' --exclude='*.tar.gz' .; \
+             echo 'Clean archive created: $ARCHIVE'; \
+             du -h $ARCHIVE; \
              echo 'Stopping all containers...'; \
              docker compose down 2>/dev/null || true; \
              echo 'Cleaning up old containers...'; \
              docker container prune -f; \
              docker image prune -f; \
              echo 'Starting deployment process...'; \
-             echo 'Creating archive of clean project...'; \
-             tar czf $ARCHIVE --exclude='.git' --exclude='*.tar.gz' app; \
-             echo 'Clean archive created: $ARCHIVE'; \
-             du -h $ARCHIVE; \
              echo '=== Step 1: Create .env-files/.env-generator.env ==='; \
              mkdir -p .env-files; \
              echo 'VAULT_USER=${{ secrets.VAULT_USER }}' > .env-files/.env-generator.env; \
