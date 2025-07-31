@@ -90,6 +90,8 @@ jobs:
              sed -i 's/NODE_ENV=development/NODE_ENV=production/g' .env; \
              npm install; \
              npm run build; \
+             echo 'Cleaning up node_modules after build...'; \
+             rm -rf node_modules; \
              cd ..; \
              echo '=== Step 6: Start all services ==='; \
              docker compose up -d --build; \
