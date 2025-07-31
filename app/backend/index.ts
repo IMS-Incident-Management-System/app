@@ -28,9 +28,12 @@ const createApp = () => {
       allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With']
     }));
   } else {
-    // В development CORS обрабатывается nginx, отключаем дублирование
-    app.use(cors({
-      origin: false
+    // В development режиме разрешаем все CORS запросы
+    app.use(cors({ 
+      origin: true,  // Разрешить все домены
+      credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With']
     }));
   }
 
