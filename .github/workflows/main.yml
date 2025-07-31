@@ -98,8 +98,14 @@ jobs:
              curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash - || echo 'Node.js setup skipped'; \
              sudo apt-get install -y nodejs || echo 'Node.js already installed'; \
              cd frontend; \
-             cp ../.env .env 2>/dev/null || touch .env; \
-             sed -i 's/NODE_ENV=development/NODE_ENV=production/g' .env; \
+             echo 'Creating frontend .env file:'; \
+             cat > .env << 'EOF'
+NODE_ENV=production
+baseURLKeycloakFE=https://ims-mts.ru:8087
+REACT_APP_PROD_URL_KEYCLOAK=https://ims-mts.ru:8087
+EOF
+             echo 'Frontend .env created:'; \
+             cat .env; \
              npm install; \
              npm run build; \
              echo 'Cleaning up node_modules after build...'; \
