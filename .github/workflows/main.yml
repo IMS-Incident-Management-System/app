@@ -54,6 +54,9 @@ jobs:
              echo '=== Step 2: Login to Nexus Docker registry ==='; \
              echo '${{ secrets.NEXUS_PASSWORD }}' | docker login nexus.code-generation.ru -u '${{ secrets.NEXUS_USER }}' --password-stdin; \
              echo '=== Step 3: Run ims-env-generator ==='; \
+             echo 'Creating temporary volumes for docker-compose...'; \
+             docker volume create certs 2>/dev/null || echo 'Volume certs exists'; \
+             docker volume create webroot 2>/dev/null || echo 'Volume webroot exists'; \
              mkdir -p frontend && touch frontend/.env; \
              docker compose --profile ims-env-generator up --pull always; \
              docker compose --profile ims-env-generator down; \
