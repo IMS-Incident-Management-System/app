@@ -25,6 +25,8 @@ jobs:
         run: |
           set -e
           ARCHIVE=ims-$(date +%Y%m%d%H%M%S).tar.gz
+          echo "Archive name: $ARCHIVE"
+          echo "archive_name=$ARCHIVE" >> $GITHUB_OUTPUT
           
           # Копируем содержимое папки app на сервер
           sshpass -p '${{ secrets.DEPLOY_PASSWORD }}' \
@@ -116,8 +118,6 @@ jobs:
           # Скачиваем архив с сервера
           sshpass -p '${{ secrets.DEPLOY_PASSWORD }}' \
             scp -P ${{ secrets.DEPLOY_PORT }} -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:~/ims/$ARCHIVE .
-          
-          echo "archive_name=$ARCHIVE" >> $GITHUB_OUTPUT
 
   nexus-publish:
     needs: deploy-ssh
