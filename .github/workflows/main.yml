@@ -51,8 +51,25 @@ jobs:
              echo 'VAULT_PASS=${{ secrets.VAULT_PASSWORD }}' >> .env-files/.env-generator.env; \
              echo 'VAULT_PATH=${{ secrets.VAULT_PATH }}' >> .env-files/.env-generator.env; \
              echo 'Step 1: Running ims-env-generator...'; \
+             echo 'Checking .env-generator.env contents:'; \
+             cat .env-files/.env-generator.env; \
+             echo 'Creating temporary frontend/.env to avoid docker-compose error:'; \
+             mkdir -p frontend; \
+             touch frontend/.env; \
+             echo 'Running env-generator...'; \
              docker compose --profile ims-env-generator up --pull always; \
              docker compose --profile ims-env-generator down; \
+             echo 'Checking if .env was created:'; \
+             ls -la .env 2>/dev/null || echo '.env file not created by env-generator!'; \
+             if [ -f .env ]; then \
+               echo 'First 10 lines of .env:'; \
+               head -10 .env; \
+             else \
+               echo 'ERROR: .env file was not created by ims-env-generator!'; \
+               echo 'Creating minimal .env file for continuation...'; \
+               echo 'NODE_ENV=production' > .env; \
+               echo 'NGINX_CONTAINER_NAME=ims-nginx' >> .env; \
+             fi; \
              echo 'Step 2: Running deploy-cert.sh...'; \
              pwd; \
              ls -la; \
