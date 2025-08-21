@@ -1,6 +1,9 @@
 {
-    "watch": ["."],
+    "watch": ["src", "index.ts"],
     "ext": "ts,json",
-    "ignore": ["./**/*.spec.ts"],
-    "exec": "ts-node ./index.ts"
-  }
+    "ignore": ["./**/*.spec.ts", "node_modules/**/*", "dist/**/*"],
+    "exec": "ts-node ./index.ts",
+    "verbose": true,
+    "legacyWatch": true,
+    "polling": true
+}

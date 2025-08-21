@@ -72,7 +72,7 @@ const startServer = async () => {
     }
 
     // Синхронизируем модели с БД
-    await sequelize.sync({ alter: true, force: true }); //, force: true
+    await sequelize.sync({ alter: true }); //, force: true
     console.log('Database synchronized');
 
     // Запускаем сидеры
@@ -90,7 +90,6 @@ const startServer = async () => {
     // Запускаем сервер
     if (!sslOptions) {
       application.listen(PORT, () => {
-        console.log(`Development server is running on port ${PORT}`);
         console.log(`API is available at http://localhost:${PORT}/api/v1`);
       });
     } else {

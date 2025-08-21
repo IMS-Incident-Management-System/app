@@ -28,7 +28,7 @@ services:
   ims-backend:
     build:
       context: .
-      dockerfile: backend/Dockerfile
+      dockerfile: backend/${BACKEND_DOCKERFILE:-Dockerfile}
     restart: unless-stopped
     container_name: ims-backend
     environment:
@@ -46,6 +46,8 @@ services:
       - POSTGRES_PORT=${BACKEND_POSTGRES_PORT}
     volumes:
       - certs:/app/certs:ro
+      - ${BACKEND_VOLUME:-empty_volume}:/app
+      - ${NODE_MODULES_VOLUME:-empty_volume}:/app/node_modules
     ports:
       - 8091:8091
     depends_on:
@@ -125,6 +127,8 @@ volumes:
   keycloak-db-data:
   ims-db-data:
   pgadmin-data:
+  empty_volume:  # Пустой volume для production (когда не нужны dev volumes)
+  node_modules_volume:  # Для development node_modules
   certs:
     external: true
   webroot:

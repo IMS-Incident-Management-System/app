@@ -1,0 +1,19 @@
+FROM node:18-alpine
+
+# Устанавливаем рабочую директорию
+WORKDIR /app
+
+# Копируем package.json и package-lock.json из backend директории
+COPY ./backend/package*.json ./
+
+# Устанавливаем все зависимости (включая dev)
+RUN npm install
+
+# Копируем исходный код (будет перезаписан volume в docker-compose)
+COPY ./backend .
+
+# Открываем порт для работы
+EXPOSE 8091
+
+# Запускаем приложение в dev режиме с nodemon
+CMD ["npm", "run", "dev"]
