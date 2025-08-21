@@ -28,7 +28,7 @@ services:
   ims-backend:
     build:
       context: .
-      dockerfile: backend/${BACKEND_DOCKERFILE:-Dockerfile}
+      dockerfile: backend/${BACKEND_DEV_DOCKERFILE:-Dockerfile}
     restart: unless-stopped
     container_name: ims-backend
     environment:
@@ -46,8 +46,8 @@ services:
       - POSTGRES_PORT=${BACKEND_POSTGRES_PORT}
     volumes:
       - certs:/app/certs:ro
-      - ${BACKEND_VOLUME:-empty_volume}:/app
-      - ${NODE_MODULES_VOLUME:-empty_volume}:/app/node_modules
+      - ${BACKEND_DEV_VOLUME:-empty_volume}:/app
+      - ${BACKEND_DEV_NODE_MODULES_VOLUME:-empty_volume}:/app/node_modules
     ports:
       - 8091:8091
     depends_on:
