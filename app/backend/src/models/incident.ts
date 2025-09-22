@@ -11,26 +11,19 @@ export enum SecurityDirectionEnum {
   SECURITY = 'SECURITY', // БПиО
 }
 
-export enum IncidentStatusEnum {
-  DRAFT = 'DRAFT', // Черновик
-  IN_PROGRESS = 'IN_PROGRESS', // В работе
-  COMPLETED = 'COMPLETED', // Завершен
-  ARCHIVED = 'ARCHIVED', // В архиве
-}
 
 export interface IncidentAttributes {
   id: number;
   department_id: number;
   direction: SecurityDirectionEnum;
-  object_id: number;
+  object_type_id?: number;
   message: string;
   is_db: boolean;
-  status: IncidentStatusEnum;
 }
 
 export interface IncidentWithRelations extends IncidentAttributes {
   department?: DepartmentModelType;
-  object?: ObjectAttributes;
+  object_type?: any; // ObjectType
   events?: EventHistoryWithRelations[];
   punishments?: PunishmentAttributes[];
 }
@@ -67,13 +60,14 @@ const Incident = sequelize.define<IncidentInstance>(
       },
       comment: 'Направление безопасности (ИБ/ЭБ/БПиО)',
     },
-    object_id: {
+    object_type_id: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
       references: {
-        model: 'objects',
-        key: 'id',
-      }
+        model: 'object_types',
+        key: 'object_type_id',
+      },
+      comment: 'Тип объекта',
     },
     message: {
       type: DataTypes.TEXT,
@@ -85,15 +79,6 @@ const Incident = sequelize.define<IncidentInstance>(
       allowNull: false,
       defaultValue: false,
       comment: 'Флаг "Дело безопасности" (ДБ). Указывает на особый статус инцидента, требующий специальной обработки'
-    },
-    status: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      defaultValue: IncidentStatusEnum.DRAFT,
-      validate: {
-        isIn: [Object.values(IncidentStatusEnum)],
-      },
-      comment: 'Статус инцидента',
     },
   },
   {

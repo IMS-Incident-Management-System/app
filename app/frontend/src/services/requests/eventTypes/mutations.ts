@@ -12,10 +12,10 @@ export const useCreateEventType = () => {
   return useMutation(createEventType, {
     onSuccess: () => {
       queryClient.invalidateQueries(["getAllEventTypes"]);
-      message.success("Тип события успешно создан");
+      message.success("Тип инцидента успешно создан");
     },
     onError: () => {
-      message.error("Не удалось создать тип события");
+      message.error("Не удалось создать тип инцидента");
     },
   });
 };
@@ -29,10 +29,10 @@ export const useUpdateEventType = () => {
     {
       onSuccess: () => {
         queryClient.invalidateQueries(["getAllEventTypes"]);
-        message.success("Тип события успешно обновлен");
+        message.success("Тип инцидента успешно обновлен");
       },
       onError: () => {
-        message.error("Не удалось обновить тип события");
+        message.error("Не удалось обновить тип инцидента");
       },
     },
   );
@@ -44,10 +44,10 @@ export const useDeleteEventType = () => {
   return useMutation(deleteEventType, {
     onSuccess: () => {
       queryClient.invalidateQueries(["getAllEventTypes"]);
-      message.success("Тип события успешно удален");
+      message.success("Тип инцидента успешно удален");
     },
     onError: () => {
-      message.error("Не удалось удалить тип события");
+      message.error("Не удалось удалить тип инцидента");
     },
   });
 }; 

@@ -1,10 +1,9 @@
 import dayjs from "dayjs";
 import { ITable } from "../../../interfaces/common/common";
 import { IncidentWithRelations } from "../../../interfaces/requests/incident";
-import { EIncidentDirection, EIncidentStatus } from "../../../enums/incident";
+import { EIncidentDirection } from "../../../enums/incident";
 import { Button, Modal, Tag } from "antd";
 import classes from "../Home.module.scss";
-import { ObjectType } from "../../../enums/object";
 import { CopyOutlined, DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { ERoutes } from "../../../enums/routes";
@@ -29,7 +28,7 @@ export const usePrepareTableData = (data: ITable<IncidentWithRelations>) => {
       content: (
         <div>
           <p>Вы уверены, что хотите удалить инцидент?</p>
-          <p>Вместе с ним будут удалены все связанные с ним данные (события, наказания).</p>
+          <p>Вместе с ним будут удалены все связанные с ним данные (инциденты, наказания).</p>
           <p>Это действие нельзя будет отменить.</p>
         </div>
       ),
@@ -60,57 +59,16 @@ export const usePrepareTableData = (data: ITable<IncidentWithRelations>) => {
       };
     }
 
-    if (column.dataIndex === "object") {
+
+
+
+    if (column.dataIndex === "object_type") {
       return {
         ...column,
         render: (value: any, record: any) => {
           return (
             <Tag color="blue" className={classes.tag}>
-              {record?.object?.type === ObjectType.BS
-                ? "БС"
-                : record?.object?.type === ObjectType.OFFICE_MTS
-                  ? "офис МТС"
-                  : record?.object?.type === ObjectType.CATEGORIZED_ROOM
-                    ? "Категорированное помещение"
-                    : record?.object?.type === ObjectType.OTHER_PROPERTY
-                      ? "Иное имущество"
-                      : record?.object?.type === ObjectType.PERSONNEL
-                        ? "Персонал"
-                        : ""}
-            </Tag>
-          );
-        },
-      };
-    }
-
-    if (column.dataIndex === "status") {
-      return {
-        ...column,
-        render: (value: any, record: any) => {
-          return (
-            <Tag
-              color={
-                record.status === EIncidentStatus.DRAFT
-                  ? "#adadad"
-                  : record.status === EIncidentStatus.IN_PROGRESS
-                    ? "processing"
-                    : record.status === EIncidentStatus.COMPLETED
-                      ? "green"
-                      : record.status === EIncidentStatus.ARCHIVED
-                        ? "red"
-                        : "blue"
-              }
-              className={classes.tag}
-            >
-              {record.status === EIncidentStatus.DRAFT
-                ? "Черновик"
-                : record.status === EIncidentStatus.IN_PROGRESS
-                  ? "В работе"
-                  : record.status === EIncidentStatus.COMPLETED
-                    ? "Завершен"
-                    : record.status === EIncidentStatus.ARCHIVED
-                      ? "В архиве"
-                      : ""}
+              {record?.object_type?.title || ""}
             </Tag>
           );
         },

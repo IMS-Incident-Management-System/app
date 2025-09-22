@@ -108,14 +108,8 @@ export const punishmentService = {
     const punishments = await Punishment.findAll({ where });
 
     return {
-      total_guilty: punishments.reduce((sum, p) => sum + p.guilty_persons_count, 0),
-      total_punished: punishments.reduce((sum, p) => sum + p.punished_persons_count, 0),
-      total_warnings: punishments.reduce((sum, p) => sum + p.warnings_count, 0),
-      total_reprimands: punishments.reduce((sum, p) => sum + p.reprimands_count, 0),
-      total_severe_reprimands: punishments.reduce((sum, p) => sum + p.severe_reprimands_count, 0),
       total_fired: punishments.reduce((sum, p) => sum + p.fired_count, 0),
-      punishment_ratio: punishments.reduce((sum, p) => sum + p.punished_persons_count, 0) / 
-                       punishments.reduce((sum, p) => sum + p.guilty_persons_count, 0) || 0
+      total_punishments: punishments.length
     };
   }
 }; 

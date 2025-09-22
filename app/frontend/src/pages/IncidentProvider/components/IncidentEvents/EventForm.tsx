@@ -18,18 +18,16 @@ import {
   PlusOutlined,
 } from "@ant-design/icons";
 import { CriminalCaseForm } from "./CriminalCaseForm";
+import { AddressForm } from "./AddressForm";
 
 export const EventForm = ({
   name,
   eventTypes,
   isEventTypesLoading,
-  objects,
-  isObjectsLoading,
 }: EventFormProps) => {
   const [isCriminalCasesCollapsed, setIsCriminalCasesCollapsed] =
     useState(false);
 
-  const { objectOptions } = usePrepareObjects(objects);
 
   const handleCollapseCriminalCases = () => {
     setIsCriminalCasesCollapsed(!isCriminalCasesCollapsed);
@@ -62,13 +60,7 @@ export const EventForm = ({
         <DatePicker style={{ width: "100%" }} />
       </Form.Item>
 
-      <Form.Item label="Объект" name={[name, "object_id"]}>
-        <Select
-          options={objectOptions}
-          loading={isObjectsLoading}
-          placeholder="Выберите объект"
-        />
-      </Form.Item>
+      <AddressForm name={name} />
 
       <Form.List name={[name, "criminal_cases"]}>
         {(fields, { add, remove }) => (
@@ -117,9 +109,8 @@ export const EventForm = ({
       </Form.List>
 
       <Form.Item
-        label="Сумма ущерба"
-        name={[name, "damage_amount"]}
-        rules={[{ required: true, message: "Укажите сумму ущерба" }]}
+        label="Выявленный ущерб"
+        name={[name, "detected_damage"]}
       >
         <InputNumber
           style={{ width: "100%" }}
@@ -127,18 +118,35 @@ export const EventForm = ({
             `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
           }
           parser={(value) => value!.replace(/\$\s?|(,*)/g, "")}
-          placeholder="Введите сумму ущерба"
+          placeholder="Введите выявленный ущерб"
         />
       </Form.Item>
 
-      <Form.Item label="Сумма компенсации" name={[name, "compensation_amount"]}>
+      <Form.Item
+        label="Предотвращенный ущерб"
+        name={[name, "prevented_damage"]}
+      >
         <InputNumber
           style={{ width: "100%" }}
           formatter={(value) =>
             `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
           }
           parser={(value) => value!.replace(/\$\s?|(,*)/g, "")}
-          placeholder="Введите сумму компенсации"
+          placeholder="Введите предотвращенный ущерб"
+        />
+      </Form.Item>
+
+      <Form.Item
+        label="Возмещенный ущерб"
+        name={[name, "recovered_damage"]}
+      >
+        <InputNumber
+          style={{ width: "100%" }}
+          formatter={(value) =>
+            `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+          }
+          parser={(value) => value!.replace(/\$\s?|(,*)/g, "")}
+          placeholder="Введите возмещенный ущерб"
         />
       </Form.Item>
 

@@ -29,13 +29,12 @@ export const useForm = ({
     const formValues: CreateIncidentBody = form.getFieldsValue(true);
 
     if (isDuplicate || !incident?.id) {
-      createIncident({
-        department_id: formValues.department_id,
-        direction: formValues.direction,
-        object_id: formValues.object_id,
-        message: formValues.message,
-        is_db: formValues.is_db,
-        status: formValues.status,
+              createIncident({
+                department_id: formValues.department_id,
+                direction: formValues.direction,
+                object_type_id: formValues.object_type_id,
+                message: formValues.message,
+                is_db: formValues.is_db,
         events:
           formValues.events?.map((event) => ({
             ...event,
@@ -52,14 +51,13 @@ export const useForm = ({
     }
 
     if (incident?.id) {
-      updateIncident({
-        data: {
-          department_id: formValues.department_id,
-          direction: formValues.direction,
-          object_id: formValues.object_id,
-          message: formValues.message,
-          is_db: formValues.is_db,
-          status: formValues.status,
+              updateIncident({
+                data: {
+                  department_id: formValues.department_id,
+                  direction: formValues.direction,
+                  object_type_id: formValues.object_type_id,
+                  message: formValues.message,
+                  is_db: formValues.is_db,
           events:
             formValues.events?.map((event) => ({
               ...event,
@@ -80,13 +78,12 @@ export const useForm = ({
 
   useEffect(() => {
     if (incident) {
-      const formValues = {
-        status: incident.status,
-        department_id: incident.department_id,
-        direction: incident.direction,
-        object_id: incident.object_id,
-        message: incident.message,
-        is_db: incident.is_db,
+              const formValues = {
+                department_id: incident.department_id,
+                direction: incident.direction,
+                object_type_id: incident.object_type_id,
+                message: incident.message,
+                is_db: incident.is_db,
         events: incident.events?.map((event) => {
           const { event_type, createdAt, updatedAt, id, incident_id, ...rest } =
             event;

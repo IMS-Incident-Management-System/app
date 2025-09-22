@@ -10,12 +10,19 @@ export interface EventHistoryAttributes {
   id: number;
   incident_id: number;
   event_type_id: number;
-  object_id: number;
-  damage_amount: number;
-  compensation_amount: number;
   sub_type_id?: number;
   description?: string;
   date: Date;
+  // Поля адреса
+  city?: string;
+  street?: string;
+  house?: string;
+  building?: string;
+  apartment?: string;
+  // Поля ущерба
+  detected_damage: number;      // Выявленный ущерб
+  prevented_damage: number;     // Предотвращенный ущерб
+  recovered_damage: number;     // Возмещенный ущерб
 }
 
 export interface EventHistoryWithRelations extends EventHistoryAttributes {
@@ -54,28 +61,53 @@ const EventHistory = sequelize.define<EventHistoryInstance>('event_history', {
       key: 'event_type_id',
     }
   },
-  object_id: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: 'objects',
-      key: 'id',
-    }
+  city: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'Город'
+  },
+  street: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'Улица'
+  },
+  house: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'Дом'
+  },
+  building: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'Корпус'
+  },
+  apartment: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'Квартира/Офис'
   },
   sub_type_id: {
     type: DataTypes.INTEGER,
     allowNull: true,
     comment: 'ID подтипа события (тип кражи, тип пожара и т.д.)'
   },
-  damage_amount: {
+  detected_damage: {
     type: DataTypes.INTEGER,
     allowNull: false,
     defaultValue: 0,
+    comment: 'Выявленный ущерб'
   },
-  compensation_amount: {
+  prevented_damage: {
     type: DataTypes.INTEGER,
     allowNull: false,
     defaultValue: 0,
+    comment: 'Предотвращенный ущерб'
+  },
+  recovered_damage: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 0,
+    comment: 'Возмещенный ущерб'
   },
   description: {
     type: DataTypes.TEXT,

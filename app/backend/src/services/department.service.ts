@@ -45,9 +45,54 @@ export const departmentService = {
       }
     });
 
-    // Возвращаем только корневые департаменты
-    return Array.from(departmentMap.values())
+    // Получаем корневые департаменты
+    const rootDepartments = Array.from(departmentMap.values())
       .filter(dept => !dept.parent_id);
+
+    // Кастомная сортировка: КЦ, ЕЦКБ, Регионы (по алфавиту), ДЗК
+    const customSort = (a: DepartmentTree, b: DepartmentTree) => {
+      const getSortPriority = (title: string) => {
+        const upperTitle = title.toUpperCase();
+        
+        // КЦ - приоритет 1
+        if (upperTitle.includes('КЦ') || upperTitle === 'КЦ') return 1;
+        
+        // ЕЦКБ - приоритет 2  
+        if (upperTitle.includes('ЕЦКБ') || upperTitle === 'ЕЦКБ') return 2;
+        
+        // ДЗК - приоритет 4 (последний)
+        if (upperTitle.includes('ДЗК') || upperTitle === 'ДЗК') return 4;
+        
+        // Регионы - приоритет 3 (сортировка по алфавиту)
+        return 3;
+      };
+
+      const priorityA = getSortPriority(a.title);
+      const priorityB = getSortPriority(b.title);
+
+      // Если приоритеты разные, сортируем по приоритету
+      if (priorityA !== priorityB) {
+        return priorityA - priorityB;
+      }
+
+      // Если приоритеты одинаковые (оба регионы), сортируем по алфавиту
+      return a.title.localeCompare(b.title, 'ru');
+    };
+
+    // Сортируем корневые департаменты
+    rootDepartments.sort(customSort);
+
+    // Рекурсивно сортируем дочерние департаменты
+    const sortChildren = (dept: DepartmentTree) => {
+      if (dept.children && dept.children.length > 0) {
+        dept.children.sort(customSort);
+        dept.children.forEach(sortChildren);
+      }
+    };
+
+    rootDepartments.forEach(sortChildren);
+
+    return rootDepartments;
   },
 
   getDepartment: async (id: number) => {

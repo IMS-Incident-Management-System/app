@@ -3,15 +3,8 @@ import styles from "./IncidentEvents.module.scss";
 import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 import { EventForm } from "./EventForm";
 import { useGetEventTypes } from "../../../../services/requests/eventTypes/getEventTypes";
-import { ObjectAttributes } from "../../../../interfaces/requests/object";
 
-export const IncidentEvents = ({
-  objects,
-  isObjectsLoading,
-}: {
-  objects: ObjectAttributes[];
-  isObjectsLoading: boolean;
-}) => {
+export const IncidentEvents = () => {
   const { data: eventTypes, isLoading: isEventTypesLoading } =
     useGetEventTypes();
 
@@ -22,7 +15,7 @@ export const IncidentEvents = ({
           {(fields, { add, remove }) => (
             <>
               <div className={styles.header}>
-                <h3 className={styles.headerTitle}>События</h3>
+                <h3 className={styles.headerTitle}>Инциденты</h3>
                 <Button
                   className={styles.addEventButton}
                   onClick={() => add(undefined, 0)}
@@ -37,8 +30,6 @@ export const IncidentEvents = ({
                       name={field.name}
                       eventTypes={eventTypes}
                       isEventTypesLoading={isEventTypesLoading}
-                      objects={objects}
-                      isObjectsLoading={isObjectsLoading}
                     />
                     <Button
                       type="text"

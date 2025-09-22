@@ -2,38 +2,43 @@ import { Op, Transaction } from 'sequelize';
 import { 
   Incident, 
   Department, 
-  ObjectModel,
+  ObjectType,
   EventHistory,
   EventType,
   CriminalCase,
   Punishment,
   sequelize
 } from '../models';
-import { SecurityDirectionEnum, IncidentStatusEnum, IncidentCreationAttributes } from '../models/incident';
+import { SecurityDirectionEnum, IncidentCreationAttributes } from '../models/incident';
 import { paginate, PaginatedQuery } from '../utils/pagination';
 
 interface CreateIncidentData {
   department_id: number;
   direction: SecurityDirectionEnum;
-  object_id: number;
+  object_type_id?: number;
   message: string;
   is_db: boolean;
-  status: IncidentStatusEnum;
 }
 
 interface UpdateIncidentData {
   department_id: number;
   direction: SecurityDirectionEnum;
-  object_id: number;
+  object_type_id?: number;
   message: string;
   is_db: boolean;
-  status: IncidentStatusEnum;
   events: {
     id?: number;
     event_type_id: number;
-    object_id: number;
-    damage_amount: number;
-    compensation_amount: number;
+    // адрес
+    city?: string;
+    street?: string;
+    house?: string;
+    building?: string;
+    apartment?: string;
+    // ущерб
+    detected_damage: number;
+    prevented_damage: number;
+    recovered_damage: number;
     sub_type_id?: number;
     description?: string;
     date: Date;
@@ -60,11 +65,8 @@ interface UpdateIncidentData {
   }[];
   punishments: {
     id?: number;
-    guilty_persons_count: number;
-    punished_persons_count: number;
-    warnings_count: number;
-    reprimands_count: number;
-    severe_reprimands_count: number;
+    punishment_type_id: number;
+    description?: string;
     fired_count: number;
     date: Date;
   }[];
@@ -73,7 +75,6 @@ interface UpdateIncidentData {
 interface GetIncidentsFilters {
   department_id?: number;
   direction?: SecurityDirectionEnum;
-  status?: IncidentStatusEnum;
   date_from?: Date;
   date_to?: Date;
 }
@@ -87,9 +88,6 @@ export const incidentService = {
     }
     if (filters?.direction) {
       where.direction = filters.direction;
-    }
-    if (filters?.status) {
-      where.status = filters.status;
     }
     if (filters?.date_from) {
       where.createdAt = {
@@ -110,8 +108,8 @@ export const incidentService = {
           as: 'department'
         },
         {
-          model: ObjectModel,
-          as: 'object'
+          model: ObjectType,
+          as: 'object_type'
         },
         {
           model: EventHistory,
@@ -149,8 +147,8 @@ export const incidentService = {
           as: 'department'
         },
         {
-          model: ObjectModel,
-          as: 'object'
+          model: ObjectType,
+          as: 'object_type'
         },
         {
           model: EventHistory,
@@ -181,10 +179,9 @@ export const incidentService = {
     await incident.update({
       department_id: data.department_id,
       direction: data.direction,
-      object_id: data.object_id,
+      object_type_id: data.object_type_id,
       message: data.message,
-      is_db: data.is_db,
-      status: data.status
+      is_db: data.is_db
     }, options);
 
     // Update events - replace all events and their criminal cases
@@ -245,10 +242,6 @@ export const incidentService = {
           as: 'department'
         },
         {
-          model: ObjectModel,
-          as: 'object'
-        },
-        {
           model: EventHistory,
           as: 'events',
           include: ['event_type', 'criminal_cases']
@@ -275,10 +268,6 @@ export const incidentService = {
     return !!department;
   },
 
-  async validateObject(id: number) {
-    const object = await ObjectModel.findByPk(id);
-    return !!object;
-  },
 
   // Метод для получения статистики
   async getStatistics(filters: {
@@ -314,18 +303,19 @@ export const incidentService = {
 
     return {
       total: incidents.length,
-      by_status: incidents.reduce((acc, incident) => {
-        acc[incident.status] = (acc[incident.status] || 0) + 1;
-        return acc;
-      }, {} as Record<IncidentStatusEnum, number>),
-      total_damage: incidents.reduce((sum, incident) => 
+      total_detected_damage: incidents.reduce((sum, incident) => 
         sum + (incident?.events ?? [])?.reduce((eventSum, event) => 
-          eventSum + Number(event.damage_amount), 0
+          eventSum + Number(event.detected_damage), 0
         ) || 0, 0
       ),
-      total_compensation: incidents.reduce((sum, incident) => 
+      total_prevented_damage: incidents.reduce((sum, incident) => 
         sum + (incident?.events ?? [])?.reduce((eventSum, event) => 
-          eventSum + Number(event.compensation_amount), 0
+          eventSum + Number(event.prevented_damage), 0
+        ) || 0, 0
+      ),
+      total_recovered_damage: incidents.reduce((sum, incident) => 
+        sum + (incident?.events ?? [])?.reduce((eventSum, event) => 
+          eventSum + Number(event.recovered_damage), 0
         ) || 0, 0
       ),
       criminal_cases_count: incidents.reduce((sum, incident) => 

@@ -5,10 +5,7 @@ import {
 } from '../../middlewares/errorHandler.middleware';
 import { CustomResponse } from '../../middlewares/responseHandler.middleware';
 import { incidentService } from '../../services/incident.service';
-import {
-  IncidentStatusEnum,
-  SecurityDirectionEnum,
-} from '../../models/incident';
+import { SecurityDirectionEnum } from '../../models/incident';
 import { eventHistoryService } from '../../services/eventHistory.service';
 import { criminalCaseService } from '../../services/criminalCase.service';
 import { punishmentService } from '../../services/punishment.service';
@@ -17,16 +14,22 @@ import { sequelize } from '../../models/sequelize';
 interface CreateIncidentBody {
   department_id: number;
   direction: SecurityDirectionEnum;
-  object_id: number;
+  object_type_id?: number;
   message: string;
   is_db: boolean;
-  status: IncidentStatusEnum;
   events: Array<{
     event_type_id: number;
     sub_type_id?: number;
-    damage_amount: number;
-    object_id: number;
-    compensation_amount: number;
+    // адрес
+    city?: string;
+    street?: string;
+    house?: string;
+    building?: string;
+    apartment?: string;
+    // ущерб
+    detected_damage: number;
+    prevented_damage: number;
+    recovered_damage: number;
     description?: string;
     date: Date;
     criminal_cases?: Array<{
@@ -39,14 +42,11 @@ interface CreateIncidentBody {
       [key: string]: any;
     }>;
   }>;
-  punishments?: Array<{
-    guilty_persons_count: number;
-    punished_persons_count: number;
-    warnings_count: number;
-    reprimands_count: number;
-    severe_reprimands_count: number;
-    fired_count: number;
+  punishments: Array<{
+    punishment_type_id: number;
+    description?: string;
     date: Date;
+    fired_count: number;
   }>;
 }
 
@@ -54,13 +54,7 @@ export const createIncident = asyncErrorHandler(
   async (req: Request, res: CustomResponse) => {
     const data = req.body as CreateIncidentBody;
 
-    if (
-      !data.department_id ||
-      !data.direction ||
-      !data.object_id ||
-      !data.message ||
-      !data.events.length
-    ) {
+    if (!data.department_id || !data.direction || !data.message || !data.events.length) {
       throw ApiError.badRequest('Missing required fields');
     }
 
@@ -70,10 +64,9 @@ export const createIncident = asyncErrorHandler(
         {
           department_id: data.department_id,
           direction: data.direction,
-          object_id: data.object_id,
+          object_type_id: data.object_type_id,
           message: data.message,
           is_db: Boolean(data.is_db),
-          status: data.status || IncidentStatusEnum.DRAFT,
         },
         { transaction }
       );
@@ -85,7 +78,18 @@ export const createIncident = asyncErrorHandler(
           const event = await eventHistoryService.createEvent(
             {
               incident_id: incident.id,
-              ...eventData,
+              event_type_id: eventData.event_type_id,
+              sub_type_id: eventData.sub_type_id,
+              city: eventData.city,
+              street: eventData.street,
+              house: eventData.house,
+              building: eventData.building,
+              apartment: eventData.apartment,
+              detected_damage: eventData.detected_damage,
+              prevented_damage: eventData.prevented_damage,
+              recovered_damage: eventData.recovered_damage,
+              description: eventData.description,
+              date: eventData.date,
             },
             { transaction }
           );
@@ -131,6 +135,6 @@ export const createIncident = asyncErrorHandler(
       };
     });
 
-    res.created(result, 'Incident created successfully');
+    res.success(null, 'Incident created successfully');
   }
 );

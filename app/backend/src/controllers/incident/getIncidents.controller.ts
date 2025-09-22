@@ -1,10 +1,7 @@
 import { Request } from 'express';
 import { asyncErrorHandler } from '../../middlewares/errorHandler.middleware';
 import { CustomResponse } from '../../middlewares/responseHandler.middleware';
-import {
-  IncidentStatusEnum,
-  SecurityDirectionEnum,
-} from '../../models/incident';
+import { SecurityDirectionEnum } from '../../models/incident';
 import { incidentService } from '../../services/incident.service';
 import { paginatedResultToTable } from '../../utils/pagination';
 
@@ -16,7 +13,6 @@ export const getIncidents = asyncErrorHandler(
     const filters =
       req.query.department_id ||
       req.query.direction ||
-      req.query.status ||
       req.query.date_from ||
       req.query.date_to
         ? {
@@ -24,7 +20,6 @@ export const getIncidents = asyncErrorHandler(
               ? Number(req.query.department_id)
               : undefined,
             direction: req.query.direction as SecurityDirectionEnum,
-            status: req.query.status as IncidentStatusEnum,
             date_from: req.query.date_from
               ? new Date(req.query.date_from as string)
               : undefined,
@@ -68,14 +63,9 @@ export const getIncidents = asyncErrorHandler(
         key: 'incidents',
       },
       {
-        title: 'Объект',
-        dataIndex: 'object',
-        key: 'object',
-      },
-      {
-        title: 'Статус',
-        dataIndex: 'status',
-        key: 'status',
+        title: 'Тип объекта',
+        dataIndex: 'object_type',
+        key: 'object_type',
       },
     ];
 

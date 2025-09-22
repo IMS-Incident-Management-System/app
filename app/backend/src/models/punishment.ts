@@ -5,11 +5,8 @@ import { IncidentAttributes } from './incident';
 export interface PunishmentAttributes {
   id: number;
   incident_id: number;
-  guilty_persons_count: number;
-  punished_persons_count: number;
-  warnings_count: number;
-  reprimands_count: number;
-  severe_reprimands_count: number;
+  punishment_type_id: number;
+  description?: string;
   fired_count: number;
   date: Date;
 }
@@ -38,25 +35,15 @@ const Punishment = sequelize.define<PunishmentInstance>('punishments', {
       key: 'id',
     }
   },
-  guilty_persons_count: {
+  punishment_type_id: {
     type: DataTypes.INTEGER,
-    defaultValue: 0,
+    allowNull: false,
+    comment: 'ID типа наказания'
   },
-  punished_persons_count: {
-    type: DataTypes.INTEGER,
-    defaultValue: 0,
-  },
-  warnings_count: {
-    type: DataTypes.INTEGER,
-    defaultValue: 0,
-  },
-  reprimands_count: {
-    type: DataTypes.INTEGER,
-    defaultValue: 0,
-  },
-  severe_reprimands_count: {
-    type: DataTypes.INTEGER,
-    defaultValue: 0,
+  description: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+    comment: 'Описание наказания'
   },
   fired_count: {
     type: DataTypes.INTEGER,

@@ -14,15 +14,12 @@ import { MainInfo } from "./components/MainInfo/MainInfo";
 import { IncidentEvents } from "./components/IncidentEvents/IncidentEvents";
 import { IncidentAdditionally } from "./components/IncidentAdditionally/IncidentAdditionally";
 import { IncidentPunishments } from "./components/IncidentPunishments/IncidentPunishments";
-import { EIncidentStatus } from "../../enums/incident";
-import { useGetObjects } from "../../services/requests/objects/getObjects";
 import { useGetIncident } from "../../services/requests/initiators/getIncident";
 import { useCreateIncident } from "../../services/requests/initiators/createIncident";
 import { CreateIncidentBody } from "../../interfaces/requests/incident";
 import { useForm } from "./hooks/useForm";
 import styles from "./incidentProvider.module.scss";
 import { useUpdateIncident } from "../../services/requests/initiators/updateIncident";
-import { statusDict } from "../../constants/incidentDict";
 
 export const IncidentProvider = () => {
   const { id } = useParams();
@@ -35,7 +32,6 @@ export const IncidentProvider = () => {
   };
 
   const { data: incident, isLoading: isIncidentLoading } = useGetIncident(id);
-  const { data: objects, isLoading: isObjectsLoading } = useGetObjects();
   const { mutate: createIncident, isLoading: isCreatingIncident } =
     useCreateIncident(handleSetStep);
   const { mutate: updateIncident, isLoading: isUpdatingIncident } =
@@ -52,17 +48,12 @@ export const IncidentProvider = () => {
     {
       title: "Основная информация",
       content: (
-        <MainInfo objects={objects || []} isObjectsLoading={isObjectsLoading} />
+        <MainInfo />
       ),
     },
     {
-      title: "События",
-      content: (
-        <IncidentEvents
-          objects={objects || []}
-          isObjectsLoading={isObjectsLoading}
-        />
-      ),
+      title: "Инциденты",
+      content: <IncidentEvents />,
     },
     {
       title: "Наказания",
@@ -113,25 +104,13 @@ export const IncidentProvider = () => {
           )}
           <div className={styles.headerActions}>
             <Form.Item<CreateIncidentBody>
-              name="status"
-              className={styles.formStatus}
-            >
-              <Select
-                options={Object.values(EIncidentStatus).map((status) => ({
-                  label: statusDict[status as EIncidentStatus],
-                  value: status,
-                }))}
-                placeholder="Выберите статус"
-                allowClear
-              />
-            </Form.Item>
-            <Form.Item<CreateIncidentBody>
               name="is_db"
               className={styles.formItem}
               valuePropName="checked"
             >
               <Checkbox>1-ДБ</Checkbox>
             </Form.Item>
+            
           </div>
         </div>
         <div className={styles.stepsContainer}>

@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { departmentController } from '../controllers/department.controller';
 import { eventTypeController } from '../controllers/eventType.controller';
+import { objectTypeController } from '../controllers/objectType.controller';
 import { objectsController } from '../controllers/object.controller';
 import { getIncidents } from '../controllers/incident/getIncidents.controller';
 import { createIncident } from '../controllers/incident/createIncident.controller';
@@ -42,6 +43,18 @@ router
   .get(eventTypeController.getEventType)
   .put(eventTypeController.updateEventType)
   .delete(eventTypeController.deleteEventType);
+
+// Object types routes
+router
+  .route('/object-types')
+  .get(objectTypeController.getObjectTypes)
+  .post(objectTypeController.createObjectType);
+
+router
+  .route('/object-types/:id')
+  .get(objectTypeController.getObjectType)
+  .put(objectTypeController.updateObjectType)
+  .delete(objectTypeController.deleteObjectType);
 
 // Objects routes
 router

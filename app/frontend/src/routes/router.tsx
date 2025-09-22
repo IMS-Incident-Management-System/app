@@ -7,6 +7,7 @@ import { Profile } from "../pages/Profile/Profile";
 import { IncidentProvider } from "../pages/IncidentProvider/IncidentProvider";
 import Departments from "../pages/Departments";
 import IncidentEvents from "../pages/IncidentEvents";
+import ObjectTypes from "../pages/ObjectTypes";
 
 export const router = createBrowserRouter([
   {
@@ -40,6 +41,10 @@ export const router = createBrowserRouter([
       {
         path: ERoutes.INCIDENT_EVENTS,
         element: <IncidentEvents />,
+      },
+      {
+        path: ERoutes.OBJECT_TYPES,
+        element: <ObjectTypes />,
       },
     ],
   },

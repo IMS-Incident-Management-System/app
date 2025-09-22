@@ -1,23 +1,16 @@
 import { Form, FormInstance, Select, TreeSelect } from "antd";
 import { useGetDepartments } from "../../../../services/requests/departments/getDepartments";
+import { useGetObjectTypes } from "../../../../services/requests/objectTypes/getObjectTypes";
 import { SecurityDirectionEnum } from "../../../../enums/direction";
-import { usePrepareObjects } from "../../hooks/usePrepareObjects";
 import styles from "./MainInfo.module.scss";
-import { ObjectAttributes } from "../../../../interfaces/requests/object";
 import { CreateIncidentBody } from "../../../../interfaces/requests/incident";
 import { directionDict } from "../../../../constants/incidentDict";
 
-export const MainInfo = ({
-  objects,
-  isObjectsLoading,
-}: {
-  objects: ObjectAttributes[];
-  isObjectsLoading: boolean;
-}) => {
+export const MainInfo = () => {
   const { data: departments, isLoading: isDepartmentsLoading } =
     useGetDepartments();
-
-  const { objectOptions } = usePrepareObjects(objects);
+  const { data: objectTypes, isLoading: isObjectTypesLoading } =
+    useGetObjectTypes();
 
   return (
     <div className={styles.container}>
@@ -61,15 +54,17 @@ export const MainInfo = ({
           />
         </Form.Item>
         <Form.Item<CreateIncidentBody>
-          label="Объект"
-          name="object_id"
-          rules={[{ required: true, message: "Пожалуйста, выберите объект" }]}
+          label="Тип объекта"
+          name="object_type_id"
         >
-          <Select
-            options={objectOptions}
-            placeholder="Выберите объект"
+          <TreeSelect
+            showSearch
+            dropdownStyle={{ maxHeight: 400, overflow: "auto" }}
+            placeholder="Выберите тип объекта"
             allowClear
-            loading={isObjectsLoading}
+            treeDefaultExpandAll
+            treeData={objectTypes?.treeData}
+            loading={isObjectTypesLoading}
             className={styles.formInput}
           />
         </Form.Item>

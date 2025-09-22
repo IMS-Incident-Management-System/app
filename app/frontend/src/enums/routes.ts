@@ -7,6 +7,7 @@ export enum ERoutes {
   INCIDENT_DUPLICATE_ID = "/incidents/duplicate/:id",
   PROFILE = "/profile",
   DEPARTMENTS = "/departments",
-  INCIDENT_EVENTS = "/incident-events"
+  INCIDENT_EVENTS = "/incident-events",
+  OBJECT_TYPES = "/object-types"
 }
 

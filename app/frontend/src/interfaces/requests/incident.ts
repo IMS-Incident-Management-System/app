@@ -15,10 +15,9 @@ export interface IncidentAttributes {
   id: number;
   department_id: number;
   direction: EIncidentDirection;
-  object_id: number;
+  object_type_id?: number;
   message: string;
   is_db: boolean;
-  status: EIncidentStatus;
   createdAt: Date;
 }
 
@@ -38,16 +37,22 @@ export interface IncidentWithRelations extends IncidentAttributes {
 export interface CreateIncidentBody {
   department_id: number;
   direction: EIncidentDirection;
-  status: EIncidentStatus;
-  object_id: number;
+  object_type_id?: number;
   message: string;
   is_db: boolean;
   events: Array<{
     event_type_id: number;
     sub_type_id?: number;
-    damage_amount: number;
-    object_id: number;
-    compensation_amount: number;
+    // Поля адреса
+    city?: string;
+    street?: string;
+    house?: string;
+    building?: string;
+    apartment?: string;
+    // Поля ущерба
+    detected_damage: number;      // Выявленный ущерб
+    prevented_damage: number;     // Предотвращенный ущерб
+    recovered_damage: number;     // Возмещенный ущерб
     description?: string;
     date: Date;
     criminal_cases?: Array<{
@@ -60,14 +65,11 @@ export interface CreateIncidentBody {
       [key: string]: any;
     }>;
   }>;
-  punishments?: Array<{
-    guilty_persons_count: number;
-    punished_persons_count: number;
-    warnings_count: number;
-    reprimands_count: number;
-    severe_reprimands_count: number;
-    fired_count: number;
+  punishments: Array<{
+    punishment_type_id: number;
+    description?: string;
     date: Date;
+    fired_count: number;
   }>;
 }
 

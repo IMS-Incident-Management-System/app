@@ -3,44 +3,44 @@ import {
   TreeConfig,
 } from "../../components/TreeStructure/types";
 import {
-  useCreateEventType,
-  useUpdateEventType,
-  useDeleteEventType,
-} from "../../services/requests/eventTypes/mutations";
+  useCreateObjectType,
+  useUpdateObjectType,
+  useDeleteObjectType,
+} from "../../services/requests/objectTypes/mutations";
 
-export const EventTypes = () => {
-  const createMutation = useCreateEventType();
-  const updateMutation = useUpdateEventType();
-  const deleteMutation = useDeleteEventType();
+export const ObjectTypes = () => {
+  const createMutation = useCreateObjectType();
+  const updateMutation = useUpdateObjectType();
+  const deleteMutation = useDeleteObjectType();
 
   const treeConfig: TreeConfig = {
-    title: 'Типы инцидентов',
-    apiEndpoint: '/event-types',
-    addButtonText: 'Добавить тип инцидента',
-    editModalTitle: 'Редактировать тип инцидента',
-    deleteModalTitle: 'Удалить тип инцидента',
-    idField: 'event_type_id',
+    title: 'Типы объектов',
+    apiEndpoint: '/object-types',
+    addButtonText: 'Добавить тип объекта',
+    editModalTitle: 'Редактировать тип объекта',
+    deleteModalTitle: 'Удалить тип объекта',
+    idField: 'object_type_id',
     addFormConfig: {
-      title: 'Добавить тип инцидента',
+      title: 'Добавить тип объекта',
       fields: [
         {
           name: 'title',
           label: 'Название',
           type: 'input',
           rules: [{ required: true, message: 'Пожалуйста, введите название' }],
-          placeholder: 'Введите название типа инцидента'
+          placeholder: 'Введите название типа объекта'
         }
       ]
     },
     editFormConfig: {
-      title: 'Редактировать тип инцидента',
+      title: 'Редактировать тип объекта',
       fields: [
         {
           name: 'title',
           label: 'Название',
           type: 'input',
           rules: [{ required: true, message: 'Пожалуйста, введите название' }],
-          placeholder: 'Введите название типа инцидента'
+          placeholder: 'Введите название типа объекта'
         }
       ]
     }
@@ -58,4 +58,5 @@ export const EventTypes = () => {
   );
 };
 
-export default EventTypes;
+export default ObjectTypes;
+

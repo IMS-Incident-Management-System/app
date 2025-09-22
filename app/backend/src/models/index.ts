@@ -1,6 +1,7 @@
 import { sequelize } from './sequelize';
 import Department from './department';
 import ObjectModel from './object';
+import ObjectType from './objectType';
 import EventType from './eventType';
 import Incident from './incident';
 import EventHistory from './eventHistory';
@@ -15,16 +16,13 @@ EventHistory.belongsTo(EventType, {
   onDelete: 'SET NULL'
 });
 
+
 EventHistory.belongsTo(Incident, { 
   foreignKey: 'incident_id', 
   as: 'parent_incident',
   onDelete: 'CASCADE'
 });
 
-EventHistory.belongsTo(ObjectModel, { 
-  foreignKey: 'object_id', 
-  as: 'event_object'
-});
 
 EventHistory.hasMany(CriminalCase, { 
   foreignKey: 'event_history_id', 
@@ -38,10 +36,11 @@ Incident.belongsTo(Department, {
   as: 'department'
 });
 
-Incident.belongsTo(ObjectModel, { 
-  foreignKey: 'object_id', 
-  as: 'object'
+Incident.belongsTo(ObjectType, { 
+  foreignKey: 'object_type_id', 
+  as: 'object_type'
 });
+
 
 Incident.hasMany(EventHistory, { 
   foreignKey: 'incident_id', 
@@ -72,6 +71,7 @@ CriminalCase.belongsTo(EventHistory, {
 export {
   Department,
   ObjectModel,
+  ObjectType,
   EventType,
   Incident,
   EventHistory,
