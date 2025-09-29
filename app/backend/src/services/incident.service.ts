@@ -63,12 +63,12 @@ interface UpdateIncidentData {
       convicted_count?: number;
     }[];
   }[];
-  punishments: {
+  punishments?: {
     id?: number;
-    punishment_type_id: number;
+    punishment_type_id?: number; // делаем опциональным, т.к. FE может не слать
     description?: string;
-    fired_count: number;
-    date: Date;
+    fired_count?: number;
+    date?: Date | string;
   }[];
 }
 
@@ -217,21 +217,32 @@ export const incidentService = {
       );
     }
 
-    // Update punishments - replace all punishments
-    await Punishment.destroy({
-      where: { incident_id: id },
-      ...options
-    });
+    // Update punishments - replace all punishments ONLY if provided in payload
+    if (data.punishments !== undefined) {
+      await Punishment.destroy({
+        where: { incident_id: id },
+        ...options
+      });
 
-    if (data.punishments?.length) {
-      await Promise.all(
-        data.punishments.map(punishment =>
-          Punishment.create(
-            { ...punishment, incident_id: id },
-            options
-          )
-        )
-      );
+      if (data.punishments?.length) {
+        await Promise.all(
+          data.punishments.map(punishment => {
+            const p: any = punishment || {};
+            return Punishment.create({
+              incident_id: id,
+              punishment_type_id: typeof p.punishment_type_id === 'number' ? p.punishment_type_id : 1,
+              description: p.description,
+              fired_count: Number.isFinite(p.fired_count) ? p.fired_count : 0,
+              date: p.date ? new Date(p.date as any) : new Date(),
+              guilty_persons_count: Number.isFinite(p.guilty_persons_count) ? p.guilty_persons_count : 0,
+              punished_persons_count: Number.isFinite(p.punished_persons_count) ? p.punished_persons_count : 0,
+              warnings_count: Number.isFinite(p.warnings_count) ? p.warnings_count : 0,
+              reprimands_count: Number.isFinite(p.reprimands_count) ? p.reprimands_count : 0,
+              severe_reprimands_count: Number.isFinite(p.severe_reprimands_count) ? p.severe_reprimands_count : 0,
+            }, options);
+          })
+        );
+      }
     }
 
     // Return updated incident with all relations

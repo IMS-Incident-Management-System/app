@@ -6,6 +6,7 @@ import {
 import { CustomResponse } from '../../middlewares/responseHandler.middleware';
 import { incidentService } from '../../services/incident.service';
 import { sequelize } from '../../models';
+import { SecurityDirectionEnum } from '../../models/incident';
 
 export const updateIncident = asyncErrorHandler(
   async (req: Request, res: CustomResponse) => {

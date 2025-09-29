@@ -26,6 +26,11 @@ interface CreateIncidentBody {
     house?: string;
     building?: string;
     apartment?: string;
+    // персональные данные
+    last_name?: string;
+    first_name?: string;
+    middle_name?: string;
+    employee_number?: string;
     // ущерб
     detected_damage: number;
     prevented_damage: number;
@@ -54,7 +59,7 @@ export const createIncident = asyncErrorHandler(
   async (req: Request, res: CustomResponse) => {
     const data = req.body as CreateIncidentBody;
 
-    if (!data.department_id || !data.direction || !data.message || !data.events.length) {
+    if (!data.department_id || !data.direction || !data.message) {
       throw ApiError.badRequest('Missing required fields');
     }
 
@@ -71,20 +76,26 @@ export const createIncident = asyncErrorHandler(
         { transaction }
       );
 
-      // 2. Создаем события и уголовные дела
+      // 2. Создаем события и уголовные дела (если переданы)
       await Promise.all(
-        data.events.map(async (eventData) => {
+        (data.events ?? []).map(async (eventData) => {
           // Создаем событие
           const event = await eventHistoryService.createEvent(
             {
               incident_id: incident.id,
               event_type_id: eventData.event_type_id,
               sub_type_id: eventData.sub_type_id,
+              // адрес
               city: eventData.city,
               street: eventData.street,
               house: eventData.house,
               building: eventData.building,
               apartment: eventData.apartment,
+              // персональные данные
+              last_name: eventData.last_name,
+              first_name: eventData.first_name,
+              middle_name: eventData.middle_name,
+              employee_number: eventData.employee_number,
               detected_damage: eventData.detected_damage,
               prevented_damage: eventData.prevented_damage,
               recovered_damage: eventData.recovered_damage,
@@ -113,28 +124,41 @@ export const createIncident = asyncErrorHandler(
         })
       );
 
-      // 3. Создаем наказания
-      data.punishments?.length
-        ? await Promise.all(
-            data.punishments.map((punishmentData) =>
-              punishmentService.createPunishment(
-                { ...punishmentData, incident_id: incident.id },
-                {
-                  transaction,
-                }
-              )
+      // 3. Создаем наказания (нормализуем входные данные и подставляем дефолты)
+      const normalizedPunishments = (data.punishments ?? [])
+        .filter((p) => Boolean(p))
+        .map((p: any) => ({
+          // Если не пришёл тип наказания — подставляем общий тип = 1
+          punishment_type_id: typeof p.punishment_type_id === 'number' ? p.punishment_type_id : 1,
+          description: p.description,
+          date: p.date ? new Date(p.date) : new Date(),
+          fired_count: Number.isFinite(p.fired_count) ? p.fired_count : 0,
+          guilty_persons_count: Number.isFinite(p.guilty_persons_count) ? p.guilty_persons_count : 0,
+          punished_persons_count: Number.isFinite(p.punished_persons_count) ? p.punished_persons_count : 0,
+          warnings_count: Number.isFinite(p.warnings_count) ? p.warnings_count : 0,
+          reprimands_count: Number.isFinite(p.reprimands_count) ? p.reprimands_count : 0,
+          severe_reprimands_count: Number.isFinite(p.severe_reprimands_count) ? p.severe_reprimands_count : 0,
+        }));
+
+      if (normalizedPunishments.length) {
+        await Promise.all(
+          normalizedPunishments.map((punishmentData) =>
+            punishmentService.createPunishment(
+              { ...punishmentData, incident_id: incident.id },
+              { transaction }
             )
           )
-        : [];
+        );
+      }
 
-      // 6. Получаем инцидент со всеми связями
+      // 6. Собираем ответ
       return {
         incident,
-        events: data.events,
+        events: data.events ?? [],
         punishments: data.punishments,
       };
     });
 
-    res.success(null, 'Incident created successfully');
+    res.created(result, 'Incident created successfully');
   }
 );
