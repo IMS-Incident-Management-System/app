@@ -92,6 +92,9 @@ export const createIncident = asyncErrorHandler(
               building: eventData.building,
               // apartment удалён
               number: (eventData as any).number,
+              // множественные
+              addresses: (eventData as any).addresses,
+              persons: (eventData as any).persons,
               // персональные данные
               last_name: eventData.last_name,
               first_name: eventData.first_name,

@@ -25,6 +25,9 @@ export interface EventHistoryAttributes {
   first_name?: string;          // Имя
   middle_name?: string;         // Отчество
   employee_number?: string;     // Табельный номер
+  // Множественные группы
+  addresses?: any; // JSONB массив адресов
+  persons?: any;   // JSONB массив персональных данных
   // Источник
   source_last_name?: string;
   source_first_name?: string;
@@ -118,6 +121,17 @@ const EventHistory = sequelize.define<EventHistoryInstance>('event_history', {
     type: DataTypes.STRING,
     allowNull: true,
     comment: 'Табельный номер'
+  },
+  // JSONB поля для множественных групп
+  addresses: {
+    type: (DataTypes as any).JSONB || DataTypes.JSON,
+    allowNull: true,
+    comment: 'Список адресов события'
+  },
+  persons: {
+    type: (DataTypes as any).JSONB || DataTypes.JSON,
+    allowNull: true,
+    comment: 'Список персональных данных по событию'
   },
   // Источник
   source_last_name: {
