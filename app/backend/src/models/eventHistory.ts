@@ -19,6 +19,11 @@ export interface EventHistoryAttributes {
   house?: string;
   building?: string;
   apartment?: string;
+  // Поля персональных данных
+  last_name?: string;           // Фамилия
+  first_name?: string;          // Имя
+  middle_name?: string;         // Отчество
+  employee_number?: string;     // Табельный номер
   // Поля ущерба
   detected_damage: number;      // Выявленный ущерб
   prevented_damage: number;     // Предотвращенный ущерб
@@ -85,6 +90,27 @@ const EventHistory = sequelize.define<EventHistoryInstance>('event_history', {
     type: DataTypes.STRING,
     allowNull: true,
     comment: 'Квартира/Офис'
+  },
+  // Поля персональных данных
+  last_name: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'Фамилия'
+  },
+  first_name: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'Имя'
+  },
+  middle_name: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'Отчество'
+  },
+  employee_number: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'Табельный номер'
   },
   sub_type_id: {
     type: DataTypes.INTEGER,

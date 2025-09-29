@@ -9,7 +9,7 @@ import { selectUserSelector } from "../../store/features/user/selectors";
 import { UserResponse } from "../../interfaces/requests/auth";
 import { ERoutes } from "../../enums/routes";
 import styles from "./Header.module.scss";
-import { NotificationOutlined, PartitionOutlined, TagsOutlined, AppstoreOutlined } from "@ant-design/icons";
+import { NotificationOutlined, BookOutlined } from "@ant-design/icons";
 
 const items = (user: UserResponse) => {
   const menu = [];
@@ -21,19 +21,9 @@ const items = (user: UserResponse) => {
       icon: <NotificationOutlined />,
     },
     {
-      label: "Департаменты",
-      key: ERoutes.DEPARTMENTS,
-      icon: <PartitionOutlined />,
-    },
-    {
-      label: "Типы инцидентов",
-      key: ERoutes.INCIDENT_EVENTS,
-      icon: <TagsOutlined />,
-    },
-    {
-      label: "Типы объектов",
-      key: ERoutes.OBJECT_TYPES,
-      icon: <AppstoreOutlined />,
+      label: "Справочники",
+      key: ERoutes.REFERENCES,
+      icon: <BookOutlined />,
     },
   );
 

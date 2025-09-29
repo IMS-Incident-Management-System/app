@@ -49,6 +49,11 @@ export interface CreateIncidentBody {
     house?: string;
     building?: string;
     apartment?: string;
+    // Поля персональных данных
+    last_name?: string;           // Фамилия
+    first_name?: string;          // Имя
+    middle_name?: string;         // Отчество
+    employee_number?: string;     // Табельный номер
     // Поля ущерба
     detected_damage: number;      // Выявленный ущерб
     prevented_damage: number;     // Предотвращенный ущерб

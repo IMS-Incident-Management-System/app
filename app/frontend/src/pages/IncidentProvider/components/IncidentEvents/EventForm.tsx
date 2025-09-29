@@ -19,6 +19,7 @@ import {
 } from "@ant-design/icons";
 import { CriminalCaseForm } from "./CriminalCaseForm";
 import { AddressForm } from "./AddressForm";
+import { PersonalDataForm } from "./PersonalDataForm";
 
 export const EventForm = ({
   name,
@@ -61,6 +62,8 @@ export const EventForm = ({
       </Form.Item>
 
       <AddressForm name={name} />
+
+      <PersonalDataForm name={name} />
 
       <Form.List name={[name, "criminal_cases"]}>
         {(fields, { add, remove }) => (
