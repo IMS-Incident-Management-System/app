@@ -160,6 +160,22 @@ export const EventForm = ({
       >
         <Input.TextArea rows={4} />
       </Form.Item>
+
+      <div className={styles.sourceContainer}>
+        <h4 className={styles.sectionTitle}>Источник</h4>
+        <Form.Item label="Фамилия" name={[name, "source_last_name"]}>
+          <Input placeholder="Введите фамилию" />
+        </Form.Item>
+        <Form.Item label="Имя" name={[name, "source_first_name"]}>
+          <Input placeholder="Введите имя" />
+        </Form.Item>
+        <Form.Item label="Отчество" name={[name, "source_middle_name"]}>
+          <Input placeholder="Введите отчество" />
+        </Form.Item>
+        <Form.Item label="Должность" name={[name, "source_position"]}>
+          <Input placeholder="Введите должность" />
+        </Form.Item>
+      </div>
     </div>
   );
 };

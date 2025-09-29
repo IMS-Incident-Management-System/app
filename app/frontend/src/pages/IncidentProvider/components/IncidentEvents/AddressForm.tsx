@@ -30,7 +30,7 @@ export const AddressForm = ({ name }: AddressFormProps) => {
       </Row>
 
       <Row gutter={16}>
-        <Col xs={24} sm={8}>
+        <Col xs={24} sm={6}>
           <Form.Item
             label="Дом"
             name={[name, "house"]}
@@ -38,14 +38,14 @@ export const AddressForm = ({ name }: AddressFormProps) => {
             <Input placeholder="Введите дом" />
           </Form.Item>
         </Col>
-        <Col xs={24} sm={8}>
+        <Col xs={24} sm={6}>
           <Form.Item label="Корпус" name={[name, "building"]}>
             <Input placeholder="Введите корпус (необязательно)" />
           </Form.Item>
         </Col>
-        <Col xs={24} sm={8}>
-          <Form.Item label="Квартира/Офис" name={[name, "apartment"]}>
-            <Input placeholder="Введите квартиру/офис (необязательно)" />
+        <Col xs={24} sm={6}>
+          <Form.Item label="Номер" name={[name, "number"]}>
+            <Input placeholder="Введите номер (необязательно)" />
           </Form.Item>
         </Col>
       </Row>

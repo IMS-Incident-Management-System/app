@@ -34,7 +34,7 @@ interface UpdateIncidentData {
     street?: string;
     house?: string;
     building?: string;
-    apartment?: string;
+    // apartment удалён
     // ущерб
     detected_damage: number;
     prevented_damage: number;

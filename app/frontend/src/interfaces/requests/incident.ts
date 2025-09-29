@@ -49,6 +49,7 @@ export interface CreateIncidentBody {
     house?: string;
     building?: string;
     apartment?: string;
+    number?: string;
     // Поля персональных данных
     last_name?: string;           // Фамилия
     first_name?: string;          // Имя

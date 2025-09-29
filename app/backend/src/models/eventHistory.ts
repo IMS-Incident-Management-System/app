@@ -18,12 +18,18 @@ export interface EventHistoryAttributes {
   street?: string;
   house?: string;
   building?: string;
-  apartment?: string;
+  // apartment удалён
+  number?: string; // Номер (помещения/объекта/другой номер)
   // Поля персональных данных
   last_name?: string;           // Фамилия
   first_name?: string;          // Имя
   middle_name?: string;         // Отчество
   employee_number?: string;     // Табельный номер
+  // Источник
+  source_last_name?: string;
+  source_first_name?: string;
+  source_middle_name?: string;
+  source_position?: string;
   // Поля ущерба
   detected_damage: number;      // Выявленный ущерб
   prevented_damage: number;     // Предотвращенный ущерб
@@ -86,10 +92,11 @@ const EventHistory = sequelize.define<EventHistoryInstance>('event_history', {
     allowNull: true,
     comment: 'Корпус'
   },
-  apartment: {
+  // apartment удалён
+  number: {
     type: DataTypes.STRING,
     allowNull: true,
-    comment: 'Квартира/Офис'
+    comment: 'Номер'
   },
   // Поля персональных данных
   last_name: {
@@ -111,6 +118,27 @@ const EventHistory = sequelize.define<EventHistoryInstance>('event_history', {
     type: DataTypes.STRING,
     allowNull: true,
     comment: 'Табельный номер'
+  },
+  // Источник
+  source_last_name: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'Источник: Фамилия'
+  },
+  source_first_name: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'Источник: Имя'
+  },
+  source_middle_name: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'Источник: Отчество'
+  },
+  source_position: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'Источник: Должность'
   },
   sub_type_id: {
     type: DataTypes.INTEGER,

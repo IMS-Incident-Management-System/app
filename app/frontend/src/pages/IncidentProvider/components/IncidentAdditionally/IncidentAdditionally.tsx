@@ -11,6 +11,8 @@ export const IncidentAdditionally = () => {
         <Form.Item label="Сообщение" name="message">
           <Input.TextArea className={styles.formInput} />
         </Form.Item>
+
+        {/* Источник перенесён внутрь каждого события */}
       </div>
     </div>
   );

@@ -90,12 +90,18 @@ export const createIncident = asyncErrorHandler(
               street: eventData.street,
               house: eventData.house,
               building: eventData.building,
-              apartment: eventData.apartment,
+              // apartment удалён
+              number: (eventData as any).number,
               // персональные данные
               last_name: eventData.last_name,
               first_name: eventData.first_name,
               middle_name: eventData.middle_name,
               employee_number: eventData.employee_number,
+              // источник
+              source_last_name: (eventData as any).source_last_name,
+              source_first_name: (eventData as any).source_first_name,
+              source_middle_name: (eventData as any).source_middle_name,
+              source_position: (eventData as any).source_position,
               detected_damage: eventData.detected_damage,
               prevented_damage: eventData.prevented_damage,
               recovered_damage: eventData.recovered_damage,

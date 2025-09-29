@@ -1,4 +1,4 @@
-import { Button, Form } from "antd";
+import { Button, Form, Input } from "antd";
 import styles from "./IncidentEvents.module.scss";
 import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 import { EventForm } from "./EventForm";
@@ -41,6 +41,8 @@ export const IncidentEvents = () => {
                   </div>
                 ))}
               </div>
+
+              {/* Источник находится внутри каждого события (EventForm) */}
             </>
           )}
         </Form.List>
