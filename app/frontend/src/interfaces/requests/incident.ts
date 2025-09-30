@@ -62,6 +62,7 @@ export interface CreateIncidentBody {
     recovered_damage: number;     // Возмещенный ущерб
     description?: string;
     date: Date;
+    entry_date?: Date;             // Дата внесения инцидента
     criminal_cases?: Array<{
       transfer_date?: Date;
       document_number?: string;

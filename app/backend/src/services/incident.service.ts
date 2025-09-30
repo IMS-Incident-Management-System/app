@@ -42,6 +42,7 @@ interface UpdateIncidentData {
     sub_type_id?: number;
     description?: string;
     date: Date;
+    entry_date?: Date;             // Дата внесения инцидента
     criminal_cases?: {
       id?: number;
       transfer_date?: Date;

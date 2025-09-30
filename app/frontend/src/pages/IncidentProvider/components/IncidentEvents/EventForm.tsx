@@ -10,6 +10,7 @@ import {
 import { EventFormProps } from "./types";
 import styles from "./EventForm.module.scss";
 import { useState } from "react";
+import dayjs from "dayjs";
 import { usePrepareObjects } from "../../hooks/usePrepareObjects";
 import {
   DeleteOutlined,
@@ -58,6 +59,18 @@ export const EventForm = ({
         rules={[{ required: true, message: "Укажите дату инцидента" }]}
       >
         <DatePicker style={{ width: "100%" }} />
+      </Form.Item>
+
+      <Form.Item
+        label="Дата внесения инцидента"
+        name={[name, "entry_date"]}
+        initialValue={dayjs()}
+      >
+        <DatePicker 
+          style={{ width: "100%" }} 
+          disabled 
+          placeholder="Сегодняшняя дата"
+        />
       </Form.Item>
 
       <AddressForm name={name} />

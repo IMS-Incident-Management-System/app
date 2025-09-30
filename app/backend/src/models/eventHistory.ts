@@ -13,6 +13,7 @@ export interface EventHistoryAttributes {
   sub_type_id?: number;
   description?: string;
   date: Date;
+  entry_date?: Date;             // Дата внесения инцидента
   // Поля адреса
   city?: string;
   street?: string;
@@ -183,6 +184,12 @@ const EventHistory = sequelize.define<EventHistoryInstance>('event_history', {
   date: {
     type: DataTypes.DATE,
     allowNull: false,
+  },
+  entry_date: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    defaultValue: DataTypes.NOW,
+    comment: 'Дата внесения инцидента'
   },
 }, {
   tableName: 'event_history'

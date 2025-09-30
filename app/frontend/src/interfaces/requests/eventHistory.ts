@@ -11,6 +11,7 @@ export interface EventHistoryAttributes {
   sub_type_id?: number;
   description?: string;
   date: Date;
+  entry_date?: Date;             // Дата внесения инцидента
   // Поля адреса
   city?: string;
   street?: string;
