@@ -29,7 +29,6 @@ export const EventForm = ({
   const [isCriminalCasesCollapsed, setIsCriminalCasesCollapsed] =
     useState(false);
 
-
   const handleCollapseCriminalCases = () => {
     setIsCriminalCasesCollapsed(!isCriminalCasesCollapsed);
   };
@@ -37,14 +36,14 @@ export const EventForm = ({
   return (
     <div className={styles.container}>
       <Form.Item
-        label="Тип события"
+        label="Тип инцидента"
         name={[name, "event_type_id"]}
-        rules={[{ required: true, message: "Выберите тип события" }]}
+        rules={[{ required: true, message: "Выберите тип инцидента" }]}
       >
         <TreeSelect
           showSearch
           dropdownStyle={{ maxHeight: 400, overflow: "auto" }}
-          placeholder="Выберите тип события"
+          placeholder="Выберите тип инцидента"
           allowClear
           treeDefaultExpandAll
           treeData={eventTypes?.treeData}
@@ -54,9 +53,9 @@ export const EventForm = ({
       </Form.Item>
 
       <Form.Item
-        label="Дата события"
+        label="Дата инцидента"
         name={[name, "date"]}
-        rules={[{ required: true, message: "Укажите дату события" }]}
+        rules={[{ required: true, message: "Укажите дату инцидента" }]}
       >
         <DatePicker style={{ width: "100%" }} />
       </Form.Item>
@@ -111,10 +110,7 @@ export const EventForm = ({
         )}
       </Form.List>
 
-      <Form.Item
-        label="Выявленный ущерб"
-        name={[name, "detected_damage"]}
-      >
+      <Form.Item label="Выявленный ущерб" name={[name, "detected_damage"]}>
         <InputNumber
           style={{ width: "100%" }}
           formatter={(value) =>
@@ -139,10 +135,7 @@ export const EventForm = ({
         />
       </Form.Item>
 
-      <Form.Item
-        label="Возмещенный ущерб"
-        name={[name, "recovered_damage"]}
-      >
+      <Form.Item label="Возмещенный ущерб" name={[name, "recovered_damage"]}>
         <InputNumber
           style={{ width: "100%" }}
           formatter={(value) =>
