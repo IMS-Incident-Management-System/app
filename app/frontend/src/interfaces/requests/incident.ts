@@ -6,7 +6,8 @@ import { PunishmentAttributes } from "./punishment";
 export type TIncidentFilter = Partial<{
   department_id: number;
   direction: EIncidentDirection;
-  status: EIncidentStatus;
+  object_type_id: number;
+  event_type_id: number;
   date_from: string;
   date_to: string;
 }>;

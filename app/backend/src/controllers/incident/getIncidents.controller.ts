@@ -13,6 +13,8 @@ export const getIncidents = asyncErrorHandler(
     const filters =
       req.query.department_id ||
       req.query.direction ||
+      req.query.object_type_id ||
+      req.query.event_type_id ||
       req.query.date_from ||
       req.query.date_to
         ? {
@@ -20,6 +22,12 @@ export const getIncidents = asyncErrorHandler(
               ? Number(req.query.department_id)
               : undefined,
             direction: req.query.direction as SecurityDirectionEnum,
+            object_type_id: req.query.object_type_id
+              ? Number(req.query.object_type_id)
+              : undefined,
+            event_type_id: req.query.event_type_id
+              ? Number(req.query.event_type_id)
+              : undefined,
             date_from: req.query.date_from
               ? new Date(req.query.date_from as string)
               : undefined,

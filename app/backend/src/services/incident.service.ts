@@ -75,6 +75,8 @@ interface UpdateIncidentData {
 interface GetIncidentsFilters {
   department_id?: number;
   direction?: SecurityDirectionEnum;
+  object_type_id?: number;
+  event_type_id?: number;
   date_from?: Date;
   date_to?: Date;
 }
@@ -88,6 +90,9 @@ export const incidentService = {
     }
     if (filters?.direction) {
       where.direction = filters.direction;
+    }
+    if (filters?.object_type_id) {
+      where.object_type_id = filters.object_type_id;
     }
     if (filters?.date_from) {
       where.createdAt = {
@@ -114,15 +119,25 @@ export const incidentService = {
         {
           model: EventHistory,
           as: 'events',
-          where: filters?.date_from || filters?.date_to ? {
-            date: {
-              [Op.between]: [
-                filters.date_from || new Date(0),
-                filters.date_to || new Date()
-              ]
+          where: (() => {
+            const eventWhere: any = {};
+            
+            if (filters?.date_from || filters?.date_to) {
+              eventWhere.date = {
+                [Op.between]: [
+                  filters.date_from || new Date(0),
+                  filters.date_to || new Date()
+                ]
+              };
             }
-          } : undefined,
-          required: false,
+            
+            if (filters?.event_type_id) {
+              eventWhere.event_type_id = filters.event_type_id;
+            }
+            
+            return Object.keys(eventWhere).length > 0 ? eventWhere : undefined;
+          })(),
+          required: filters?.event_type_id ? true : false,
           include: [
             { model: EventType, as: 'event_type' },
             { model: CriminalCase, as: 'criminal_cases' }
