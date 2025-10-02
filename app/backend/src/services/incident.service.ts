@@ -34,7 +34,7 @@ interface UpdateIncidentData {
     street?: string;
     house?: string;
     building?: string;
-    apartment?: string;
+    // apartment удалён
     // ущерб
     detected_damage: number;
     prevented_damage: number;
@@ -42,6 +42,7 @@ interface UpdateIncidentData {
     sub_type_id?: number;
     description?: string;
     date: Date;
+    entry_date?: Date;             // Дата внесения инцидента
     criminal_cases?: {
       id?: number;
       transfer_date?: Date;
@@ -63,18 +64,20 @@ interface UpdateIncidentData {
       convicted_count?: number;
     }[];
   }[];
-  punishments: {
+  punishments?: {
     id?: number;
-    punishment_type_id: number;
+    punishment_type_id?: number; // делаем опциональным, т.к. FE может не слать
     description?: string;
-    fired_count: number;
-    date: Date;
+    fired_count?: number;
+    date?: Date | string;
   }[];
 }
 
 interface GetIncidentsFilters {
   department_id?: number;
   direction?: SecurityDirectionEnum;
+  object_type_id?: number;
+  event_type_id?: number;
   date_from?: Date;
   date_to?: Date;
 }
@@ -88,6 +91,9 @@ export const incidentService = {
     }
     if (filters?.direction) {
       where.direction = filters.direction;
+    }
+    if (filters?.object_type_id) {
+      where.object_type_id = filters.object_type_id;
     }
     if (filters?.date_from) {
       where.createdAt = {
@@ -114,15 +120,25 @@ export const incidentService = {
         {
           model: EventHistory,
           as: 'events',
-          where: filters?.date_from || filters?.date_to ? {
-            date: {
-              [Op.between]: [
-                filters.date_from || new Date(0),
-                filters.date_to || new Date()
-              ]
+          where: (() => {
+            const eventWhere: any = {};
+            
+            if (filters?.date_from || filters?.date_to) {
+              eventWhere.date = {
+                [Op.between]: [
+                  filters.date_from || new Date(0),
+                  filters.date_to || new Date()
+                ]
+              };
             }
-          } : undefined,
-          required: false,
+            
+            if (filters?.event_type_id) {
+              eventWhere.event_type_id = filters.event_type_id;
+            }
+            
+            return Object.keys(eventWhere).length > 0 ? eventWhere : undefined;
+          })(),
+          required: filters?.event_type_id ? true : false,
           include: [
             { model: EventType, as: 'event_type' },
             { model: CriminalCase, as: 'criminal_cases' }
@@ -217,21 +233,32 @@ export const incidentService = {
       );
     }
 
-    // Update punishments - replace all punishments
-    await Punishment.destroy({
-      where: { incident_id: id },
-      ...options
-    });
+    // Update punishments - replace all punishments ONLY if provided in payload
+    if (data.punishments !== undefined) {
+      await Punishment.destroy({
+        where: { incident_id: id },
+        ...options
+      });
 
-    if (data.punishments?.length) {
-      await Promise.all(
-        data.punishments.map(punishment =>
-          Punishment.create(
-            { ...punishment, incident_id: id },
-            options
-          )
-        )
-      );
+      if (data.punishments?.length) {
+        await Promise.all(
+          data.punishments.map(punishment => {
+            const p: any = punishment || {};
+            return Punishment.create({
+              incident_id: id,
+              punishment_type_id: typeof p.punishment_type_id === 'number' ? p.punishment_type_id : 1,
+              description: p.description,
+              fired_count: Number.isFinite(p.fired_count) ? p.fired_count : 0,
+              date: p.date ? new Date(p.date as any) : new Date(),
+              guilty_persons_count: Number.isFinite(p.guilty_persons_count) ? p.guilty_persons_count : 0,
+              punished_persons_count: Number.isFinite(p.punished_persons_count) ? p.punished_persons_count : 0,
+              warnings_count: Number.isFinite(p.warnings_count) ? p.warnings_count : 0,
+              reprimands_count: Number.isFinite(p.reprimands_count) ? p.reprimands_count : 0,
+              severe_reprimands_count: Number.isFinite(p.severe_reprimands_count) ? p.severe_reprimands_count : 0,
+            }, options);
+          })
+        );
+      }
     }
 
     // Return updated incident with all relations

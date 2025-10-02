@@ -13,12 +13,27 @@ export interface EventHistoryAttributes {
   sub_type_id?: number;
   description?: string;
   date: Date;
+  entry_date?: Date;             // Дата внесения инцидента
   // Поля адреса
   city?: string;
   street?: string;
   house?: string;
   building?: string;
-  apartment?: string;
+  // apartment удалён
+  number?: string; // Номер (помещения/объекта/другой номер)
+  // Поля персональных данных
+  last_name?: string;           // Фамилия
+  first_name?: string;          // Имя
+  middle_name?: string;         // Отчество
+  employee_number?: string;     // Табельный номер
+  // Множественные группы
+  addresses?: any; // JSONB массив адресов
+  persons?: any;   // JSONB массив персональных данных
+  // Источник
+  source_last_name?: string;
+  source_first_name?: string;
+  source_middle_name?: string;
+  source_position?: string;
   // Поля ущерба
   detected_damage: number;      // Выявленный ущерб
   prevented_damage: number;     // Предотвращенный ущерб
@@ -81,10 +96,64 @@ const EventHistory = sequelize.define<EventHistoryInstance>('event_history', {
     allowNull: true,
     comment: 'Корпус'
   },
-  apartment: {
+  // apartment удалён
+  number: {
     type: DataTypes.STRING,
     allowNull: true,
-    comment: 'Квартира/Офис'
+    comment: 'Номер'
+  },
+  // Поля персональных данных
+  last_name: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'Фамилия'
+  },
+  first_name: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'Имя'
+  },
+  middle_name: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'Отчество'
+  },
+  employee_number: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'Табельный номер'
+  },
+  // JSONB поля для множественных групп
+  addresses: {
+    type: (DataTypes as any).JSONB || DataTypes.JSON,
+    allowNull: true,
+    comment: 'Список адресов события'
+  },
+  persons: {
+    type: (DataTypes as any).JSONB || DataTypes.JSON,
+    allowNull: true,
+    comment: 'Список персональных данных по событию'
+  },
+  // Источник
+  source_last_name: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'Источник: Фамилия'
+  },
+  source_first_name: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'Источник: Имя'
+  },
+  source_middle_name: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'Источник: Отчество'
+  },
+  source_position: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'Источник: Должность'
   },
   sub_type_id: {
     type: DataTypes.INTEGER,
@@ -115,6 +184,12 @@ const EventHistory = sequelize.define<EventHistoryInstance>('event_history', {
   date: {
     type: DataTypes.DATE,
     allowNull: false,
+  },
+  entry_date: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    defaultValue: DataTypes.NOW,
+    comment: 'Дата внесения инцидента'
   },
 }, {
   tableName: 'event_history'

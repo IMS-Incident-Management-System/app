@@ -39,6 +39,7 @@ export const useForm = ({
           formValues.events?.map((event) => ({
             ...event,
             date: event.date ? dayjs(event.date).toDate() : new Date(),
+            entry_date: event.entry_date ? dayjs(event.entry_date).toDate() : undefined,
           })) ?? [],
         punishments:
           formValues.punishments?.map((punishment) => ({
@@ -62,6 +63,7 @@ export const useForm = ({
             formValues.events?.map((event) => ({
               ...event,
               date: event.date ? dayjs(event.date).toDate() : new Date(),
+              entry_date: event.entry_date ? dayjs(event.entry_date).toDate() : undefined,
             })) ?? [],
           punishments:
             formValues.punishments?.map((punishment) => ({
@@ -116,6 +118,7 @@ export const useForm = ({
           return {
             ...rest,
             date: rest.date ? dayjs(rest.date) : undefined,
+            entry_date: rest.entry_date ? dayjs(rest.entry_date) : dayjs(),
             criminal_cases:
               rest.criminal_cases?.map((criminalCase) => {
                 const { id, event_history_id, createdAt, updatedAt, ...rest } =

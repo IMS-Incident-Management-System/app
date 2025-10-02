@@ -6,7 +6,8 @@ import { PunishmentAttributes } from "./punishment";
 export type TIncidentFilter = Partial<{
   department_id: number;
   direction: EIncidentDirection;
-  status: EIncidentStatus;
+  object_type_id: number;
+  event_type_id: number;
   date_from: string;
   date_to: string;
 }>;
@@ -49,12 +50,19 @@ export interface CreateIncidentBody {
     house?: string;
     building?: string;
     apartment?: string;
+    number?: string;
+    // Поля персональных данных
+    last_name?: string;           // Фамилия
+    first_name?: string;          // Имя
+    middle_name?: string;         // Отчество
+    employee_number?: string;     // Табельный номер
     // Поля ущерба
     detected_damage: number;      // Выявленный ущерб
     prevented_damage: number;     // Предотвращенный ущерб
     recovered_damage: number;     // Возмещенный ущерб
     description?: string;
     date: Date;
+    entry_date?: Date;             // Дата внесения инцидента
     criminal_cases?: Array<{
       transfer_date?: Date;
       document_number?: string;

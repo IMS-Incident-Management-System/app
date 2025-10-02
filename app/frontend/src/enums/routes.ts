@@ -8,6 +8,7 @@ export enum ERoutes {
   PROFILE = "/profile",
   DEPARTMENTS = "/departments",
   INCIDENT_EVENTS = "/incident-events",
-  OBJECT_TYPES = "/object-types"
+  OBJECT_TYPES = "/object-types",
+  REFERENCES = "/references"
 }
 

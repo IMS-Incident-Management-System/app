@@ -10,6 +10,7 @@ import {
 import { EventFormProps } from "./types";
 import styles from "./EventForm.module.scss";
 import { useState } from "react";
+import dayjs from "dayjs";
 import { usePrepareObjects } from "../../hooks/usePrepareObjects";
 import {
   DeleteOutlined,
@@ -19,6 +20,7 @@ import {
 } from "@ant-design/icons";
 import { CriminalCaseForm } from "./CriminalCaseForm";
 import { AddressForm } from "./AddressForm";
+import { PersonalDataForm } from "./PersonalDataForm";
 
 export const EventForm = ({
   name,
@@ -28,7 +30,6 @@ export const EventForm = ({
   const [isCriminalCasesCollapsed, setIsCriminalCasesCollapsed] =
     useState(false);
 
-
   const handleCollapseCriminalCases = () => {
     setIsCriminalCasesCollapsed(!isCriminalCasesCollapsed);
   };
@@ -36,14 +37,14 @@ export const EventForm = ({
   return (
     <div className={styles.container}>
       <Form.Item
-        label="Тип события"
+        label="Тип инцидента"
         name={[name, "event_type_id"]}
-        rules={[{ required: true, message: "Выберите тип события" }]}
+        rules={[{ required: true, message: "Выберите тип инцидента" }]}
       >
         <TreeSelect
           showSearch
           dropdownStyle={{ maxHeight: 400, overflow: "auto" }}
-          placeholder="Выберите тип события"
+          placeholder="Выберите тип инцидента"
           allowClear
           treeDefaultExpandAll
           treeData={eventTypes?.treeData}
@@ -53,14 +54,28 @@ export const EventForm = ({
       </Form.Item>
 
       <Form.Item
-        label="Дата события"
+        label="Дата инцидента"
         name={[name, "date"]}
-        rules={[{ required: true, message: "Укажите дату события" }]}
+        rules={[{ required: true, message: "Укажите дату инцидента" }]}
       >
         <DatePicker style={{ width: "100%" }} />
       </Form.Item>
 
+      <Form.Item
+        label="Дата внесения инцидента"
+        name={[name, "entry_date"]}
+        initialValue={dayjs()}
+      >
+        <DatePicker 
+          style={{ width: "100%" }} 
+          disabled 
+          placeholder="Сегодняшняя дата"
+        />
+      </Form.Item>
+
       <AddressForm name={name} />
+
+      <PersonalDataForm name={name} />
 
       <Form.List name={[name, "criminal_cases"]}>
         {(fields, { add, remove }) => (
@@ -108,10 +123,7 @@ export const EventForm = ({
         )}
       </Form.List>
 
-      <Form.Item
-        label="Выявленный ущерб"
-        name={[name, "detected_damage"]}
-      >
+      <Form.Item label="Выявленный ущерб" name={[name, "detected_damage"]}>
         <InputNumber
           style={{ width: "100%" }}
           formatter={(value) =>
@@ -136,10 +148,7 @@ export const EventForm = ({
         />
       </Form.Item>
 
-      <Form.Item
-        label="Возмещенный ущерб"
-        name={[name, "recovered_damage"]}
-      >
+      <Form.Item label="Возмещенный ущерб" name={[name, "recovered_damage"]}>
         <InputNumber
           style={{ width: "100%" }}
           formatter={(value) =>
@@ -157,6 +166,22 @@ export const EventForm = ({
       >
         <Input.TextArea rows={4} />
       </Form.Item>
+
+      <div className={styles.sourceContainer}>
+        <h4 className={styles.sectionTitle}>Источник</h4>
+        <Form.Item label="Фамилия" name={[name, "source_last_name"]}>
+          <Input placeholder="Введите фамилию" />
+        </Form.Item>
+        <Form.Item label="Имя" name={[name, "source_first_name"]}>
+          <Input placeholder="Введите имя" />
+        </Form.Item>
+        <Form.Item label="Отчество" name={[name, "source_middle_name"]}>
+          <Input placeholder="Введите отчество" />
+        </Form.Item>
+        <Form.Item label="Должность" name={[name, "source_position"]}>
+          <Input placeholder="Введите должность" />
+        </Form.Item>
+      </div>
     </div>
   );
 };

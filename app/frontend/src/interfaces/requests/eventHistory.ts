@@ -8,12 +8,25 @@ export interface EventHistoryAttributes {
   id: number;
   incident_id: number;
   event_type_id: number;
-  object_id: number;
-  damage_amount: number;
-  compensation_amount: number;
   sub_type_id?: number;
   description?: string;
   date: Date;
+  entry_date?: Date;             // Дата внесения инцидента
+  // Поля адреса
+  city?: string;
+  street?: string;
+  house?: string;
+  building?: string;
+  apartment?: string;
+  // Поля персональных данных
+  last_name?: string;           // Фамилия
+  first_name?: string;          // Имя
+  middle_name?: string;         // Отчество
+  employee_number?: string;     // Табельный номер
+  // Поля ущерба
+  detected_damage: number;      // Выявленный ущерб
+  prevented_damage: number;     // Предотвращенный ущерб
+  recovered_damage: number;     // Возмещенный ущерб
 }
 
 export interface EventHistoryWithRelations extends EventHistoryAttributes {

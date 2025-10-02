@@ -47,9 +47,7 @@ export const IncidentProvider = () => {
   const steps = [
     {
       title: "Основная информация",
-      content: (
-        <MainInfo />
-      ),
+      content: <MainInfo />,
     },
     {
       title: "Инциденты",
@@ -60,7 +58,7 @@ export const IncidentProvider = () => {
       content: <IncidentPunishments />,
     },
     {
-      title: "Дополнительно",
+      title: "Дополнение к инциденту",
       content: <IncidentAdditionally />,
     },
   ];
@@ -110,7 +108,6 @@ export const IncidentProvider = () => {
             >
               <Checkbox>1-ДБ</Checkbox>
             </Form.Item>
-            
           </div>
         </div>
         <div className={styles.stepsContainer}>

@@ -3,10 +3,11 @@ import { TIncidentFilter } from "../../../../interfaces/requests/incident";
 import { Button, Card, Form, DatePicker, Select, TreeSelect } from "antd";
 import styles from "./FilterForm.module.scss";
 import dayjs from "dayjs";
-import { directionDict, statusDict } from "../../../../constants/incidentDict";
+import { directionDict } from "../../../../constants/incidentDict";
 import { SecurityDirectionEnum } from "../../../../enums/direction";
 import { useGetDepartments } from "../../../../services/requests/departments/getDepartments";
-import { EIncidentStatus } from "../../../../enums/incident";
+import { useGetObjectTypes } from "../../../../services/requests/objectTypes/getObjectTypes";
+import { useGetEventTypes } from "../../../../services/requests/eventTypes/getEventTypes";
 
 export const FilterForm = ({
   filter,
@@ -18,6 +19,10 @@ export const FilterForm = ({
   const [form] = Form.useForm();
   const { data: departments, isLoading: isDepartmentsLoading } =
     useGetDepartments();
+  const { data: objectTypes, isLoading: isObjectTypesLoading } =
+    useGetObjectTypes();
+  const { data: eventTypes, isLoading: isEventTypesLoading } =
+    useGetEventTypes();
 
   useEffect(() => {
     const formattedFilter = {
@@ -80,17 +85,34 @@ export const FilterForm = ({
         </div>
 
         <div className={styles.filterFormGroup}>
-          <Form.Item name="status" label="Статус">
-            <Select
-              options={Object.values(EIncidentStatus).map((status) => ({
-                label: statusDict[status as EIncidentStatus],
-                value: status,
-              }))}
-              placeholder="Выберите статус"
+          <Form.Item label="Тип объекта" name="object_type_id">
+            <TreeSelect
+              showSearch
+              dropdownStyle={{ maxHeight: 400, overflow: "auto" }}
+              placeholder="Выберите тип объекта"
               allowClear
+              treeDefaultExpandAll
+              treeData={objectTypes?.treeData}
+              loading={isObjectTypesLoading}
+              className={styles.formInput}
             />
           </Form.Item>
 
+          <Form.Item label="Тип инцидента" name="event_type_id">
+            <TreeSelect
+              showSearch
+              dropdownStyle={{ maxHeight: 400, overflow: "auto" }}
+              placeholder="Выберите тип инцидента"
+              allowClear
+              treeDefaultExpandAll
+              treeData={eventTypes?.treeData}
+              loading={isEventTypesLoading}
+              className={styles.formInput}
+            />
+          </Form.Item>
+        </div>
+
+        <div className={styles.filterFormGroup}>
           <Form.Item
             name="date_from"
             label="Дата от"
@@ -102,9 +124,7 @@ export const FilterForm = ({
               style={{ width: "100%" }}
             />
           </Form.Item>
-        </div>
 
-        <div className={styles.filterFormGroup}>
           <Form.Item
             name="date_to"
             label="Дата до"
