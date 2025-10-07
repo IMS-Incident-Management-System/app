@@ -2,7 +2,7 @@ import { Form, Input, Row, Col } from "antd";
 import styles from "./AddressForm.module.scss";
 
 interface AddressFormProps {
-  name: number;
+  name: string | number;
 }
 
 export const AddressForm = ({ name }: AddressFormProps) => {

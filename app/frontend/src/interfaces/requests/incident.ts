@@ -1,7 +1,7 @@
 import { EIncidentDirection, EIncidentStatus } from "../../enums/incident";
 import { EventHistoryWithRelations } from "./eventHistory";
 import { ObjectAttributes } from "./object";
-import { PunishmentAttributes } from "./punishment";
+import { AdditionallyAttributes } from "./additionally";
 
 export type TIncidentFilter = Partial<{
   department_id: number;
@@ -17,7 +17,6 @@ export interface IncidentAttributes {
   department_id: number;
   direction: EIncidentDirection;
   object_type_id?: number;
-  message: string;
   is_db: boolean;
   createdAt: Date;
 }
@@ -32,57 +31,46 @@ export interface IncidentWithRelations extends IncidentAttributes {
   department?: IncidentDepartmentAttributes;
   object?: ObjectAttributes;
   events?: EventHistoryWithRelations[];
-  punishments?: PunishmentAttributes[];
+  additionally?: AdditionallyAttributes[];
 }
 
 export interface CreateIncidentBody {
   department_id: number;
   direction: EIncidentDirection;
   object_type_id?: number;
-  message: string;
   is_db: boolean;
-  events: Array<{
-    event_type_id: number;
+  event: {
+    event_type_ids: number[];
     sub_type_id?: number;
-    // Поля адреса
+    date: Date;
+    entry_date?: Date;
+    // адрес
     city?: string;
     street?: string;
     house?: string;
     building?: string;
     apartment?: string;
-    number?: string;
-    // Поля персональных данных
-    last_name?: string;           // Фамилия
-    first_name?: string;          // Имя
-    middle_name?: string;         // Отчество
-    employee_number?: string;     // Табельный номер
-    // Поля ущерба
-    detected_damage: number;      // Выявленный ущерб
-    prevented_damage: number;     // Предотвращенный ущерб
-    recovered_damage: number;     // Возмещенный ущерб
-    description?: string;
-    date: Date;
-    entry_date?: Date;             // Дата внесения инцидента
-    criminal_cases?: Array<{
-      transfer_date?: Date;
-      document_number?: string;
-      department_name?: string;
-      review_result?: string;
-      case_number?: string;
-      law_article?: string;
-      [key: string]: any;
-    }>;
-  }>;
-  punishments: Array<{
-    punishment_type_id: number;
-    description?: string;
-    date: Date;
-    fired_count: number;
+    // персональные данные
+    last_name?: string;
+    first_name?: string;
+    middle_name?: string;
+    employee_number?: string;
+  };
+  additionally: Array<{
+    id?: number; // ID записи (исключается при создании)
+    incident_date?: Date; // Дата происшествия
+    addition_date?: Date; // Дата внесения дополнения к инциденту
+    text_field?: string; // Текстовое поле
+    criminal_cases?: string; // Уголовные дела
+    is_punished?: boolean; // Наказано
+    detected_damage?: number; // Выявленный ущерб
+    prevented_damage?: number; // Предотвращенный ущерб
+    recovered_damage?: number; // Возмещенный ущерб
   }>;
 }
 
 export interface CreateIncidentResponse {
   incident: IncidentAttributes;
   events: EventHistoryWithRelations[];
-  punishments: PunishmentAttributes[];
+  additionally: AdditionallyAttributes[];
 }

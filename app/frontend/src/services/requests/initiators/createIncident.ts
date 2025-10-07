@@ -18,11 +18,12 @@ export const useCreateIncident = (setStep: (step: number) => void) => {
         queryClient.invalidateQueries({
           queryKey: [EQueryKeys.GET_ALL_INITIATORS],
         });
-        navigate(`${ERoutes.INCIDENT_CREATE}/${data.incident.id}`);
-        setStep(0);
+        app.message.success("Инцидент успешно создан");
+        // Перенаправляем на главную страницу
+        navigate(ERoutes.HOME);
       },
       onError: (error) => {
-        console.error(error);
+        console.error('createIncident error:', error);
         app.message.error("Не удалось создать инцидент");
       },
     },

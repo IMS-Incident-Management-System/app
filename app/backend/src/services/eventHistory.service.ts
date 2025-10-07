@@ -5,8 +5,6 @@ import EventHistory, {
   EventHistoryInstance 
 } from '../models/eventHistory';
 import EventType from '../models/eventType';
-import Object from '../models/object';
-import TheftType from '../models/incidentEvents/theft';
 
 export const eventHistoryService = {
   async getEvents(filters?: {
@@ -42,15 +40,6 @@ export const eventHistoryService = {
         {
           model: EventType,
           as: 'event_type'
-        },
-        {
-          model: Object,
-          as: 'object'
-        },
-        {
-          model: TheftType,
-          as: 'sub_type',
-          required: false
         }
       ],
       order: [['date', 'DESC']]
@@ -60,14 +49,7 @@ export const eventHistoryService = {
   async getEvent(id: number): Promise<EventHistoryInstance | null> {
     return await EventHistory.findByPk(id, {
       include: [
-        'event_type',
-        'object',
-        'criminal_cases',
-        {
-          model: TheftType,
-          as: 'sub_type',
-          required: false
-        }
+        'event_type'
       ]
     });
   },
@@ -101,14 +83,15 @@ export const eventHistoryService = {
     return true;
   },
 
-  // Специальные методы для работы с подтипами событий
-  async getEventWithSubType(
-    id: number, 
-    eventType: string
-  ): Promise<EventHistoryInstance | null> {
-    const scope = eventType === 'THEFT' ? 'withTheftType' : undefined;
-    return await EventHistory.scope(scope).findByPk(id, {
-      include: ['event_type', 'object', 'criminal_cases']
+  async deleteEventsByIncidentId(
+    incidentId: number,
+    options?: { transaction?: Transaction }
+  ): Promise<number> {
+    const deletedCount = await EventHistory.destroy({
+      where: { incident_id: incidentId },
+      ...options
     });
-  }
+    return deletedCount;
+  },
+
 }; 

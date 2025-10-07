@@ -1,0 +1,92 @@
+import { DataTypes, Model, Optional } from 'sequelize';
+import { sequelize } from './sequelize';
+import { IncidentAttributes } from './incident';
+
+export interface AdditionallyAttributes {
+  id: number;
+  incident_id: number;
+  incident_date?: Date; // Дата происшествия
+  addition_date?: Date; // Дата внесения дополнения к инциденту
+  text_field?: string; // Текстовое поле
+  criminal_cases?: string; // Уголовные дела
+  is_punished?: boolean; // Наказано
+  detected_damage?: number; // Выявленный ущерб
+  prevented_damage?: number; // Предотвращенный ущерб
+  recovered_damage?: number; // Возмещенный ущерб
+}
+
+export interface AdditionallyWithRelations extends AdditionallyAttributes {
+  incident?: IncidentAttributes;
+}
+
+export interface AdditionallyCreationAttributes extends Optional<AdditionallyAttributes, 'id'> {}
+
+export interface AdditionallyInstance 
+  extends Model<AdditionallyAttributes, AdditionallyCreationAttributes>,
+    AdditionallyWithRelations {}
+
+const Additionally = sequelize.define<AdditionallyInstance>('additionally', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  incident_id: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: 'incidents',
+      key: 'id',
+    },
+    comment: 'ID инцидента'
+  },
+  incident_date: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    comment: 'Дата происшествия'
+  },
+  addition_date: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    comment: 'Дата внесения дополнения к инциденту'
+  },
+  text_field: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+    comment: 'Текстовое поле'
+  },
+  criminal_cases: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+    comment: 'Уголовные дела'
+  },
+  is_punished: {
+    type: DataTypes.BOOLEAN,
+    allowNull: true,
+    defaultValue: false,
+    comment: 'Наказано'
+  },
+  detected_damage: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    defaultValue: 0,
+    comment: 'Выявленный ущерб'
+  },
+  prevented_damage: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    defaultValue: 0,
+    comment: 'Предотвращенный ущерб'
+  },
+  recovered_damage: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    defaultValue: 0,
+    comment: 'Возмещенный ущерб'
+  },
+}, {
+  timestamps: true,
+  tableName: 'additionally'
+});
+
+export default Additionally;

@@ -2,7 +2,7 @@ import { Form, Input, Row, Col } from "antd";
 import styles from "./PersonalDataForm.module.scss";
 
 interface PersonalDataFormProps {
-  name: number;
+  name: string | number;
 }
 
 export const PersonalDataForm = ({ name }: PersonalDataFormProps) => {

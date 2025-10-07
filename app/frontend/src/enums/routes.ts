@@ -3,6 +3,8 @@ export enum ERoutes {
   INCIDENT = "/incidents/:id",
   INCIDENT_CREATE = "/incidents/edit",
   INCIDENT_EDIT = "/incidents/edit/:id",
+  INCIDENT_VIEW = "/incidents/view",
+  INCIDENT_VIEW_ID = "/incidents/view/:id",
   INCIDENT_DUPLICATE = "/incidents/duplicate",
   INCIDENT_DUPLICATE_ID = "/incidents/duplicate/:id",
   PROFILE = "/profile",

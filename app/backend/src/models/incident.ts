@@ -1,9 +1,8 @@
 import { DataTypes, Model, Optional } from 'sequelize';
 import { sequelize } from './sequelize';
 import { DepartmentModelType } from './department';
-import { ObjectAttributes } from './object';
 import { EventHistoryWithRelations } from './eventHistory';
-import { PunishmentAttributes } from './punishment';
+import { AdditionallyAttributes } from './additionally';
 
 export enum SecurityDirectionEnum {
   INFORMATION = 'INFORMATION', // ИБ
@@ -17,7 +16,6 @@ export interface IncidentAttributes {
   department_id: number;
   direction: SecurityDirectionEnum;
   object_type_id?: number;
-  message: string;
   is_db: boolean;
 }
 
@@ -25,7 +23,7 @@ export interface IncidentWithRelations extends IncidentAttributes {
   department?: DepartmentModelType;
   object_type?: any; // ObjectType
   events?: EventHistoryWithRelations[];
-  punishments?: PunishmentAttributes[];
+  additionally?: AdditionallyAttributes[];
 }
 
 export interface IncidentCreationAttributes extends Optional<IncidentAttributes, 'id'> {}
@@ -68,11 +66,6 @@ const Incident = sequelize.define<IncidentInstance>(
         key: 'object_type_id',
       },
       comment: 'Тип объекта',
-    },
-    message: {
-      type: DataTypes.TEXT,
-      allowNull: false,
-      comment: 'Описание инцидента',
     },
     is_db: {
       type: DataTypes.BOOLEAN,

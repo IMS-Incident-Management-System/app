@@ -11,14 +11,19 @@ export const useUpdateIncident = () => {
   const mutation = useMutation(
     ({data, id}: {data: CreateIncidentBody, id: number}) => updateIncident(data, id),
     {
-      onSuccess: (data) => {
+      onSuccess: (data, variables) => {
         queryClient.invalidateQueries({
           queryKey: [EQueryKeys.GET_ALL_INITIATORS],
         });
+        // Также инвалидируем конкретный инцидент
+        queryClient.invalidateQueries({
+          queryKey: ["getIncident", variables.id.toString()],
+        });
+        app.message.success("Инцидент успешно обновлен");
       },
       onError: (error) => {
-        console.error(error);
-        app.message.error("Не удалось создать инцидент");
+        console.error('updateIncident error:', error);
+        app.message.error("Не удалось обновить инцидент");
       },
     },
   );

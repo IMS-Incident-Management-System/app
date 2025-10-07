@@ -2,9 +2,6 @@ import { DataTypes, Model, Optional } from 'sequelize';
 import { sequelize } from './sequelize';
 import EventType, { EventTypeAttributes } from './eventType';
 import Incident, { IncidentAttributes } from './incident';
-import { ObjectAttributes } from './object';
-import { CriminalCaseAttributes } from './criminalCase';
-import { TheftTypeAttributes } from './incidentEvents/theft';
 
 export interface EventHistoryAttributes {
   id: number;
@@ -26,26 +23,11 @@ export interface EventHistoryAttributes {
   first_name?: string;          // Имя
   middle_name?: string;         // Отчество
   employee_number?: string;     // Табельный номер
-  // Множественные группы
-  addresses?: any; // JSONB массив адресов
-  persons?: any;   // JSONB массив персональных данных
-  // Источник
-  source_last_name?: string;
-  source_first_name?: string;
-  source_middle_name?: string;
-  source_position?: string;
-  // Поля ущерба
-  detected_damage: number;      // Выявленный ущерб
-  prevented_damage: number;     // Предотвращенный ущерб
-  recovered_damage: number;     // Возмещенный ущерб
 }
 
 export interface EventHistoryWithRelations extends EventHistoryAttributes {
   event_type?: EventTypeAttributes;
-  object?: ObjectAttributes;
   incident?: IncidentAttributes;
-  criminal_cases?: CriminalCaseAttributes[];
-  sub_type?: TheftTypeAttributes;
 }
 
 export interface EventHistoryCreationAttributes extends Optional<EventHistoryAttributes, 'id'> {}
@@ -123,60 +105,10 @@ const EventHistory = sequelize.define<EventHistoryInstance>('event_history', {
     allowNull: true,
     comment: 'Табельный номер'
   },
-  // JSONB поля для множественных групп
-  addresses: {
-    type: (DataTypes as any).JSONB || DataTypes.JSON,
-    allowNull: true,
-    comment: 'Список адресов события'
-  },
-  persons: {
-    type: (DataTypes as any).JSONB || DataTypes.JSON,
-    allowNull: true,
-    comment: 'Список персональных данных по событию'
-  },
-  // Источник
-  source_last_name: {
-    type: DataTypes.STRING,
-    allowNull: true,
-    comment: 'Источник: Фамилия'
-  },
-  source_first_name: {
-    type: DataTypes.STRING,
-    allowNull: true,
-    comment: 'Источник: Имя'
-  },
-  source_middle_name: {
-    type: DataTypes.STRING,
-    allowNull: true,
-    comment: 'Источник: Отчество'
-  },
-  source_position: {
-    type: DataTypes.STRING,
-    allowNull: true,
-    comment: 'Источник: Должность'
-  },
   sub_type_id: {
     type: DataTypes.INTEGER,
     allowNull: true,
     comment: 'ID подтипа события (тип кражи, тип пожара и т.д.)'
-  },
-  detected_damage: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    defaultValue: 0,
-    comment: 'Выявленный ущерб'
-  },
-  prevented_damage: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    defaultValue: 0,
-    comment: 'Предотвращенный ущерб'
-  },
-  recovered_damage: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    defaultValue: 0,
-    comment: 'Возмещенный ущерб'
   },
   description: {
     type: DataTypes.TEXT,
