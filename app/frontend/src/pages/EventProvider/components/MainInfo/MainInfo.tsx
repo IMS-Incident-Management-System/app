@@ -9,6 +9,8 @@ import {
 import styles from "./MainInfo.module.scss";
 import { CreateEventBody } from "../../../../interfaces/requests/event";
 
+const { RangePicker } = DatePicker;
+
 export const MainInfo = () => {
   const form = Form.useFormInstance();
   const { data: departments, isLoading: isDepartmentsLoading } =
@@ -50,14 +52,14 @@ export const MainInfo = () => {
           </Col>
 
           <Col xs={24} sm={12} lg={6}>
-            <Form.Item<CreateEventBody>
+            <Form.Item
               label="Период"
-              name="period_date"
+              name="period"
               rules={[{ required: true, message: "Пожалуйста, выберите период" }]}
             >
-              <DatePicker
+              <RangePicker
                 style={{ width: "100%" }}
-                placeholder="Выберите период"
+                placeholder={["Дата с", "Дата по"]}
                 format="YYYY-MM-DD"
               />
             </Form.Item>

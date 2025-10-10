@@ -10,7 +10,8 @@ import { EventCategoryType } from '../../models/event';
 
 interface CreateEventBody {
   department_id: number;
-  period_date: Date;
+  period_from: Date;
+  period_to: Date;
   direction: EventDirectionEnum;
   category: EventCategoryType;
   // Все остальные поля опциональны и зависят от категории
@@ -22,8 +23,8 @@ export const createEvent = asyncErrorHandler(
     const data = req.body as CreateEventBody;
     const user = (req as any).user; // Данные пользователя из middleware
 
-    if (!data.department_id || !data.period_date || !data.direction || !data.category) {
-      throw ApiError.badRequest('Missing required fields: department_id, period_date, direction, category');
+    if (!data.department_id || !data.period_from || !data.period_to || !data.direction || !data.category) {
+      throw ApiError.badRequest('Missing required fields: department_id, period_from, period_to, direction, category');
     }
 
     // Проверяем существование подразделения

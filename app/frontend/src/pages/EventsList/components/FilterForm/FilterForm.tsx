@@ -112,24 +112,24 @@ export const FilterForm = ({
         <div className={styles.filterFormGroup}>
           <Form.Item
             name="period_from"
-            label="Период от"
+            label="Период с"
             className={styles.filterFormItem}
           >
             <DatePicker
               format="YYYY-MM-DD"
-              placeholder="Период от"
+              placeholder="Дата с"
               style={{ width: "100%" }}
             />
           </Form.Item>
 
           <Form.Item
             name="period_to"
-            label="Период до"
+            label="Период по"
             className={styles.filterFormItem}
           >
             <DatePicker
               format="YYYY-MM-DD"
-              placeholder="Период до"
+              placeholder="Дата по"
               style={{ width: "100%" }}
             />
           </Form.Item>

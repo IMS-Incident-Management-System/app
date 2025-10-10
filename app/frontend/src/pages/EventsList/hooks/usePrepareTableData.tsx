@@ -113,13 +113,17 @@ export const usePrepareTableData = (data: ITable<EventWithRelations>) => {
     if (column.dataIndex === "period_date") {
       return {
         ...column,
-        render: (value: any) => {
+        title: "Период",
+        render: (value: any, record: any) => {
+          const from = record.period_from ? dayjs(record.period_from).format("DD.MM.YYYY") : null;
+          const to = record.period_to ? dayjs(record.period_to).format("DD.MM.YYYY") : null;
+          
           return (
             <span style={{
               color: '#595959',
               fontSize: '13px'
             }}>
-              {value ? dayjs(value).format("DD.MM.YYYY") : "Не указано"}
+              {from && to ? `${from} - ${to}` : "Не указано"}
             </span>
           );
         },

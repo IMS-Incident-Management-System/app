@@ -369,8 +369,8 @@ export const EventView = () => {
                 {event.department?.title || "Не указано"}
               </Descriptions.Item>
               <Descriptions.Item label="Период">
-                {event.period_date
-                  ? dayjs(event.period_date).format("DD.MM.YYYY")
+                {event.period_from && event.period_to
+                  ? `${dayjs(event.period_from).format("DD.MM.YYYY")} - ${dayjs(event.period_to).format("DD.MM.YYYY")}`
                   : "Не указано"}
               </Descriptions.Item>
               <Descriptions.Item label="Направление">

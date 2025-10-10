@@ -17,7 +17,8 @@ export interface EventAttributes {
   id: number;
   department_id: number;
   created_by?: string; // ID пользователя из Keycloak
-  period_date: Date; // Период
+  period_from: Date; // Период с
+  period_to: Date; // Период по
   direction: EventDirectionEnum; // Тип (ЭБ, ИБ, БПиО)
   category: EventCategoryType; // Категория
 
@@ -240,10 +241,15 @@ const Event = sequelize.define<EventInstance>(
       allowNull: true,
       comment: 'ID пользователя, создавшего событие (из Keycloak)',
     },
-    period_date: {
+    period_from: {
       type: DataTypes.DATEONLY,
       allowNull: false,
-      comment: 'Период события',
+      comment: 'Период с',
+    },
+    period_to: {
+      type: DataTypes.DATEONLY,
+      allowNull: false,
+      comment: 'Период по',
     },
     direction: {
       type: DataTypes.STRING,

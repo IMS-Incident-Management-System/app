@@ -39,7 +39,7 @@ export const eventService = {
 
     // Фильтр по периоду
     if (filters?.period_from || filters?.period_to) {
-      where.period_date = {
+      where.period_from = {
         [Op.between]: [
           filters.period_from || new Date(0),
           filters.period_to || new Date(),
@@ -55,7 +55,7 @@ export const eventService = {
           as: 'department',
         },
       ],
-      order: [['period_date', 'DESC'], ['createdAt', 'DESC']],
+      order: [['period_from', 'DESC'], ['createdAt', 'DESC']],
       pagination,
     });
 
@@ -150,7 +150,7 @@ export const eventService = {
       where.direction = filters.direction;
     }
     if (filters.period_from || filters.period_to) {
-      where.period_date = {
+      where.period_from = {
         [Op.between]: [
           filters.period_from || new Date(0),
           filters.period_to || new Date(),

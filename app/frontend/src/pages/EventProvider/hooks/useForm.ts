@@ -20,13 +20,19 @@ export const useForm = ({
   const onFinish = () => {
     const formValues: any = form.getFieldsValue(true);
 
-    // Преобразуем period_date в строку формата YYYY-MM-DD
-    const processedData: CreateEventBody = {
+    // Преобразуем диапазон дат в отдельные поля
+    const processedData: any = {
       ...formValues,
-      period_date: formValues.period_date
-        ? dayjs(formValues.period_date).format("YYYY-MM-DD")
+      period_from: formValues.period?.[0]
+        ? dayjs(formValues.period[0]).format("YYYY-MM-DD")
+        : undefined,
+      period_to: formValues.period?.[1]
+        ? dayjs(formValues.period[1]).format("YYYY-MM-DD")
         : undefined,
     };
+    
+    // Убираем временное поле period
+    delete processedData.period;
 
     if (!event?.id) {
       // Создаем новое событие
@@ -45,7 +51,10 @@ export const useForm = ({
       // Преобразуем данные события для формы
       const formValues: any = {
         department_id: event.department_id,
-        period_date: event.period_date ? dayjs(event.period_date) : undefined,
+        period: 
+          event.period_from && event.period_to
+            ? [dayjs(event.period_from), dayjs(event.period_to)]
+            : undefined,
         direction: event.direction,
         category: event.category,
         // Все остальные поля берем как есть
@@ -54,7 +63,8 @@ export const useForm = ({
             ![
               "id",
               "department_id",
-              "period_date",
+              "period_from",
+              "period_to",
               "direction",
               "category",
               "created_by",

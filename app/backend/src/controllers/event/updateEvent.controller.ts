@@ -10,7 +10,8 @@ import { EventCategoryType } from '../../models/event';
 
 interface UpdateEventBody {
   department_id?: number;
-  period_date?: Date;
+  period_from?: Date;
+  period_to?: Date;
   direction?: EventDirectionEnum;
   category?: EventCategoryType;
   // Все остальные поля опциональны

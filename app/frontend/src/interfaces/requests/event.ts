@@ -18,7 +18,8 @@ export interface EventAttributes {
   id: number;
   department_id: number;
   created_by?: string;
-  period_date: string; // DATEONLY формат
+  period_from: string; // DATEONLY формат - период с
+  period_to: string; // DATEONLY формат - период по
   direction: EEventDirection;
   category: EEventCategory;
 
