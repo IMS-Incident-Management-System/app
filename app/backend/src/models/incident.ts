@@ -72,6 +72,7 @@ const Incident = sequelize.define<IncidentInstance>(
     message: {
       type: DataTypes.TEXT,
       allowNull: false,
+      defaultValue: '',
       comment: 'Описание инцидента',
     },
     is_db: {
