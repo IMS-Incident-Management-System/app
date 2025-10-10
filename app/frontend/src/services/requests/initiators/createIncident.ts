@@ -19,8 +19,8 @@ export const useCreateIncident = (setStep: (step: number) => void) => {
           queryKey: [EQueryKeys.GET_ALL_INITIATORS],
         });
         app.message.success("Инцидент успешно создан");
-        // Перенаправляем на главную страницу
-        navigate(ERoutes.HOME);
+        // Перенаправляем на страницу списка инцидентов
+        navigate(ERoutes.INCIDENTS_LIST);
       },
       onError: (error) => {
         console.error('createIncident error:', error);

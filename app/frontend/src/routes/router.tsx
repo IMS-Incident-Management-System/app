@@ -13,6 +13,7 @@ import References from "../pages/References";
 import { EventsList } from "../pages/EventsList/EventsList";
 import { EventProvider } from "../pages/EventProvider/EventProvider";
 import { EventView } from "../pages/EventView/EventView";
+import { Dashboard } from "../pages/Dashboard/Dashboard";
 
 export const router = createBrowserRouter([
   {
@@ -21,6 +22,10 @@ export const router = createBrowserRouter([
     children: [
       {
         path: ERoutes.HOME,
+        element: <Dashboard />,
+      },
+      {
+        path: ERoutes.INCIDENTS_LIST,
         element: <Home />,
       },
       {

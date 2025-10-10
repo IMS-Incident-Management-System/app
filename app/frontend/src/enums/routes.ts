@@ -1,5 +1,6 @@
 export enum ERoutes {
   HOME = "/",
+  INCIDENTS_LIST = "/incidents",
   INCIDENT = "/incidents/:id",
   INCIDENT_CREATE = "/incidents/edit",
   INCIDENT_EDIT = "/incidents/edit/:id",
