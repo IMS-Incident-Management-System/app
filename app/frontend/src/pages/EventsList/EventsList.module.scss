@@ -2,7 +2,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin: 30px 0;
 
   h2 {
     margin: 0;
@@ -10,11 +10,24 @@
 
   .headerActions {
     display: flex;
-    gap: 10px;
+    gap: 12px;
   }
 }
 
 .table {
-  margin-top: 20px;
+  margin-top: 0;
+}
+
+.tag {
+  border-radius: 6px;
+  font-weight: 500;
+  padding: 2px 8px;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
 }
 

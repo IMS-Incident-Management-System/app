@@ -142,25 +142,8 @@ export const usePrepareTableData = (data: ITable<EventWithRelations>) => {
       };
     }
 
-    if (column.dataIndex === "created_by") {
-      return {
-        ...column,
-        render: (value: any) => {
-          return (
-            <span style={{
-              color: '#595959',
-              fontSize: '12px',
-              fontStyle: value ? 'normal' : 'italic'
-            }}>
-              {value || "Не указано"}
-            </span>
-          );
-        },
-      };
-    }
-
     return column;
-  });
+  }).filter(column => column.dataIndex !== 'created_by'); // Убираем столбец "Создал"
 
   const columnActions = [
     {
