@@ -5,6 +5,7 @@ import EventType from './eventType';
 import Incident from './incident';
 import EventHistory from './eventHistory';
 import Additionally from './additionally';
+import Event from './event';
 
 // EventHistory связи
 EventHistory.belongsTo(EventType, { 
@@ -56,6 +57,19 @@ Additionally.belongsTo(Incident, {
   as: 'incident'
 });
 
+// Event связи
+Event.belongsTo(Department, { 
+  foreignKey: 'department_id', 
+  as: 'department'
+});
+
+// Обратная связь Department -> Events
+Department.hasMany(Event, {
+  foreignKey: 'department_id',
+  as: 'events',
+  onDelete: 'CASCADE'
+});
+
 // Экспортируем все модели
 export {
   Department,
@@ -64,5 +78,6 @@ export {
   Incident,
   EventHistory,
   Additionally,
+  Event,
   sequelize
 }; 

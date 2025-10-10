@@ -1,0 +1,57 @@
+.container {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.card {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f0f0f0;
+
+  .headerLeft {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+}
+
+.sectionCard {
+  border-radius: 8px;
+  
+  :global {
+    .ant-descriptions-item-label {
+      font-weight: 600;
+      background-color: #fafafa;
+    }
+  }
+}
+
+.infoItem {
+  margin-bottom: 12px;
+
+  .label {
+    font-weight: 600;
+    color: #262626;
+    margin-bottom: 4px;
+  }
+
+  .value {
+    color: #595959;
+  }
+}
+

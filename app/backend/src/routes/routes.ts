@@ -8,6 +8,11 @@ import { createIncident } from '../controllers/incident/createIncident.controlle
 import { getIncident } from '../controllers/incident/getIncident.controller';
 import { updateIncident } from '../controllers/incident/updateIncident.controller';
 import { deleteIncident } from '../controllers/incident/deleteIncident.controller';
+import { getEvents } from '../controllers/event/getEvents.controller';
+import { createEvent } from '../controllers/event/createEvent.controller';
+import { getEvent } from '../controllers/event/getEvent.controller';
+import { updateEvent } from '../controllers/event/updateEvent.controller';
+import { deleteEvent } from '../controllers/event/deleteEvent.controller';
 
 const router = Router();
 
@@ -31,6 +36,15 @@ router
   .get(getIncident)
   .put(updateIncident)
   .delete(deleteIncident);
+
+// Events routes
+router.route('/events').get(getEvents).post(createEvent);
+
+router
+  .route('/events/:id')
+  .get(getEvent)
+  .put(updateEvent)
+  .delete(deleteEvent);
 
 // Event types routes
 router

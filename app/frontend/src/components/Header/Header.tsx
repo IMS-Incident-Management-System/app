@@ -9,7 +9,7 @@ import { selectUserSelector } from "../../store/features/user/selectors";
 import { UserResponse } from "../../interfaces/requests/auth";
 import { ERoutes } from "../../enums/routes";
 import styles from "./Header.module.scss";
-import { NotificationOutlined, BookOutlined } from "@ant-design/icons";
+import { NotificationOutlined, BookOutlined, CalendarOutlined } from "@ant-design/icons";
 
 const items = (user: UserResponse) => {
   const menu = [];
@@ -19,6 +19,11 @@ const items = (user: UserResponse) => {
       label: "Инциденты",
       key: ERoutes.HOME,
       icon: <NotificationOutlined />,
+    },
+    {
+      label: "События",
+      key: ERoutes.EVENTS_LIST,
+      icon: <CalendarOutlined />,
     },
     {
       label: "Справочники",
