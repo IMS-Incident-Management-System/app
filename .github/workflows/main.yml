@@ -5,9 +5,8 @@ on:
     branches: [ main ]
 
 env:
-  NEXUS_URL: https://nexus.code-generation.ru/repository/raw-client-artifacts/ims
   MINIO_ENDPOINT: https://s3.minio.code-generation.ru
-  MINIO_BUCKET: codegen-backup/backups/nexus/artifacts/raw-client-artifacts/ims
+  MINIO_BUCKET: codegen-backup/backups/clients/ims
 
 jobs:
   deploy-ssh:
@@ -121,27 +120,8 @@ jobs:
           
           echo "archive_name=$ARCHIVE" >> $GITHUB_OUTPUT
 
-  nexus-publish:
-    needs: deploy-ssh
-    runs-on: self-hosted
-    environment: IMS
-    steps:
-      - name: Публикация архива в Nexus
-        env:
-          NEXUS_USER: ${{ secrets.NEXUS_USER }}
-          NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
-        run: |
-          ARCHIVE_NAME=${{ needs.deploy-ssh.outputs.archive_name }}
-          curl -u "$NEXUS_USER:$NEXUS_PASSWORD" \
-            --upload-file $ARCHIVE_NAME \
-            "${{ env.NEXUS_URL }}/$ARCHIVE_NAME"
-          
-          # Проверяем успешность загрузки
-          curl -u "$NEXUS_USER:$NEXUS_PASSWORD" \
-            -I "${{ env.NEXUS_URL }}/$ARCHIVE_NAME" | grep -q "200 OK" || exit 1
-
   minio-backup:
-    needs: [deploy-ssh, nexus-publish]
+    needs: deploy-ssh
     runs-on: self-hosted
     environment: IMS
     timeout-minutes: 15
