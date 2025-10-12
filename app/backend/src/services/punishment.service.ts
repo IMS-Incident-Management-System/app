@@ -13,13 +13,13 @@ class PunishmentService {
 
   async getPunishmentsByAdditionallyId(additionallyId: number) {
     return await Punishment.findAll({
-      where: { additionally_id: additionallyId },
+      where: { additionally_id: additionallyId } as any,
     });
   }
 
   async deletePunishmentsByAdditionallyId(additionallyId: number, options?: { transaction?: Transaction }) {
     return await Punishment.destroy({
-      where: { additionally_id: additionallyId },
+      where: { additionally_id: additionallyId } as any,
       ...options,
     });
   }

@@ -13,13 +13,13 @@ class CriminalCaseService {
 
   async getCriminalCasesByAdditionallyId(additionallyId: number) {
     return await CriminalCase.findAll({
-      where: { additionally_id: additionallyId },
+      where: { additionally_id: additionallyId } as any,
     });
   }
 
   async deleteCriminalCasesByAdditionallyId(additionallyId: number, options?: { transaction?: Transaction }) {
     return await CriminalCase.destroy({
-      where: { additionally_id: additionallyId },
+      where: { additionally_id: additionallyId } as any,
       ...options,
     });
   }
