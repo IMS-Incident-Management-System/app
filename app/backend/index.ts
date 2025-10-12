@@ -72,8 +72,14 @@ const startServer = async () => {
     }
 
     // Синхронизируем модели с БД
-    await sequelize.sync({ alter: true }); //, force: true
-    console.log('Database synchronized');
+    // В продакшене используем sync без alter для избежания блокировок
+    if (process.env.NODE_ENV === 'production') {
+      await sequelize.sync({ alter: false });
+      console.log('Database synchronized (production mode - no alter)');
+    } else {
+      await sequelize.sync({ alter: true });
+      console.log('Database synchronized (development mode - with alter)');
+    }
 
     // Запускаем сидеры
     await runSeeders();
