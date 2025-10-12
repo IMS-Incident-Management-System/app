@@ -5,6 +5,10 @@ import EventType from './eventType';
 import Incident from './incident';
 import EventHistory from './eventHistory';
 import Additionally from './additionally';
+import IncidentAddress from './IncidentAddress';
+import IncidentPerson from './IncidentPerson';
+import CriminalCase from './CriminalCase';
+import Punishment from './Punishment';
 import Event from './event';
 
 // EventHistory связи
@@ -44,6 +48,28 @@ Incident.hasMany(Additionally, {
   onDelete: 'CASCADE'
 });
 
+Incident.hasMany(IncidentAddress, {
+  foreignKey: 'incident_id',
+  as: 'addresses',
+  onDelete: 'CASCADE'
+});
+
+IncidentAddress.belongsTo(Incident, {
+  foreignKey: 'incident_id',
+  as: 'incident'
+});
+
+Incident.hasMany(IncidentPerson, {
+  foreignKey: 'incident_id',
+  as: 'persons',
+  onDelete: 'CASCADE'
+});
+
+IncidentPerson.belongsTo(Incident, {
+  foreignKey: 'incident_id',
+  as: 'incident'
+});
+
 // Обратные связи
 EventType.hasMany(EventHistory, {
   foreignKey: 'event_type_id',
@@ -55,6 +81,28 @@ EventType.hasMany(EventHistory, {
 Additionally.belongsTo(Incident, { 
   foreignKey: 'incident_id', 
   as: 'incident'
+});
+
+Additionally.hasMany(CriminalCase, {
+  foreignKey: 'additionally_id',
+  as: 'criminal_cases_list',
+  onDelete: 'CASCADE'
+});
+
+CriminalCase.belongsTo(Additionally, {
+  foreignKey: 'additionally_id',
+  as: 'additionally'
+});
+
+Additionally.hasMany(Punishment, {
+  foreignKey: 'additionally_id',
+  as: 'punishments',
+  onDelete: 'CASCADE'
+});
+
+Punishment.belongsTo(Additionally, {
+  foreignKey: 'additionally_id',
+  as: 'additionally'
 });
 
 // Event связи
@@ -78,6 +126,10 @@ export {
   Incident,
   EventHistory,
   Additionally,
+  IncidentAddress,
+  IncidentPerson,
+  CriminalCase,
+  Punishment,
   Event,
   sequelize
 }; 

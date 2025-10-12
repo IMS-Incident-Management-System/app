@@ -3,6 +3,8 @@ import { sequelize } from './sequelize';
 import { DepartmentModelType } from './department';
 import { EventHistoryWithRelations } from './eventHistory';
 import { AdditionallyAttributes } from './additionally';
+import { IncidentAddressAttributes } from './IncidentAddress';
+import { IncidentPersonAttributes } from './IncidentPerson';
 
 export enum SecurityDirectionEnum {
   INFORMATION = 'INFORMATION', // ИБ
@@ -17,6 +19,11 @@ export interface IncidentAttributes {
   direction: SecurityDirectionEnum;
   object_type_id?: number;
   is_db: boolean;
+  description?: string;
+  source_last_name?: string;
+  source_first_name?: string;
+  source_middle_name?: string;
+  source_position?: string;
 }
 
 export interface IncidentWithRelations extends IncidentAttributes {
@@ -24,6 +31,8 @@ export interface IncidentWithRelations extends IncidentAttributes {
   object_type?: any; // ObjectType
   events?: EventHistoryWithRelations[];
   additionally?: AdditionallyAttributes[];
+  addresses?: IncidentAddressAttributes[];
+  persons?: IncidentPersonAttributes[];
 }
 
 export interface IncidentCreationAttributes extends Optional<IncidentAttributes, 'id'> {}
@@ -72,6 +81,31 @@ const Incident = sequelize.define<IncidentInstance>(
       allowNull: false,
       defaultValue: false,
       comment: 'Флаг "Дело безопасности" (ДБ). Указывает на особый статус инцидента, требующий специальной обработки'
+    },
+    description: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      comment: 'Описание инцидента'
+    },
+    source_last_name: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Фамилия источника информации'
+    },
+    source_first_name: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Имя источника информации'
+    },
+    source_middle_name: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Отчество источника информации'
+    },
+    source_position: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Должность источника информации'
     },
   },
   {

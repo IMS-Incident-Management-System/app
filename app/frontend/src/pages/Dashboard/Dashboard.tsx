@@ -62,11 +62,9 @@ export const Dashboard: React.FC = () => {
                   <div className={styles.cardHeader}>
                     <div 
                       className={styles.iconWrapper}
-                      style={{ backgroundColor: `${item.color}15` }}
+                      style={{ backgroundColor: `${item.color}15`, color: item.color }}
                     >
-                      {React.cloneElement(item.icon as React.ReactElement, {
-                        style: { color: item.color, fontSize: '24px' }
-                      })}
+                      {item.icon}
                     </div>
                     <div
                       className={styles.arrowWrapper}

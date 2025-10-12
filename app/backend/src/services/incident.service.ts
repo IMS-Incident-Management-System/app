@@ -5,6 +5,9 @@ import {
   ObjectType,
   EventHistory,
   EventType,
+  Additionally,
+  CriminalCase,
+  Punishment,
   sequelize
 } from '../models';
 import { SecurityDirectionEnum, IncidentCreationAttributes } from '../models/incident';
@@ -15,6 +18,11 @@ interface CreateIncidentData {
   direction: SecurityDirectionEnum;
   object_type_id?: number;
   is_db: boolean;
+  description?: string;
+  source_last_name?: string;
+  source_first_name?: string;
+  source_middle_name?: string;
+  source_position?: string;
 }
 
 interface UpdateIncidentData {
@@ -22,6 +30,11 @@ interface UpdateIncidentData {
   direction: SecurityDirectionEnum;
   object_type_id?: number;
   is_db: boolean;
+  description?: string;
+  source_last_name?: string;
+  source_first_name?: string;
+  source_middle_name?: string;
+  source_position?: string;
 }
 
 interface GetIncidentsFilters {
@@ -129,7 +142,22 @@ export const incidentService = {
           as: 'events',
           include: ['event_type']
         },
-        'additionally'
+        {
+          model: Additionally,
+          as: 'additionally',
+          include: [
+            {
+              model: CriminalCase,
+              as: 'criminal_cases_list'
+            },
+            {
+              model: Punishment,
+              as: 'punishments'
+            }
+          ]
+        },
+        'addresses',
+        'persons'
       ]
     });
   },
@@ -154,7 +182,12 @@ export const incidentService = {
       department_id: data.department_id,
       direction: data.direction,
       object_type_id: data.object_type_id,
-      is_db: data.is_db
+      is_db: data.is_db,
+      description: data.description,
+      source_last_name: data.source_last_name,
+      source_first_name: data.source_first_name,
+      source_middle_name: data.source_middle_name,
+      source_position: data.source_position,
     }, options);
 
 
@@ -166,11 +199,30 @@ export const incidentService = {
           as: 'department'
         },
         {
+          model: ObjectType,
+          as: 'object_type'
+        },
+        {
           model: EventHistory,
           as: 'events',
           include: ['event_type']
         },
-        'additionally'
+        {
+          model: Additionally,
+          as: 'additionally',
+          include: [
+            {
+              model: CriminalCase,
+              as: 'criminal_cases_list'
+            },
+            {
+              model: Punishment,
+              as: 'punishments'
+            }
+          ]
+        },
+        'addresses',
+        'persons'
       ]
     });
   },

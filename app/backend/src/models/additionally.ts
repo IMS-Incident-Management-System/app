@@ -1,6 +1,8 @@
 import { DataTypes, Model, Optional } from 'sequelize';
 import { sequelize } from './sequelize';
 import { IncidentAttributes } from './incident';
+import { CriminalCaseAttributes } from './CriminalCase';
+import { PunishmentAttributes } from './Punishment';
 
 export interface AdditionallyAttributes {
   id: number;
@@ -8,8 +10,6 @@ export interface AdditionallyAttributes {
   incident_date?: Date; // Дата происшествия
   addition_date?: Date; // Дата внесения дополнения к инциденту
   text_field?: string; // Текстовое поле
-  criminal_cases?: string; // Уголовные дела
-  is_punished?: boolean; // Наказано
   detected_damage?: number; // Выявленный ущерб
   prevented_damage?: number; // Предотвращенный ущерб
   recovered_damage?: number; // Возмещенный ущерб
@@ -17,6 +17,8 @@ export interface AdditionallyAttributes {
 
 export interface AdditionallyWithRelations extends AdditionallyAttributes {
   incident?: IncidentAttributes;
+  criminal_cases_list?: CriminalCaseAttributes[];
+  punishments?: PunishmentAttributes[];
 }
 
 export interface AdditionallyCreationAttributes extends Optional<AdditionallyAttributes, 'id'> {}
@@ -54,17 +56,6 @@ const Additionally = sequelize.define<AdditionallyInstance>('additionally', {
     type: DataTypes.TEXT,
     allowNull: true,
     comment: 'Текстовое поле'
-  },
-  criminal_cases: {
-    type: DataTypes.TEXT,
-    allowNull: true,
-    comment: 'Уголовные дела'
-  },
-  is_punished: {
-    type: DataTypes.BOOLEAN,
-    allowNull: true,
-    defaultValue: false,
-    comment: 'Наказано'
   },
   detected_damage: {
     type: DataTypes.INTEGER,

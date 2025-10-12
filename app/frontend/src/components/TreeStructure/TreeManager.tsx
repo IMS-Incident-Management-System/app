@@ -161,6 +161,26 @@ const TreeManager: React.FC<TreeManagerProps> = ({ config, mutations, customizat
       okText: "Удалить",
       cancelText: "Отмена",
       onOk: () => handleDeleteConfirm(node),
+      centered: true,
+      okButtonProps: {
+        danger: true,
+        size: 'large',
+        style: {
+          borderRadius: '8px',
+          fontWeight: 600,
+          height: '44px',
+          padding: '0 32px'
+        }
+      },
+      cancelButtonProps: {
+        size: 'large',
+        style: {
+          borderRadius: '8px',
+          fontWeight: 500,
+          height: '44px',
+          padding: '0 32px'
+        }
+      }
     });
   };
 
@@ -260,6 +280,26 @@ const TreeManager: React.FC<TreeManagerProps> = ({ config, mutations, customizat
         onCancel={() => setIsAddModalVisible(false)}
         okText="Сохранить"
         cancelText="Отмена"
+        width={600}
+        centered
+        okButtonProps={{
+          size: 'large',
+          style: {
+            borderRadius: '8px',
+            fontWeight: 600,
+            height: '44px',
+            padding: '0 32px'
+          }
+        }}
+        cancelButtonProps={{
+          size: 'large',
+          style: {
+            borderRadius: '8px',
+            fontWeight: 500,
+            height: '44px',
+            padding: '0 32px'
+          }
+        }}
       >
         <Form form={form} layout="vertical">
           {renderFormFields(config.addFormConfig)}
@@ -274,6 +314,26 @@ const TreeManager: React.FC<TreeManagerProps> = ({ config, mutations, customizat
         onCancel={() => setIsEditModalVisible(false)}
         okText="Сохранить"
         cancelText="Отмена"
+        width={600}
+        centered
+        okButtonProps={{
+          size: 'large',
+          style: {
+            borderRadius: '8px',
+            fontWeight: 600,
+            height: '44px',
+            padding: '0 32px'
+          }
+        }}
+        cancelButtonProps={{
+          size: 'large',
+          style: {
+            borderRadius: '8px',
+            fontWeight: 500,
+            height: '44px',
+            padding: '0 32px'
+          }
+        }}
       >
         <Form form={form} layout="vertical">
           {renderFormFields(config.editFormConfig)}

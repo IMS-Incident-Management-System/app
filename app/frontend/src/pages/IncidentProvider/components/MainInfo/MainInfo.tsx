@@ -1,4 +1,5 @@
-import { Form, Select, TreeSelect, DatePicker, Input, Row, Col, Card, Divider } from "antd";
+import { Form, Select, TreeSelect, DatePicker, Input, Row, Col, Card, Divider, Button, Space } from "antd";
+import { PlusOutlined, MinusCircleOutlined } from "@ant-design/icons";
 import { useGetDepartments } from "../../../../services/requests/departments/getDepartments";
 import { useGetObjectTypes } from "../../../../services/requests/objectTypes/getObjectTypes";
 import { useGetEventTypes } from "../../../../services/requests/eventTypes/getEventTypes";
@@ -80,15 +81,15 @@ export const MainInfo = () => {
         </Row>
       </Card>
 
-      {/* Информация о событии */}
-      <Card className={styles.sectionCard} title="Информация о событии">
+      {/* Информация о инциденте */}
+      <Card className={styles.sectionCard} title="Информация о инциденте">
         <Row gutter={[24, 16]}>
           <Col xs={24} sm={12} lg={8}>
             <Form.Item<CreateIncidentBody>
-              label="Типы событий"
+              label="Типы инцидентов"
               name={["event", "event_type_ids"]}
               rules={[
-                { required: true, message: "Выберите типы событий" },
+                { required: true, message: "Выберите типы инцидентов" },
               ]}
             >
               <TreeSelect
@@ -96,7 +97,7 @@ export const MainInfo = () => {
                 multiple
                 treeCheckable
                 dropdownStyle={{ maxHeight: 400, overflow: "auto" }}
-                placeholder="Выберите типы событий"
+                placeholder="Выберите типы инцидентов"
                 allowClear
                 treeDefaultExpandAll
                 treeData={eventTypes?.treeData}
@@ -108,15 +109,15 @@ export const MainInfo = () => {
           </Col>
           <Col xs={24} sm={12} lg={8}>
             <Form.Item<CreateIncidentBody>
-              label="Дата события"
+              label="Дата инцидента"
               name={["event", "date"]}
               rules={[
-                { required: true, message: "Укажите дату события" },
+                { required: true, message: "Укажите дату инцидента" },
               ]}
             >
               <DatePicker 
                 style={{ width: "100%" }} 
-                placeholder="Выберите дату события"
+                placeholder="Выберите дату инцидента"
               />
             </Form.Item>
           </Col>
@@ -135,76 +136,211 @@ export const MainInfo = () => {
           </Col>
         </Row>
 
-        <Divider orientation="left" plain>Адрес события</Divider>
-        
+      </Card>
+
+      {/* Адреса инцидента */}
+      <Card className={styles.sectionCard} title="Адреса инцидента">
+        <Form.List name="addresses">
+          {(fields, { add, remove }) => (
+            <>
+              {fields.map(({ key, name, ...restField }) => (
+                <Card 
+                  key={key} 
+                  className={styles.listCard}
+                  size="small"
+                  title={`Адрес ${name + 1}`}
+                  extra={
+                    <Button
+                      type="text"
+                      danger
+                      icon={<MinusCircleOutlined />}
+                      onClick={() => remove(name)}
+                    >
+                      Удалить
+                    </Button>
+                  }
+                >
+                  <Row gutter={[16, 16]}>
+                    <Col xs={24} sm={12} lg={6}>
+                      <Form.Item
+                        {...restField}
+                        label="Город"
+                        name={[name, "city"]}
+                      >
+                        <Input placeholder="Введите город" />
+                      </Form.Item>
+                    </Col>
+                    <Col xs={24} sm={12} lg={6}>
+                      <Form.Item
+                        {...restField}
+                        label="Улица"
+                        name={[name, "street"]}
+                      >
+                        <Input placeholder="Введите улицу" />
+                      </Form.Item>
+                    </Col>
+                    <Col xs={24} sm={12} lg={6}>
+                      <Form.Item
+                        {...restField}
+                        label="Дом"
+                        name={[name, "house"]}
+                      >
+                        <Input placeholder="Введите номер дома" />
+                      </Form.Item>
+                    </Col>
+                    <Col xs={24} sm={12} lg={6}>
+                      <Form.Item
+                        {...restField}
+                        label="Корпус"
+                        name={[name, "building"]}
+                      >
+                        <Input placeholder="Введите корпус" />
+                      </Form.Item>
+                    </Col>
+                  </Row>
+                </Card>
+              ))}
+              <Button
+                type="dashed"
+                onClick={() => add()}
+                block
+                icon={<PlusOutlined />}
+                className={styles.addButton}
+              >
+                Добавить адрес
+              </Button>
+            </>
+          )}
+        </Form.List>
+      </Card>
+
+      {/* Персональные данные */}
+      <Card className={styles.sectionCard} title="Персональные данные">
+        <Form.List name="persons">
+          {(fields, { add, remove }) => (
+            <>
+              {fields.map(({ key, name, ...restField }) => (
+                <Card 
+                  key={key} 
+                  className={styles.listCard}
+                  size="small"
+                  title={`Персона ${name + 1}`}
+                  extra={
+                    <Button
+                      type="text"
+                      danger
+                      icon={<MinusCircleOutlined />}
+                      onClick={() => remove(name)}
+                    >
+                      Удалить
+                    </Button>
+                  }
+                >
+                  <Row gutter={[16, 16]}>
+                    <Col xs={24} sm={12} lg={6}>
+                      <Form.Item
+                        {...restField}
+                        label="Фамилия"
+                        name={[name, "last_name"]}
+                      >
+                        <Input placeholder="Введите фамилию" />
+                      </Form.Item>
+                    </Col>
+                    <Col xs={24} sm={12} lg={6}>
+                      <Form.Item
+                        {...restField}
+                        label="Имя"
+                        name={[name, "first_name"]}
+                      >
+                        <Input placeholder="Введите имя" />
+                      </Form.Item>
+                    </Col>
+                    <Col xs={24} sm={12} lg={6}>
+                      <Form.Item
+                        {...restField}
+                        label="Отчество"
+                        name={[name, "middle_name"]}
+                      >
+                        <Input placeholder="Введите отчество" />
+                      </Form.Item>
+                    </Col>
+                    <Col xs={24} sm={12} lg={6}>
+                      <Form.Item
+                        {...restField}
+                        label="Табельный номер"
+                        name={[name, "employee_number"]}
+                      >
+                        <Input placeholder="Введите табельный номер" />
+                      </Form.Item>
+                    </Col>
+                  </Row>
+                </Card>
+              ))}
+              <Button
+                type="dashed"
+                onClick={() => add()}
+                block
+                icon={<PlusOutlined />}
+                className={styles.addButton}
+              >
+                Добавить персону
+              </Button>
+            </>
+          )}
+        </Form.List>
+      </Card>
+
+      {/* Описание инцидента */}
+      <Card className={styles.sectionCard} title="Описание инцидента">
         <Row gutter={[24, 16]}>
-          <Col xs={24} sm={12} lg={6}>
+          <Col xs={24}>
             <Form.Item<CreateIncidentBody>
-              label="Город"
-              name={["event", "city"]}
+              label="Описание"
+              name="description"
             >
-              <Input placeholder="Введите город" />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12} lg={6}>
-            <Form.Item<CreateIncidentBody>
-              label="Улица"
-              name={["event", "street"]}
-            >
-              <Input placeholder="Введите улицу" />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12} lg={6}>
-            <Form.Item<CreateIncidentBody>
-              label="Дом"
-              name={["event", "house"]}
-            >
-              <Input placeholder="Введите номер дома" />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12} lg={6}>
-            <Form.Item<CreateIncidentBody>
-              label="Корпус"
-              name={["event", "building"]}
-            >
-              <Input placeholder="Введите корпус" />
+              <Input.TextArea 
+                rows={4} 
+                placeholder="Введите описание инцидента"
+                className={styles.textArea}
+              />
             </Form.Item>
           </Col>
         </Row>
+      </Card>
 
-        <Divider orientation="left" plain>Персональные данные</Divider>
-        
+      {/* Источник информации */}
+      <Card className={styles.sectionCard} title="Источник информации">
         <Row gutter={[24, 16]}>
           <Col xs={24} sm={12} lg={6}>
             <Form.Item<CreateIncidentBody>
               label="Фамилия"
-              name={["event", "last_name"]}
+              name="source_last_name"
             >
-              <Input placeholder="Введите фамилию" />
+              <Input placeholder="Введите фамилию источника" />
             </Form.Item>
           </Col>
           <Col xs={24} sm={12} lg={6}>
             <Form.Item<CreateIncidentBody>
               label="Имя"
-              name={["event", "first_name"]}
+              name="source_first_name"
             >
-              <Input placeholder="Введите имя" />
+              <Input placeholder="Введите имя источника" />
             </Form.Item>
           </Col>
           <Col xs={24} sm={12} lg={6}>
             <Form.Item<CreateIncidentBody>
               label="Отчество"
-              name={["event", "middle_name"]}
+              name="source_middle_name"
             >
-              <Input placeholder="Введите отчество" />
+              <Input placeholder="Введите отчество источника" />
             </Form.Item>
           </Col>
           <Col xs={24} sm={12} lg={6}>
             <Form.Item<CreateIncidentBody>
-              label="Табельный номер"
-              name={["event", "employee_number"]}
+              label="Должность"
+              name="source_position"
             >
-              <Input placeholder="Введите табельный номер" />
+              <Input placeholder="Введите должность источника" />
             </Form.Item>
           </Col>
         </Row>

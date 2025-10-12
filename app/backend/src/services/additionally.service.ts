@@ -5,6 +5,8 @@ import Additionally, {
   AdditionallyInstance 
 } from '../models/additionally';
 import Incident from '../models/incident';
+import CriminalCase from '../models/CriminalCase';
+import Punishment from '../models/Punishment';
 
 export const additionallyService = {
   async getAdditionally(filters?: {
@@ -28,22 +30,42 @@ export const additionallyService = {
 
     return await Additionally.findAll({
       where,
-      include: [{
-        model: Incident,
-        as: 'incident',
-        include: ['department', 'object_type']
-      }],
+      include: [
+        {
+          model: Incident,
+          as: 'incident',
+          include: ['department', 'object_type']
+        },
+        {
+          model: CriminalCase,
+          as: 'criminal_cases_list'
+        },
+        {
+          model: Punishment,
+          as: 'punishments'
+        }
+      ],
       order: [['addition_date', 'DESC']]
     });
   },
 
   async getAdditionallyById(id: number): Promise<AdditionallyInstance | null> {
     return await Additionally.findByPk(id, {
-      include: [{
-        model: Incident,
-        as: 'incident',
-        include: ['department', 'object_type']
-      }]
+      include: [
+        {
+          model: Incident,
+          as: 'incident',
+          include: ['department', 'object_type']
+        },
+        {
+          model: CriminalCase,
+          as: 'criminal_cases_list'
+        },
+        {
+          model: Punishment,
+          as: 'punishments'
+        }
+      ]
     });
   },
 
@@ -86,6 +108,16 @@ export const additionallyService = {
   async getAdditionallyByIncidentId(incidentId: number): Promise<AdditionallyInstance[]> {
     return await Additionally.findAll({
       where: { incident_id: incidentId },
+      include: [
+        {
+          model: CriminalCase,
+          as: 'criminal_cases_list'
+        },
+        {
+          model: Punishment,
+          as: 'punishments'
+        }
+      ],
       order: [['addition_date', 'DESC']]
     });
   },
@@ -123,7 +155,6 @@ export const additionallyService = {
       total_detected_damage: additionally.reduce((sum, a) => sum + (a.detected_damage || 0), 0),
       total_prevented_damage: additionally.reduce((sum, a) => sum + (a.prevented_damage || 0), 0),
       total_recovered_damage: additionally.reduce((sum, a) => sum + (a.recovered_damage || 0), 0),
-      punished_count: additionally.filter(a => a.is_punished).length
     };
   }
 };

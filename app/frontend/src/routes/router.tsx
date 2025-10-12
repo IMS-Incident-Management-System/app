@@ -37,10 +37,6 @@ export const router = createBrowserRouter([
         element: <IncidentProvider />,
       },
       {
-        path: ERoutes.INCIDENT_DUPLICATE_ID,
-        element: <IncidentProvider />,
-      },
-      {
         path: ERoutes.INCIDENT_VIEW_ID,
         element: <IncidentView />,
       },

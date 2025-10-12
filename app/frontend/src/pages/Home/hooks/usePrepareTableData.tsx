@@ -4,20 +4,15 @@ import { IncidentWithRelations } from "../../../interfaces/requests/incident";
 import { EIncidentDirection } from "../../../enums/incident";
 import { Button, Modal, Tag } from "antd";
 import classes from "../Home.module.scss";
-import { CopyOutlined, DeleteOutlined, EditOutlined, EyeOutlined } from "@ant-design/icons";
+import { DeleteOutlined, EditOutlined, EyeOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { ERoutes } from "../../../enums/routes";
 import { useDeleteIncident } from "../../../services/requests/initiators/deleteIncident";
-import classNames from "classnames";
 export const usePrepareTableData = (data: ITable<IncidentWithRelations>) => {
   const navigate = useNavigate();
 
   const handleEditIncident = (id: string) => {
     navigate(ERoutes.INCIDENT_CREATE + `/${id}`);
-  };
-
-  const handleDuplicateIncident = (id: string) => {
-    navigate(ERoutes.INCIDENT_DUPLICATE + `/${id}`);
   };
 
   const handleViewIncident = (id: string) => {
@@ -268,30 +263,6 @@ export const usePrepareTableData = (data: ITable<IncidentWithRelations>) => {
               onMouseLeave={(e) => {
                 e.currentTarget.style.background = '#ffffff';
                 e.currentTarget.style.color = '#52c41a';
-                e.currentTarget.style.transform = 'scale(1)';
-              }}
-            />
-            <Button
-              type="text"
-              onClick={() => handleDuplicateIncident(record.id)}
-              shape="circle"
-              icon={<CopyOutlined />}
-              size="middle"
-              title="Дублировать инцидент"
-              style={{
-                color: '#fa8c16',
-                border: '1px solid #fa8c16',
-                background: '#ffffff',
-                boxShadow: '0 2px 4px rgba(250, 140, 22, 0.2)'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#fa8c16';
-                e.currentTarget.style.color = '#ffffff';
-                e.currentTarget.style.transform = 'scale(1.05)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = '#ffffff';
-                e.currentTarget.style.color = '#fa8c16';
                 e.currentTarget.style.transform = 'scale(1)';
               }}
             />

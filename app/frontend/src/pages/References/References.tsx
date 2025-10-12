@@ -73,13 +73,18 @@ export const References: React.FC = () => {
                 className={styles.referenceCard}
                 hoverable
                 onClick={() => handleNavigate(reference.route)}
-                style={{ borderLeft: `4px solid ${reference.color}` }}
+                style={{ 
+                  '--card-color': reference.color,
+                  '--card-color-dark': reference.color + 'dd'
+                } as React.CSSProperties}
               >
                 <div className={styles.cardContent}>
                   <div className={styles.cardHeader}>
                     <div 
                       className={styles.iconWrapper}
-                      style={{ backgroundColor: `${reference.color}15` }}
+                      style={{ 
+                        background: `linear-gradient(135deg, ${reference.color}10 0%, ${reference.color}25 100%)`,
+                      }}
                     >
                       {reference.icon}
                     </div>

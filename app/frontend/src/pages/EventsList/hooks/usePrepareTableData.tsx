@@ -45,7 +45,7 @@ export const usePrepareTableData = (data: ITable<EventWithRelations>) => {
       return {
         ...column,
         render: (value: any, record: any) => {
-          const label = EventDirectionLabels[record.direction] || "Не указано";
+          const label = EventDirectionLabels[record.direction as keyof typeof EventDirectionLabels] || "Не указано";
           const getColor = (direction: string) => {
             if (direction === 'INFORMATION') return 'blue';
             if (direction === 'ECONOMIC') return 'green';

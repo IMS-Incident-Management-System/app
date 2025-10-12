@@ -174,9 +174,7 @@ export class ExportService {
         const additionInfo = [
           ['Дата происшествия:', this.formatDate(addition.incident_date)],
           ['Дата внесения дополнения:', this.formatDate(addition.addition_date)],
-          ['Уголовные дела:', addition.criminal_cases || 'Не указано'],
           ['Описание:', addition.text_field || 'Не указано'],
-          ['Наказано:', addition.is_punished ? 'Да' : 'Нет'],
           ['Выявленный ущерб:', this.formatCurrency(addition.detected_damage)],
           ['Предотвращенный ущерб:', this.formatCurrency(addition.prevented_damage)],
           ['Возмещенный ущерб:', this.formatCurrency(addition.recovered_damage)]
