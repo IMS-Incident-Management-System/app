@@ -1,8 +1,8 @@
 import { DataTypes, Model, Optional } from 'sequelize';
 import { sequelize } from './sequelize';
 import { IncidentAttributes } from './incident';
-import { CriminalCaseAttributes } from './CriminalCase';
-import { PunishmentAttributes } from './Punishment';
+import { CriminalCaseAttributes } from './criminalCase';
+import { PunishmentAttributes } from './punishment';
 
 export interface AdditionallyAttributes {
   id: number;

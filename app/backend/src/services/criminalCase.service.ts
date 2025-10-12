@@ -1,4 +1,4 @@
-import CriminalCase, { CriminalCaseCreationAttributes } from '../models/CriminalCase';
+import CriminalCase, { CriminalCaseCreationAttributes } from '../models/criminalCase';
 import { Transaction } from 'sequelize';
 
 class CriminalCaseService {

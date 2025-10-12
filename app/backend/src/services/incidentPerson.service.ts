@@ -1,4 +1,4 @@
-import IncidentPerson, { IncidentPersonCreationAttributes } from '../models/IncidentPerson';
+import IncidentPerson, { IncidentPersonCreationAttributes } from '../models/incidentPerson';
 import { Transaction } from 'sequelize';
 
 class IncidentPersonService {

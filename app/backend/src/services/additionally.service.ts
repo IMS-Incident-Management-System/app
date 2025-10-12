@@ -5,8 +5,8 @@ import Additionally, {
   AdditionallyInstance 
 } from '../models/additionally';
 import Incident from '../models/incident';
-import CriminalCase from '../models/CriminalCase';
-import Punishment from '../models/Punishment';
+import CriminalCase from '../models/criminalCase';
+import Punishment from '../models/punishment';
 
 export const additionallyService = {
   async getAdditionally(filters?: {

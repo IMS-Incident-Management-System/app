@@ -3,8 +3,8 @@ import { sequelize } from './sequelize';
 import { DepartmentModelType } from './department';
 import { EventHistoryWithRelations } from './eventHistory';
 import { AdditionallyAttributes } from './additionally';
-import { IncidentAddressAttributes } from './IncidentAddress';
-import { IncidentPersonAttributes } from './IncidentPerson';
+import { IncidentAddressAttributes } from './incidentAddress';
+import { IncidentPersonAttributes } from './incidentPerson';
 
 export enum SecurityDirectionEnum {
   INFORMATION = 'INFORMATION', // ИБ

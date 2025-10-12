@@ -1,4 +1,4 @@
-import Punishment, { PunishmentCreationAttributes } from '../models/Punishment';
+import Punishment, { PunishmentCreationAttributes } from '../models/punishment';
 import { Transaction } from 'sequelize';
 
 class PunishmentService {

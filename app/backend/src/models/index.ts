@@ -5,10 +5,10 @@ import EventType from './eventType';
 import Incident from './incident';
 import EventHistory from './eventHistory';
 import Additionally from './additionally';
-import IncidentAddress from './IncidentAddress';
-import IncidentPerson from './IncidentPerson';
-import CriminalCase from './CriminalCase';
-import Punishment from './Punishment';
+import IncidentAddress from './incidentAddress';
+import IncidentPerson from './incidentPerson';
+import CriminalCase from './criminalCase';
+import Punishment from './punishment';
 import Event from './event';
 
 // EventHistory связи

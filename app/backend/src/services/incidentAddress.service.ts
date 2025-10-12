@@ -1,4 +1,4 @@
-import IncidentAddress, { IncidentAddressCreationAttributes } from '../models/IncidentAddress';
+import IncidentAddress, { IncidentAddressCreationAttributes } from '../models/incidentAddress';
 import { Transaction } from 'sequelize';
 
 class IncidentAddressService {
