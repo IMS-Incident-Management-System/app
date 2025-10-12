@@ -13,6 +13,9 @@ RUN npm install
 # Копируем весь исходный код
 COPY ./backend .
 
+# Удаляем старые файлы с неправильным регистром (если они есть)
+RUN rm -f src/models/CriminalCase.ts src/models/Punishment.ts src/models/IncidentAddress.ts src/models/IncidentPerson.ts || true
+
 # Собираем проект
 RUN npm run build
 

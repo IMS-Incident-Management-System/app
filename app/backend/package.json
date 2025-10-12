@@ -4,6 +4,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node dist/index.js",
+    "prebuild": "rm -f src/models/CriminalCase.ts src/models/Punishment.ts src/models/IncidentAddress.ts src/models/IncidentPerson.ts || true",
     "build": "rm -rf dist && tsc -p .",
     "dev": "nodemon"
   },
