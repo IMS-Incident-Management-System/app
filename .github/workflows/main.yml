@@ -4,33 +4,24 @@ on:
   push:
     branches: [ main ]
 
-env:
-  MINIO_ENDPOINT: https://s3.minio.code-generation.ru
-  MINIO_BUCKET: codegen-backup/backups/clients/ims
-
 jobs:
   deploy-ssh:
     runs-on: self-hosted
     environment: IMS
     timeout-minutes: 20
-    outputs:
-      archive_name: ${{ steps.ssh-deploy.outputs.archive_name }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Deploy via SSH
-        id: ssh-deploy
         run: |
           set -e
-          ARCHIVE=ims-$(date +%Y%m%d%H%M%S).tar.gz
-          echo "Archive name: $ARCHIVE"
           
           # Копируем содержимое папки app на сервер
           sshpass -p '${{ secrets.DEPLOY_PASSWORD }}' \
             scp -P ${{ secrets.DEPLOY_PORT }} -o StrictHostKeyChecking=no -r ./app/* ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:~/ims/
           
-          # Деплой и создание архива на сервере
+          # Деплой на сервере
           sshpass -p '${{ secrets.DEPLOY_PASSWORD }}' \
             ssh -o StrictHostKeyChecking=no \
                 -o ConnectTimeout=30 \
@@ -39,18 +30,6 @@ jobs:
             "set -e; \
              mkdir -p ~/ims; \
              cd ~/ims; \
-             echo 'Creating archive of clean project...'; \
-             echo 'Cleaning old archives...'; \
-             rm -f *.tar.gz; \
-             mkdir -p ~/temp/app; \
-             cp -r * ~/temp/app/ 2>/dev/null || true; \
-             cd ~/temp; \
-             tar czf $ARCHIVE --exclude='.git' app; \
-             mv $ARCHIVE ~/ims/; \
-             cd ~/ims; \
-             rm -rf ~/temp; \
-             echo 'Clean archive created: $ARCHIVE'; \
-             du -h $ARCHIVE; \
              echo 'Stopping all containers...'; \
              docker compose down 2>/dev/null || true; \
              echo 'Cleaning up old containers...'; \
@@ -113,46 +92,3 @@ jobs:
              echo '=== Step 6: Start all services ==='; \
              docker compose up -d --build; \
              echo 'Deployment completed successfully!'"
-          
-          # Скачиваем архив с сервера
-          sshpass -p '${{ secrets.DEPLOY_PASSWORD }}' \
-            scp -P ${{ secrets.DEPLOY_PORT }} -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:~/ims/$ARCHIVE .
-          
-          echo "archive_name=$ARCHIVE" >> $GITHUB_OUTPUT
-
-  minio-backup:
-    needs: deploy-ssh
-    runs-on: self-hosted
-    environment: IMS
-    timeout-minutes: 15
-    steps:
-      - name: Download archive from Nexus
-        env:
-          NEXUS_USER: ${{ secrets.NEXUS_USER }}
-          NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
-        run: |
-          ARCHIVE_NAME=${{ needs.deploy-ssh.outputs.archive_name }}
-          curl -u "$NEXUS_USER:$NEXUS_PASSWORD" \
-            -o "$ARCHIVE_NAME" \
-            "${{ env.NEXUS_URL }}/$ARCHIVE_NAME"
-          
-          # Проверяем целостность архива
-          tar tzf "$ARCHIVE_NAME" > /dev/null || exit 1
-
-      - name: Install MinIO Client
-        run: |
-          wget -q https://dl.min.io/client/mc/release/linux-amd64/mc
-          chmod +x mc
-      
-      - name: Upload archive to MinIO
-        env:
-          MINIO_ROOT_USER: ${{ secrets.MINIO_ROOT_USER }}
-          MINIO_ROOT_PASSWORD: ${{ secrets.MINIO_ROOT_PASSWORD }}
-        run: |
-          ARCHIVE_NAME=${{ needs.deploy-ssh.outputs.archive_name }}
-          ./mc alias set codegen-backup "${{ env.MINIO_ENDPOINT }}" "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD"
-          ./mc cp "$ARCHIVE_NAME" "${{ env.MINIO_BUCKET }}/"
-          
-          # Проверяем успешность загрузки
-          ./mc ls "${{ env.MINIO_BUCKET }}/$ARCHIVE_NAME" || exit 1
-          echo "Backup uploaded: $ARCHIVE_NAME"
