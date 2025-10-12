@@ -21,7 +21,7 @@ export const usePrepareTableData = (data: ITable<IncidentWithRelations>) => {
   };
 
   const handleViewIncident = (id: string) => {
-    navigate(ERoutes.INCIDENT_VIEW + `/${id}`);
+    navigate(`/incidents/view/${id}`);
   };
 
   const { mutate: deleteIncident } = useDeleteIncident();

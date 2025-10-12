@@ -10,6 +10,10 @@ import Departments from "../pages/Departments";
 import IncidentEvents from "../pages/IncidentEvents";
 import ObjectTypes from "../pages/ObjectTypes";
 import References from "../pages/References";
+import { EventsList } from "../pages/EventsList/EventsList";
+import { EventProvider } from "../pages/EventProvider/EventProvider";
+import { EventView } from "../pages/EventView/EventView";
+import { Dashboard } from "../pages/Dashboard/Dashboard";
 
 export const router = createBrowserRouter([
   {
@@ -18,6 +22,10 @@ export const router = createBrowserRouter([
     children: [
       {
         path: ERoutes.HOME,
+        element: <Dashboard />,
+      },
+      {
+        path: ERoutes.INCIDENTS_LIST,
         element: <Home />,
       },
       {
@@ -35,6 +43,22 @@ export const router = createBrowserRouter([
       {
         path: ERoutes.INCIDENT_VIEW_ID,
         element: <IncidentView />,
+      },
+      {
+        path: ERoutes.EVENTS_LIST,
+        element: <EventsList />,
+      },
+      {
+        path: ERoutes.EVENT_CREATE,
+        element: <EventProvider />,
+      },
+      {
+        path: ERoutes.EVENT_EDIT,
+        element: <EventProvider />,
+      },
+      {
+        path: ERoutes.EVENT_VIEW_ID,
+        element: <EventView />,
       },
       {
         path: ERoutes.DEPARTMENTS,

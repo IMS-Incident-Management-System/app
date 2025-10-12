@@ -17,7 +17,7 @@ export const IncidentView = () => {
   const { data: incident, isLoading } = useGetIncident(id);
 
   const handleBack = () => {
-    navigate(ERoutes.HOME);
+    navigate(ERoutes.INCIDENTS_LIST);
   };
 
   const handleEdit = () => {
