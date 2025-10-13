@@ -239,7 +239,7 @@
 }
 
 .nestedCard {
-  margin-bottom: 12px;
+  margin-bottom: 16px;
   border-radius: 8px;
   border: 1px solid #d9d9d9;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
@@ -265,12 +265,60 @@
   }
 
   :global(.ant-card-body) {
-    padding: 16px !important;
+    padding: 20px !important;
     background: #ffffff;
   }
 
   :global(.ant-card-extra) {
     padding: 0;
+  }
+  
+  // Фиксированная высота лейблов для единообразия
+  :global(.ant-form-item-label) {
+    min-height: 32px;
+    display: flex;
+    align-items: flex-end;
+    padding-bottom: 4px;
+    
+    > label {
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 1.4;
+    }
+  }
+  
+  // Единая высота всех инпутов
+  :global(.ant-input),
+  :global(.ant-picker),
+  :global(.ant-input-number) {
+    height: 36px;
+  }
+  
+  :global(.ant-input-number-input) {
+    height: 34px;
+  }
+  
+  // Разделители внутри карточки
+  :global(.ant-divider) {
+    margin: 20px 0 16px 0;
+    border-color: #e8e8e8;
+    
+    :global(.ant-divider-inner-text) {
+      font-weight: 600;
+      color: #595959;
+      font-size: 13px;
+      padding: 0 12px;
+      background: #ffffff;
+    }
+  }
+  
+  // Убираем лишние отступы в строках
+  :global(.ant-row) {
+    margin-bottom: 0;
+  }
+  
+  :global(.ant-form-item) {
+    margin-bottom: 12px;
   }
 }
 

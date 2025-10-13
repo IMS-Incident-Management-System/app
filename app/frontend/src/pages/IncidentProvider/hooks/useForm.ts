@@ -61,6 +61,9 @@ export const useForm = ({
           criminal_cases_list: additionally.criminal_cases_list?.map((cc: CriminalCaseAttributes) => ({
             ...cc,
             transfer_date: cc.transfer_date ? dayjs(cc.transfer_date).toDate() : undefined,
+            rejection_date: cc.rejection_date ? dayjs(cc.rejection_date).toDate() : undefined,
+            appeal_date: cc.appeal_date ? dayjs(cc.appeal_date).toDate() : undefined,
+            case_date: cc.case_date ? dayjs(cc.case_date).toDate() : undefined,
           })) ?? [],
           punishments: additionally.punishments?.map((p: PunishmentAttributes) => ({
             ...p,
@@ -113,6 +116,9 @@ export const useForm = ({
           criminal_cases_list: additionally.criminal_cases_list?.map((cc: CriminalCaseAttributes) => ({
             ...cc,
             transfer_date: cc.transfer_date ? dayjs(cc.transfer_date) : undefined,
+            rejection_date: cc.rejection_date ? dayjs(cc.rejection_date) : undefined,
+            appeal_date: cc.appeal_date ? dayjs(cc.appeal_date) : undefined,
+            case_date: cc.case_date ? dayjs(cc.case_date) : undefined,
           })) ?? [],
           punishments: additionally.punishments?.map((p: PunishmentAttributes) => ({
             ...p,
