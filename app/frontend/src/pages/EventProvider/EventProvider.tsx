@@ -54,21 +54,30 @@ export const EventProvider = () => {
   return (
     <div className={styles.container}>
       <Card className={styles.card}>
-        <Space direction="vertical" size="large" style={{ width: "100%" }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Title level={3} style={{ margin: 0 }}>
-              {id ? `Редактирование события #${id}` : "Создание события"}
+        <div className={styles.header}>
+          <Space direction="vertical" size="small" style={{ width: "100%" }}>
+            <Title level={2} className={styles.title}>
+              {id ? `Событие #${id}` : "Создание события"}
             </Title>
-            {id && (
-              <Button
-                type="default"
-                icon={<EyeOutlined />}
-                onClick={handleViewEvent}
-              >
-                Просмотр события
-              </Button>
-            )}
-          </div>
+            <div className={styles.headerActions}>
+              <Space>
+                {id && (
+                  <Button
+                    type="default"
+                    icon={<EyeOutlined />}
+                    onClick={handleViewEvent}
+                    className={styles.viewButton}
+                  >
+                    Просмотр события
+                  </Button>
+                )}
+              </Space>
+            </div>
+          </Space>
+        </div>
+        
+        <div className={styles.content}>
+          <Space direction="vertical" size="large" style={{ width: "100%" }}>
 
           <Form
             form={form}
@@ -90,12 +99,14 @@ export const EventProvider = () => {
                 onClick={handleSubmit}
                 loading={isCreatingEvent || isUpdatingEvent}
                 icon={<SaveOutlined />}
+                className={styles.saveButton}
               >
                 {id ? "Сохранить изменения" : "Создать событие"}
               </Button>
             </div>
           </Form>
-        </Space>
+          </Space>
+        </div>
       </Card>
     </div>
   );
