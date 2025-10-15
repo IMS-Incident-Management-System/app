@@ -121,7 +121,6 @@ export const useForm = ({
           } : undefined,
           punishment: additionally.punishment ? {
             ...additionally.punishment,
-            date: additionally.punishment.date ? dayjs(additionally.punishment.date) : undefined,
           } : undefined,
         })) ?? [],
       };
