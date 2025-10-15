@@ -167,7 +167,7 @@ export const IncidentView = () => {
                       </Col>
                     )}
                   </Row>
-                  {index < (incident.addresses?.length || 0) - 1 && <Divider />}
+                  {index < (incident.addresses?.length || 0) - 1 ? <Divider /> : null}
                 </div>
               ))}
             </Card>
@@ -201,7 +201,7 @@ export const IncidentView = () => {
                       </Col>
                     )}
                   </Row>
-                  {index < (incident.persons?.length || 0) - 1 && <Divider />}
+                  {index < (incident.persons?.length || 0) - 1 ? <Divider /> : null}
                 </div>
               ))}
             </Card>
@@ -341,7 +341,7 @@ export const IncidentView = () => {
                             <Text strong>Субъект преступления УД/АД:</Text> {addition.criminal_case.subject}
                           </li>
                         )}
-                        {addition.criminal_case.detained_count && (
+                        {addition.criminal_case.detained_count && addition.criminal_case.detained_count > 0 && (
                           <li className={styles.fieldItem}>
                             <Text strong>Задержано:</Text> {addition.criminal_case.detained_count} чел.
                           </li>
@@ -361,7 +361,7 @@ export const IncidentView = () => {
                             <Text strong>Решение суда:</Text> {addition.criminal_case.court_decision}
                           </li>
                         )}
-                        {addition.criminal_case.convicted_count && (
+                        {addition.criminal_case.convicted_count && addition.criminal_case.convicted_count > 0 && (
                           <li className={styles.fieldItem}>
                             <Text strong>Осуждено:</Text> {addition.criminal_case.convicted_count} чел.
                           </li>
@@ -410,7 +410,7 @@ export const IncidentView = () => {
                   )}
 
                   {/* Финансовый ущерб */}
-                  {(addition.detected_damage || addition.prevented_damage || addition.recovered_damage) && (
+                  {(addition.detected_damage !== undefined || addition.prevented_damage !== undefined || addition.recovered_damage !== undefined) && (
                     <div className={styles.subSection}>
                       <Title level={5}>Финансовый ущерб</Title>
                       <Row gutter={[16, 8]}>
@@ -433,7 +433,7 @@ export const IncidentView = () => {
                     </div>
                   )}
 
-                  {index < (incident.additionally?.length || 0) - 1 && <Divider style={{ margin: '32px 0' }} />}
+                  {index < (incident.additionally?.length || 0) - 1 ? <Divider style={{ margin: '32px 0' }} /> : null}
                 </div>
               ))}
             </Card>
