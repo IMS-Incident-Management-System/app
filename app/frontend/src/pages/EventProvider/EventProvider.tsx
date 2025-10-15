@@ -1,5 +1,6 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { Form, Button, Card, Spin, Space, Typography } from "antd";
+import { EyeOutlined, SaveOutlined } from "@ant-design/icons";
 import { MainInfo } from "./components/MainInfo/MainInfo";
 import { CategoryFields } from "./components/CategoryFields/CategoryFields";
 import { useGetEvent } from "../../services/requests/events/getEvent";
@@ -7,12 +8,13 @@ import { useCreateEvent } from "../../services/requests/events/createEvent";
 import { useForm } from "./hooks/useForm";
 import styles from "./EventProvider.module.scss";
 import { useUpdateEvent } from "../../services/requests/events/updateEvent";
-import { SaveOutlined } from "@ant-design/icons";
+import { ERoutes } from "../../enums/routes";
 
 const { Title } = Typography;
 
 export const EventProvider = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
 
   const { data: event, isLoading: isEventLoading } = useGetEvent(id);
   const { mutate: createEvent, isLoading: isCreatingEvent } =
@@ -35,6 +37,12 @@ export const EventProvider = () => {
     }
   };
 
+  const handleViewEvent = () => {
+    if (id) {
+      navigate(`${ERoutes.EVENT_VIEW}/${id}`);
+    }
+  };
+
   if (isEventLoading) {
     return (
       <div className={styles.spinContainer}>
@@ -47,9 +55,20 @@ export const EventProvider = () => {
     <div className={styles.container}>
       <Card className={styles.card}>
         <Space direction="vertical" size="large" style={{ width: "100%" }}>
-          <Title level={3}>
-            {id ? "Редактирование события" : "Создание события"}
-          </Title>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Title level={3} style={{ margin: 0 }}>
+              {id ? `Редактирование события #${id}` : "Создание события"}
+            </Title>
+            {id && (
+              <Button
+                type="default"
+                icon={<EyeOutlined />}
+                onClick={handleViewEvent}
+              >
+                Просмотр события
+              </Button>
+            )}
+          </div>
 
           <Form
             form={form}

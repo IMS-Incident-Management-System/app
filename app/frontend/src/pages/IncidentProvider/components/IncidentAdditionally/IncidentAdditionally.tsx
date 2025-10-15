@@ -1,11 +1,21 @@
-import { Form, Input, DatePicker, InputNumber, Button, Checkbox, Card, Row, Col, Divider, Space, Typography } from "antd";
+import { Form, Input, DatePicker, InputNumber, Button, Checkbox, Card, Row, Col, Divider, Space, Typography, Collapse } from "antd";
 import { PlusOutlined, DeleteOutlined, InfoCircleOutlined } from "@ant-design/icons";
+import React, { useState } from "react";
 import styles from "./IncidentAdditionally.module.scss";
 import dayjs from "dayjs";
 
 const { Text } = Typography;
 
 export const IncidentAdditionally = () => {
+  const [expandedItems, setExpandedItems] = useState<Record<number, boolean>>({});
+
+  const toggleExpanded = (index: number) => {
+    setExpandedItems(prev => ({
+      ...prev,
+      [index]: !prev[index]
+    }));
+  };
+
   return (
     <div className={styles.container}>
       <Card className={styles.sectionCard} title="Дополнения к инциденту">
@@ -22,7 +32,7 @@ export const IncidentAdditionally = () => {
               <div className={styles.additionallyHeader}>
                 <Button
                   className={styles.addAdditionallyButton}
-                  onClick={() => add(undefined, 0)}
+                  onClick={() => add()}
                   type="primary"
                   icon={<PlusOutlined />}
                   size="large"
@@ -34,19 +44,32 @@ export const IncidentAdditionally = () => {
               <div className={styles.additionallyContainer}>
                 {fields.map((field, index) => (
                   <div key={field.key} className={styles.additionallyWrapper}>
-                    {/* Заголовок дополнения */}
-                    <div className={styles.additionallyTitle}>
-                      <span className={styles.titleText}>Дополнение {index + 1}</span>
-                      <Button
-                        type="text"
-                        danger
-                        icon={<DeleteOutlined />}
-                        onClick={() => remove(field.name)}
-                        className={styles.deleteButton}
-                      >
-                        Удалить дополнение
-                      </Button>
-                    </div>
+                    <Collapse
+                      ghost
+                      size="small"
+                      className={styles.additionallyCollapse}
+                      items={[
+                        {
+                          key: '1',
+                          label: (
+                            <div className={styles.additionallyTitle}>
+                              <span className={styles.titleText}>Дополнение {index + 1}</span>
+                              <Button
+                                type="text"
+                                danger
+                                icon={<DeleteOutlined />}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  remove(field.name);
+                                }}
+                                className={styles.deleteButton}
+                              >
+                                Удалить дополнение
+                              </Button>
+                            </div>
+                          ),
+                          children: (
+                            <div className={styles.additionallyContent}>
 
                     {/* Основные данные дополнения */}
                     <Card className={styles.subSectionCard} title="Основные данные">
@@ -412,6 +435,11 @@ export const IncidentAdditionally = () => {
                         </Col>
                       </Row>
                     </Card>
+                            </div>
+                          ),
+                        },
+                      ]}
+                    />
                   </div>
                 ))}
               </div>
