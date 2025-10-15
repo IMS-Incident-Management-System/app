@@ -7,7 +7,7 @@ import useApp from "antd/es/app/useApp";
 import { ERoutes } from "../../../enums/routes";
 import { EQueryKeys } from "../../../enums/query";
 
-export const useCreateIncident = (setStep: (step: number) => void) => {
+export const useCreateIncident = (setStep?: (step: number) => void) => {
   const navigate = useNavigate();
   const app = useApp();
 

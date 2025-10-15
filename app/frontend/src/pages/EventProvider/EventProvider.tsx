@@ -18,7 +18,7 @@ export const EventProvider = () => {
 
   const { data: event, isLoading: isEventLoading } = useGetEvent(id);
   const { mutate: createEvent, isLoading: isCreatingEvent } =
-    useCreateEvent(() => {});
+    useCreateEvent();
   const { mutate: updateEvent, isLoading: isUpdatingEvent } =
     useUpdateEvent();
 

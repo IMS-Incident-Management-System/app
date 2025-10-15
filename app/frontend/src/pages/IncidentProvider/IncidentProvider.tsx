@@ -31,7 +31,7 @@ export const IncidentProvider = () => {
 
   const { data: incident, isLoading: isIncidentLoading } = useGetIncident(id);
   const { mutate: createIncident, isLoading: isCreatingIncident } =
-    useCreateIncident(() => {});
+    useCreateIncident();
   const { mutate: updateIncident, isLoading: isUpdatingIncident } =
     useUpdateIncident();
 
