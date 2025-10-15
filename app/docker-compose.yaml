@@ -103,7 +103,7 @@ services:
       - POSTGRES_USER=${BACKEND_POSTGRES_USER}
       - POSTGRES_HOST=${BACKEND_POSTGRES_HOST}
       - POSTGRES_PORT=${BACKEND_POSTGRES_PORT}
-      - PGDATA=${BACKEND_POSTGRES_PGDATA}
+      # - PGDATA=${BACKEND_POSTGRES_PGDATA}
     volumes:
       - ims-db-data:/var/lib/postgresql/data
     networks:
@@ -116,6 +116,8 @@ services:
     environment:
       - DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
       - DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - 8056:80
     volumes:
       - pgadmin-data:/var/lib/pgadmin
     networks:
