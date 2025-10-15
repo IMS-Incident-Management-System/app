@@ -20,15 +20,9 @@ class PunishmentService {
     if (punishment) {
       return await punishment.update(data, options);
     } else {
-      // Проверяем, что обязательные поля присутствуют
-      if (!data.date || !data.punishment_type_id) {
-        throw new Error('Missing required fields: date and punishment_type_id are required');
-      }
       return await Punishment.create({ 
         ...data, 
-        additionally_id: additionallyId,
-        date: data.date,
-        punishment_type_id: data.punishment_type_id
+        additionally_id: additionallyId
       } as PunishmentCreationAttributes, options);
     }
   }

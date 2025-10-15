@@ -70,10 +70,12 @@ interface CreateIncidentBody {
       convicted_count?: number;
     };
     punishment?: {
-      punishment_type_id: number;
-      description?: string;
-      date: Date;
-      fired_count: number;
+      guilty_persons_count?: number;
+      measures_taken_count?: number;
+      warning_letter_rp398?: number;
+      remark?: number;
+      reprimand?: number;
+      dismissed_count?: number;
     };
   }>
 }

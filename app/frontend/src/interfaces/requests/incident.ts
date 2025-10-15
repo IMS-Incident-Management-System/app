@@ -91,10 +91,12 @@ export interface CriminalCaseAttributes {
 
 export interface PunishmentAttributes {
   id?: number;
-  punishment_type_id: number;
-  description?: string;
-  date: Date;
-  fired_count: number;
+  guilty_persons_count?: number; // Установлено виновных лиц – кол-во
+  measures_taken_count?: number; // Принято мер к виновным лицам – кол-во
+  warning_letter_rp398?: number; // Предупреждение предупредительным письмом по РП-398
+  remark?: number; // Замечание
+  reprimand?: number; // Выговор
+  dismissed_count?: number; // Уволено – кол-во
 }
 
 export interface CreateIncidentBody {

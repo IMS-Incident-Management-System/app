@@ -305,38 +305,56 @@ export const IncidentAdditionally = () => {
                       <Row gutter={[16, 16]}>
                         <Col xs={24} sm={12} lg={8}>
                           <Form.Item
-                            label="Тип наказания"
-                            name={[field.name, "punishment", "punishment_type_id"]}
-                            rules={[{ required: true, message: "Выберите тип наказания" }]}
-                          >
-                            <InputNumber style={{ width: "100%" }} placeholder="ID типа наказания" />
-                          </Form.Item>
-                        </Col>
-                        <Col xs={24} sm={12} lg={8}>
-                          <Form.Item
-                            label="Дата наказания"
-                            name={[field.name, "punishment", "date"]}
-                            rules={[{ required: true, message: "Укажите дату" }]}
-                          >
-                            <DatePicker style={{ width: "100%" }} placeholder="Дата наказания" />
-                          </Form.Item>
-                        </Col>
-                        <Col xs={24} sm={12} lg={8}>
-                          <Form.Item
-                            label="Количество уволенных"
-                            name={[field.name, "punishment", "fired_count"]}
-                            rules={[{ required: true, message: "Укажите количество" }]}
+                            label="Установлено виновных лиц"
+                            name={[field.name, "punishment", "guilty_persons_count"]}
                             initialValue={0}
                           >
                             <InputNumber style={{ width: "100%" }} min={0} placeholder="0" />
                           </Form.Item>
                         </Col>
-                        <Col xs={24}>
+                        <Col xs={24} sm={12} lg={8}>
                           <Form.Item
-                            label="Описание"
-                            name={[field.name, "punishment", "description"]}
+                            label="Принято мер к виновным лицам"
+                            name={[field.name, "punishment", "measures_taken_count"]}
+                            initialValue={0}
                           >
-                            <Input.TextArea rows={2} placeholder="Описание наказания" />
+                            <InputNumber style={{ width: "100%" }} min={0} placeholder="0" />
+                          </Form.Item>
+                        </Col>
+                        <Col xs={24} sm={12} lg={8}>
+                          <Form.Item
+                            label="Предупреждение предупредительным письмом по РП-398"
+                            name={[field.name, "punishment", "warning_letter_rp398"]}
+                            initialValue={0}
+                          >
+                            <InputNumber style={{ width: "100%" }} min={0} placeholder="0" />
+                          </Form.Item>
+                        </Col>
+                        <Col xs={24} sm={12} lg={8}>
+                          <Form.Item
+                            label="Замечание"
+                            name={[field.name, "punishment", "remark"]}
+                            initialValue={0}
+                          >
+                            <InputNumber style={{ width: "100%" }} min={0} placeholder="0" />
+                          </Form.Item>
+                        </Col>
+                        <Col xs={24} sm={12} lg={8}>
+                          <Form.Item
+                            label="Выговор"
+                            name={[field.name, "punishment", "reprimand"]}
+                            initialValue={0}
+                          >
+                            <InputNumber style={{ width: "100%" }} min={0} placeholder="0" />
+                          </Form.Item>
+                        </Col>
+                        <Col xs={24} sm={12} lg={8}>
+                          <Form.Item
+                            label="Уволено"
+                            name={[field.name, "punishment", "dismissed_count"]}
+                            initialValue={0}
+                          >
+                            <InputNumber style={{ width: "100%" }} min={0} placeholder="0" />
                           </Form.Item>
                         </Col>
                       </Row>

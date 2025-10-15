@@ -4,10 +4,12 @@ import { sequelize } from './sequelize';
 export interface PunishmentAttributes {
   id: number;
   additionally_id: number;
-  punishment_type_id: number;
-  description?: string;
-  date: Date;
-  fired_count: number;
+  guilty_persons_count?: number; // Установлено виновных лиц – кол-во
+  measures_taken_count?: number; // Принято мер к виновным лицам – кол-во
+  warning_letter_rp398?: number; // Предупреждение предупредительным письмом по РП-398
+  remark?: number; // Замечание
+  reprimand?: number; // Выговор
+  dismissed_count?: number; // Уволено – кол-во
 }
 
 export interface PunishmentCreationAttributes extends Optional<PunishmentAttributes, 'id'> {}
@@ -32,26 +34,41 @@ const Punishment = sequelize.define<PunishmentInstance>('punishment', {
     onDelete: 'CASCADE',
     comment: 'ID дополнения к инциденту'
   },
-  punishment_type_id: {
+  guilty_persons_count: {
     type: DataTypes.INTEGER,
-    allowNull: false,
-    comment: 'ID типа наказания'
-  },
-  description: {
-    type: DataTypes.TEXT,
     allowNull: true,
-    comment: 'Описание наказания'
-  },
-  date: {
-    type: DataTypes.DATE,
-    allowNull: false,
-    comment: 'Дата наказания'
-  },
-  fired_count: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
     defaultValue: 0,
-    comment: 'Количество уволенных'
+    comment: 'Установлено виновных лиц – кол-во'
+  },
+  measures_taken_count: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    defaultValue: 0,
+    comment: 'Принято мер к виновным лицам – кол-во'
+  },
+  warning_letter_rp398: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    defaultValue: 0,
+    comment: 'Предупреждение предупредительным письмом по РП-398'
+  },
+  remark: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    defaultValue: 0,
+    comment: 'Замечание'
+  },
+  reprimand: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    defaultValue: 0,
+    comment: 'Выговор'
+  },
+  dismissed_count: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    defaultValue: 0,
+    comment: 'Уволено – кол-во'
   },
 }, {
   tableName: 'punishments',

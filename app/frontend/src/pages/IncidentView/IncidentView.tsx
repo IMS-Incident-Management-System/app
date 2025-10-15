@@ -374,26 +374,38 @@ export const IncidentView = () => {
                   {addition.punishment && (
                     <div className={styles.subSection}>
                       <Title level={5}>Наказание</Title>
-                      <Card size="small" className={styles.nestedCard} title="Наказание">
-                        <Row gutter={[16, 8]}>
+                      <Row gutter={[16, 8]}>
+                        {addition.punishment.guilty_persons_count !== undefined && (
                           <Col xs={24} sm={12} lg={8}>
-                            <Text strong>Тип наказания:</Text> {addition.punishment.punishment_type_id}
+                            <Text strong>Установлено виновных лиц:</Text> {addition.punishment.guilty_persons_count}
                           </Col>
-                          {addition.punishment.date && (
-                            <Col xs={24} sm={12} lg={8}>
-                              <Text strong>Дата наказания:</Text> {dayjs(addition.punishment.date).format("DD.MM.YYYY")}
-                            </Col>
-                          )}
+                        )}
+                        {addition.punishment.measures_taken_count !== undefined && (
                           <Col xs={24} sm={12} lg={8}>
-                            <Text strong>Количество уволенных:</Text> {addition.punishment.fired_count}
+                            <Text strong>Принято мер к виновным лицам:</Text> {addition.punishment.measures_taken_count}
                           </Col>
-                          {addition.punishment.description && (
-                            <Col xs={24}>
-                              <Text strong>Описание:</Text> {addition.punishment.description}
-                            </Col>
-                          )}
-                        </Row>
-                      </Card>
+                        )}
+                        {addition.punishment.warning_letter_rp398 !== undefined && (
+                          <Col xs={24} sm={12} lg={8}>
+                            <Text strong>Предупреждение предупредительным письмом по РП-398:</Text> {addition.punishment.warning_letter_rp398}
+                          </Col>
+                        )}
+                        {addition.punishment.remark !== undefined && (
+                          <Col xs={24} sm={12} lg={8}>
+                            <Text strong>Замечание:</Text> {addition.punishment.remark}
+                          </Col>
+                        )}
+                        {addition.punishment.reprimand !== undefined && (
+                          <Col xs={24} sm={12} lg={8}>
+                            <Text strong>Выговор:</Text> {addition.punishment.reprimand}
+                          </Col>
+                        )}
+                        {addition.punishment.dismissed_count !== undefined && (
+                          <Col xs={24} sm={12} lg={8}>
+                            <Text strong>Уволено:</Text> {addition.punishment.dismissed_count}
+                          </Col>
+                        )}
+                      </Row>
                     </div>
                   )}
 
