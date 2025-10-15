@@ -10,13 +10,18 @@ export const useCreateEvent = (onSuccess?: () => void) => {
   const navigate = useNavigate();
 
   return useMutation((data: any) => createEvent(data), {
-    onSuccess: () => {
+    onSuccess: (data) => {
       message.success("Событие успешно создано");
       queryClient.invalidateQueries(EQueryKeys.GET_ALL_EVENTS);
       if (onSuccess) {
         onSuccess();
       } else {
-        navigate(ERoutes.EVENTS_LIST);
+        // Перенаправляем на карточку созданного события
+        if (data?.id) {
+          navigate(`${ERoutes.EVENT_VIEW}/${data.id}`);
+        } else {
+          navigate(ERoutes.EVENTS_LIST);
+        }
       }
     },
     onError: () => {
