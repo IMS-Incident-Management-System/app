@@ -370,32 +370,30 @@ export const IncidentView = () => {
                     </div>
                   )}
 
-                  {/* Наказания */}
-                  {addition.punishments && addition.punishments.length > 0 && (
+                  {/* Наказание */}
+                  {addition.punishment && (
                     <div className={styles.subSection}>
-                      <Title level={5}>Наказания</Title>
-                      {addition.punishments.map((punishment, pIndex) => (
-                        <Card key={pIndex} size="small" className={styles.nestedCard} title={`Наказание ${pIndex + 1}`}>
-                          <Row gutter={[16, 8]}>
+                      <Title level={5}>Наказание</Title>
+                      <Card size="small" className={styles.nestedCard} title="Наказание">
+                        <Row gutter={[16, 8]}>
+                          <Col xs={24} sm={12} lg={8}>
+                            <Text strong>Тип наказания:</Text> {addition.punishment.punishment_type_id}
+                          </Col>
+                          {addition.punishment.date && (
                             <Col xs={24} sm={12} lg={8}>
-                              <Text strong>Тип наказания:</Text> {punishment.punishment_type_id}
+                              <Text strong>Дата наказания:</Text> {dayjs(addition.punishment.date).format("DD.MM.YYYY")}
                             </Col>
-                            {punishment.date && (
-                              <Col xs={24} sm={12} lg={8}>
-                                <Text strong>Дата наказания:</Text> {dayjs(punishment.date).format("DD.MM.YYYY")}
-                              </Col>
-                            )}
-                            <Col xs={24} sm={12} lg={8}>
-                              <Text strong>Количество уволенных:</Text> {punishment.fired_count}
+                          )}
+                          <Col xs={24} sm={12} lg={8}>
+                            <Text strong>Количество уволенных:</Text> {addition.punishment.fired_count}
+                          </Col>
+                          {addition.punishment.description && (
+                            <Col xs={24}>
+                              <Text strong>Описание:</Text> {addition.punishment.description}
                             </Col>
-                            {punishment.description && (
-                              <Col xs={24}>
-                                <Text strong>Описание:</Text> {punishment.description}
-                              </Col>
-                            )}
-                          </Row>
-                        </Card>
-                      ))}
+                          )}
+                        </Row>
+                      </Card>
                     </div>
                   )}
 

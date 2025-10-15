@@ -65,10 +65,10 @@ export const useForm = ({
             appeal_date: additionally.criminal_case.appeal_date ? dayjs(additionally.criminal_case.appeal_date).toDate() : undefined,
             case_date: additionally.criminal_case.case_date ? dayjs(additionally.criminal_case.case_date).toDate() : undefined,
           } : undefined,
-          punishments: additionally.punishments?.map((p: PunishmentAttributes) => ({
-            ...p,
-            date: p.date ? dayjs(p.date).toDate() : new Date(),
-          })) ?? [],
+          punishment: additionally.punishment ? {
+            ...additionally.punishment,
+            date: additionally.punishment.date ? dayjs(additionally.punishment.date).toDate() : new Date(),
+          } : undefined,
         };
       }) ?? [],
     };
@@ -120,10 +120,10 @@ export const useForm = ({
             appeal_date: additionally.criminal_case.appeal_date ? dayjs(additionally.criminal_case.appeal_date) : undefined,
             case_date: additionally.criminal_case.case_date ? dayjs(additionally.criminal_case.case_date) : undefined,
           } : undefined,
-          punishments: additionally.punishments?.map((p: PunishmentAttributes) => ({
-            ...p,
-            date: p.date ? dayjs(p.date) : undefined,
-          })) ?? [],
+          punishment: additionally.punishment ? {
+            ...additionally.punishment,
+            date: additionally.punishment.date ? dayjs(additionally.punishment.date) : undefined,
+          } : undefined,
         })) ?? [],
       };
 

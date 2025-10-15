@@ -69,12 +69,12 @@ interface CreateIncidentBody {
       court_decision?: string;
       convicted_count?: number;
     };
-    punishments?: Array<{
+    punishment?: {
       punishment_type_id: number;
       description?: string;
       date: Date;
       fired_count: number;
-    }>;
+    };
   }>
 }
 
@@ -146,7 +146,7 @@ export const createIncident = asyncErrorHandler(
       if (data.additionally.length) {
         for (const additionallyData of data.additionally) {
           // Исключаем id и связанные данные
-          const { id, criminal_case, punishments, ...additionallyDataWithoutId } = additionallyData;
+          const { id, criminal_case, punishment, ...additionallyDataWithoutId } = additionallyData;
           
           // Создаем дополнение
           const additionally = await additionallyService.createAdditionally(
@@ -162,13 +162,13 @@ export const createIncident = asyncErrorHandler(
             );
           }
 
-          // Создаем наказания
-          if (punishments && punishments.length > 0) {
-            await punishmentService.createPunishments(
-              punishments.map(p => ({
-                ...p,
+          // Создаем наказание
+          if (punishment) {
+            await punishmentService.createPunishment(
+              {
+                ...punishment,
                 additionally_id: additionally.id
-              })),
+              },
               { transaction }
             );
           }

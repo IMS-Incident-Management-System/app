@@ -152,7 +152,7 @@ export const incidentService = {
             },
             {
               model: Punishment,
-              as: 'punishments'
+              as: 'punishment'
             }
           ]
         },
@@ -217,7 +217,7 @@ export const incidentService = {
             },
             {
               model: Punishment,
-              as: 'punishments'
+              as: 'punishment'
             }
           ]
         },

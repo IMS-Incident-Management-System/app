@@ -42,7 +42,7 @@ export const additionallyService = {
         },
         {
           model: Punishment,
-          as: 'punishments'
+          as: 'punishment'
         }
       ],
       order: [['addition_date', 'DESC']]
@@ -63,7 +63,7 @@ export const additionallyService = {
         },
         {
           model: Punishment,
-          as: 'punishments'
+          as: 'punishment'
         }
       ]
     });
@@ -115,7 +115,7 @@ export const additionallyService = {
         },
         {
           model: Punishment,
-          as: 'punishments'
+          as: 'punishment'
         }
       ],
       order: [['addition_date', 'DESC']]

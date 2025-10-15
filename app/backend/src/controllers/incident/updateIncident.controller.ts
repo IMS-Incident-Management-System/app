@@ -68,12 +68,12 @@ interface UpdateIncidentBody {
       court_decision?: string;
       convicted_count?: number;
     };
-    punishments?: Array<{
+    punishment?: {
       punishment_type_id: number;
       description?: string;
       date: Date;
       fired_count: number;
-    }>;
+    };
   }>
 }
 
@@ -159,7 +159,7 @@ export const updateIncident = asyncErrorHandler(
       
       if (data.additionally.length) {
         for (const additionallyData of data.additionally) {
-          const { criminal_case, punishments, ...additionallyDataWithout} = additionallyData;
+          const { criminal_case, punishment, ...additionallyDataWithout} = additionallyData;
           
           // Создаем дополнение
           const additionally = await additionallyService.createAdditionally(
@@ -175,13 +175,13 @@ export const updateIncident = asyncErrorHandler(
             );
           }
 
-          // Создаем наказания
-          if (punishments && punishments.length > 0) {
-            await punishmentService.createPunishments(
-              punishments.map(p => ({
-                ...p,
+          // Создаем наказание
+          if (punishment) {
+            await punishmentService.createPunishment(
+              {
+                ...punishment,
                 additionally_id: additionally.id
-              })),
+              },
               { transaction }
             );
           }

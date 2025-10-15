@@ -94,9 +94,9 @@ CriminalCase.belongsTo(Additionally, {
   as: 'additionally'
 });
 
-Additionally.hasMany(Punishment, {
+Additionally.hasOne(Punishment, {
   foreignKey: 'additionally_id',
-  as: 'punishments',
+  as: 'punishment',
   onDelete: 'CASCADE'
 });
 

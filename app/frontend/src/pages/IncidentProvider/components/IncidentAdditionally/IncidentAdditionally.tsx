@@ -300,81 +300,46 @@ export const IncidentAdditionally = () => {
                       </Row>
                     </Card>
 
-                    {/* Наказания */}
-                    <Card className={styles.subSectionCard} title="Наказания">
-                      <Form.List name={[field.name, "punishments"]}>
-                        {(punishFields, { add: addPunish, remove: removePunish }) => (
-                          <>
-                            {punishFields.map((punField) => (
-                              <Card 
-                                key={punField.key}
-                                className={styles.nestedCard}
-                                size="small"
-                                title={`Наказание ${punField.name + 1}`}
-                                extra={
-                                  <Button
-                                    type="text"
-                                    danger
-                                    icon={<DeleteOutlined />}
-                                    onClick={() => removePunish(punField.name)}
-                                    size="small"
-                                  >
-                                    Удалить
-                                  </Button>
-                                }
-                              >
-                                <Row gutter={[16, 16]}>
-                                  <Col xs={24} sm={12} lg={8}>
-                                    <Form.Item
-                                      label="Тип наказания"
-                                      name={[punField.name, "punishment_type_id"]}
-                                      rules={[{ required: true, message: "Выберите тип наказания" }]}
-                                    >
-                                      <InputNumber style={{ width: "100%" }} placeholder="ID типа наказания" />
-                                    </Form.Item>
-                                  </Col>
-                                  <Col xs={24} sm={12} lg={8}>
-                                    <Form.Item
-                                      label="Дата наказания"
-                                      name={[punField.name, "date"]}
-                                      rules={[{ required: true, message: "Укажите дату" }]}
-                                    >
-                                      <DatePicker style={{ width: "100%" }} placeholder="Дата наказания" />
-                                    </Form.Item>
-                                  </Col>
-                                  <Col xs={24} sm={12} lg={8}>
-                                    <Form.Item
-                                      label="Количество уволенных"
-                                      name={[punField.name, "fired_count"]}
-                                      rules={[{ required: true, message: "Укажите количество" }]}
-                                      initialValue={0}
-                                    >
-                                      <InputNumber style={{ width: "100%" }} min={0} placeholder="0" />
-                                    </Form.Item>
-                                  </Col>
-                                  <Col xs={24}>
-                                    <Form.Item
-                                      label="Описание"
-                                      name={[punField.name, "description"]}
-                                    >
-                                      <Input.TextArea rows={2} placeholder="Описание наказания" />
-                                    </Form.Item>
-                                  </Col>
-                                </Row>
-                              </Card>
-                            ))}
-                            <Button
-                              type="dashed"
-                              onClick={() => addPunish()}
-                              block
-                              icon={<PlusOutlined />}
-                              className={styles.addButton}
-                            >
-                              Добавить наказание
-                            </Button>
-                          </>
-                        )}
-                      </Form.List>
+                    {/* Наказание */}
+                    <Card className={styles.subSectionCard} title="Наказание">
+                      <Row gutter={[16, 16]}>
+                        <Col xs={24} sm={12} lg={8}>
+                          <Form.Item
+                            label="Тип наказания"
+                            name={[field.name, "punishment", "punishment_type_id"]}
+                            rules={[{ required: true, message: "Выберите тип наказания" }]}
+                          >
+                            <InputNumber style={{ width: "100%" }} placeholder="ID типа наказания" />
+                          </Form.Item>
+                        </Col>
+                        <Col xs={24} sm={12} lg={8}>
+                          <Form.Item
+                            label="Дата наказания"
+                            name={[field.name, "punishment", "date"]}
+                            rules={[{ required: true, message: "Укажите дату" }]}
+                          >
+                            <DatePicker style={{ width: "100%" }} placeholder="Дата наказания" />
+                          </Form.Item>
+                        </Col>
+                        <Col xs={24} sm={12} lg={8}>
+                          <Form.Item
+                            label="Количество уволенных"
+                            name={[field.name, "punishment", "fired_count"]}
+                            rules={[{ required: true, message: "Укажите количество" }]}
+                            initialValue={0}
+                          >
+                            <InputNumber style={{ width: "100%" }} min={0} placeholder="0" />
+                          </Form.Item>
+                        </Col>
+                        <Col xs={24}>
+                          <Form.Item
+                            label="Описание"
+                            name={[field.name, "punishment", "description"]}
+                          >
+                            <Input.TextArea rows={2} placeholder="Описание наказания" />
+                          </Form.Item>
+                        </Col>
+                      </Row>
                     </Card>
 
                     {/* Финансовый ущерб */}
