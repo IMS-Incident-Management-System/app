@@ -6,18 +6,28 @@ class PunishmentService {
     return await Punishment.create(data, options);
   }
 
-  async createPunishments(punishments: PunishmentCreationAttributes[], options?: { transaction?: Transaction }) {
-    if (!punishments || punishments.length === 0) return [];
-    return await Punishment.bulkCreate(punishments, options);
-  }
-
-  async getPunishmentsByAdditionallyId(additionallyId: number) {
-    return await Punishment.findAll({
+  async getPunishmentByAdditionallyId(additionallyId: number) {
+    return await Punishment.findOne({
       where: { additionally_id: additionallyId } as any,
     });
   }
 
-  async deletePunishmentsByAdditionallyId(additionallyId: number, options?: { transaction?: Transaction }) {
+  async updatePunishmentByAdditionallyId(additionallyId: number, data: Partial<PunishmentCreationAttributes>, options?: { transaction?: Transaction }) {
+    const punishment = await Punishment.findOne({
+      where: { additionally_id: additionallyId } as any,
+    });
+    
+    if (punishment) {
+      return await punishment.update(data, options);
+    } else {
+      return await Punishment.create({ 
+        ...data, 
+        additionally_id: additionallyId
+      } as PunishmentCreationAttributes, options);
+    }
+  }
+
+  async deletePunishmentByAdditionallyId(additionallyId: number, options?: { transaction?: Transaction }) {
     return await Punishment.destroy({
       where: { additionally_id: additionallyId } as any,
       ...options,

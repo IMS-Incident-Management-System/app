@@ -17,6 +17,12 @@ class CriminalCaseService {
     });
   }
 
+  async getCriminalCaseByAdditionallyId(additionallyId: number) {
+    return await CriminalCase.findOne({
+      where: { additionally_id: additionallyId } as any,
+    });
+  }
+
   async deleteCriminalCasesByAdditionallyId(additionallyId: number, options?: { transaction?: Transaction }) {
     return await CriminalCase.destroy({
       where: { additionally_id: additionallyId } as any,

@@ -1,6 +1,6 @@
 export interface CriminalCaseAttributes {
   id: number;
-  event_history_id: number; // Теперь только связь с событием
+  additionally_id: number; // Связь с дополнением к инциденту
 
   // Данные о передаче материалов
   transfer_date?: Date; // Дата передачи материалов в ПРоО

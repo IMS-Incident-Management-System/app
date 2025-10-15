@@ -1,5 +1,6 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { Form, Button, Card, Spin, Space, Typography } from "antd";
+import { EyeOutlined, SaveOutlined } from "@ant-design/icons";
 import { MainInfo } from "./components/MainInfo/MainInfo";
 import { CategoryFields } from "./components/CategoryFields/CategoryFields";
 import { useGetEvent } from "../../services/requests/events/getEvent";
@@ -7,16 +8,17 @@ import { useCreateEvent } from "../../services/requests/events/createEvent";
 import { useForm } from "./hooks/useForm";
 import styles from "./EventProvider.module.scss";
 import { useUpdateEvent } from "../../services/requests/events/updateEvent";
-import { SaveOutlined } from "@ant-design/icons";
+import { ERoutes } from "../../enums/routes";
 
 const { Title } = Typography;
 
 export const EventProvider = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
 
   const { data: event, isLoading: isEventLoading } = useGetEvent(id);
   const { mutate: createEvent, isLoading: isCreatingEvent } =
-    useCreateEvent(() => {});
+    useCreateEvent();
   const { mutate: updateEvent, isLoading: isUpdatingEvent } =
     useUpdateEvent();
 
@@ -35,6 +37,12 @@ export const EventProvider = () => {
     }
   };
 
+  const handleViewEvent = () => {
+    if (id) {
+      navigate(`${ERoutes.EVENT_VIEW}/${id}`);
+    }
+  };
+
   if (isEventLoading) {
     return (
       <div className={styles.spinContainer}>
@@ -46,10 +54,30 @@ export const EventProvider = () => {
   return (
     <div className={styles.container}>
       <Card className={styles.card}>
-        <Space direction="vertical" size="large" style={{ width: "100%" }}>
-          <Title level={3}>
-            {id ? "Редактирование события" : "Создание события"}
-          </Title>
+        <div className={styles.header}>
+          <Space direction="vertical" size="small" style={{ width: "100%" }}>
+            <Title level={2} className={styles.title}>
+              {id ? `Событие #${id}` : "Создание события"}
+            </Title>
+            <div className={styles.headerActions}>
+              <Space>
+                {id && (
+                  <Button
+                    type="default"
+                    icon={<EyeOutlined />}
+                    onClick={handleViewEvent}
+                    className={styles.viewButton}
+                  >
+                    Просмотр события
+                  </Button>
+                )}
+              </Space>
+            </div>
+          </Space>
+        </div>
+        
+        <div className={styles.content}>
+          <Space direction="vertical" size="large" style={{ width: "100%" }}>
 
           <Form
             form={form}
@@ -71,12 +99,14 @@ export const EventProvider = () => {
                 onClick={handleSubmit}
                 loading={isCreatingEvent || isUpdatingEvent}
                 icon={<SaveOutlined />}
+                className={styles.saveButton}
               >
                 {id ? "Сохранить изменения" : "Создать событие"}
               </Button>
             </div>
           </Form>
-        </Space>
+          </Space>
+        </div>
       </Card>
     </div>
   );

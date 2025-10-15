@@ -10,13 +10,31 @@ export const useCreateEvent = (onSuccess?: () => void) => {
   const navigate = useNavigate();
 
   return useMutation((data: any) => createEvent(data), {
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('Event created successfully:', data);
       message.success("Событие успешно создано");
       queryClient.invalidateQueries(EQueryKeys.GET_ALL_EVENTS);
       if (onSuccess) {
+        console.log('Using onSuccess callback');
         onSuccess();
       } else {
-        navigate(ERoutes.EVENTS_LIST);
+        // Перенаправляем на карточку созданного события (поддержка разных форматов ответа)
+        const createdId =
+          // вариант { event: { id } }
+          (data as any)?.event?.id ??
+          // вариант { id }
+          (data as any)?.id ??
+          // вариант { data: { id } }
+          (data as any)?.data?.id;
+
+        if (createdId) {
+          const target = `${ERoutes.EVENT_VIEW}/${createdId}`;
+          console.log('Redirecting to event view:', target);
+          navigate(target);
+        } else {
+          console.log('No event ID found, redirecting to events list');
+          navigate(ERoutes.EVENTS_LIST);
+        }
       }
     },
     onError: () => {

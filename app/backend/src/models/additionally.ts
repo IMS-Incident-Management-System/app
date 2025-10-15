@@ -17,8 +17,8 @@ export interface AdditionallyAttributes {
 
 export interface AdditionallyWithRelations extends AdditionallyAttributes {
   incident?: IncidentAttributes;
-  criminal_cases_list?: CriminalCaseAttributes[];
-  punishments?: PunishmentAttributes[];
+  criminal_case?: CriminalCaseAttributes;
+  punishment?: PunishmentAttributes;
 }
 
 export interface AdditionallyCreationAttributes extends Optional<AdditionallyAttributes, 'id'> {}

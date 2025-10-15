@@ -9,8 +9,8 @@ export interface AdditionallyAttributes {
   detected_damage?: number; // Выявленный ущерб
   prevented_damage?: number; // Предотвращенный ущерб
   recovered_damage?: number; // Возмещенный ущерб
-  criminal_cases_list?: CriminalCaseAttributes[];
-  punishments?: PunishmentAttributes[];
+  criminal_case?: CriminalCaseAttributes;
+  punishment?: PunishmentAttributes;
   createdAt?: Date;
   updatedAt?: Date;
 }

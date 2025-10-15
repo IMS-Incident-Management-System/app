@@ -49,20 +49,33 @@ interface UpdateIncidentBody {
     detected_damage?: number; // Выявленный ущерб
     prevented_damage?: number; // Предотвращенный ущерб
     recovered_damage?: number; // Возмещенный ущерб
-    criminal_cases_list?: Array<{
+    criminal_case?: {
       transfer_date?: Date;
       document_number?: string;
       department_name?: string;
       review_result?: string;
       case_number?: string;
       law_article?: string;
-    }>;
-    punishments?: Array<{
-      punishment_type_id: number;
-      description?: string;
-      date: Date;
-      fired_count: number;
-    }>;
+      rejection_date?: Date;
+      rejection_reason?: string;
+      appeal_date?: Date;
+      case_date?: Date;
+      initiator?: string;
+      subject?: string;
+      detained_count?: number;
+      person_name?: string;
+      case_result?: string;
+      court_decision?: string;
+      convicted_count?: number;
+    };
+    punishment?: {
+      guilty_persons_count?: number;
+      measures_taken_count?: number;
+      warning_letter_rp398?: number;
+      remark?: number;
+      reprimand?: number;
+      dismissed_count?: number;
+    };
   }>
 }
 
@@ -148,7 +161,7 @@ export const updateIncident = asyncErrorHandler(
       
       if (data.additionally.length) {
         for (const additionallyData of data.additionally) {
-          const { criminal_cases_list, punishments, ...additionallyDataWithout} = additionallyData;
+          const { criminal_case, punishment, ...additionallyDataWithout} = additionallyData;
           
           // Создаем дополнение
           const additionally = await additionallyService.createAdditionally(
@@ -156,24 +169,21 @@ export const updateIncident = asyncErrorHandler(
             { transaction }
           );
 
-          // Создаем уголовные дела
-          if (criminal_cases_list && criminal_cases_list.length > 0) {
-            await criminalCaseService.createCriminalCases(
-              criminal_cases_list.map(cc => ({
-                ...cc,
-                additionally_id: additionally.id
-              })),
+          // Создаем уголовное дело (только одно)
+          if (criminal_case) {
+            await criminalCaseService.createCriminalCase(
+              { ...criminal_case, additionally_id: additionally.id },
               { transaction }
             );
           }
 
-          // Создаем наказания
-          if (punishments && punishments.length > 0) {
-            await punishmentService.createPunishments(
-              punishments.map(p => ({
-                ...p,
+          // Создаем наказание
+          if (punishment) {
+            await punishmentService.createPunishment(
+              {
+                ...punishment,
                 additionally_id: additionally.id
-              })),
+              },
               { transaction }
             );
           }
