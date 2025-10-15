@@ -276,46 +276,97 @@ export const IncidentView = () => {
                     </div>
                   )}
 
-                  {/* Уголовные дела */}
-                  {addition.criminal_cases_list && addition.criminal_cases_list.length > 0 && (
+                  {/* Уголовное дело */}
+                  {addition.criminal_case && (
                     <div className={styles.subSection}>
-                      <Title level={5}>Уголовные дела</Title>
-                      {addition.criminal_cases_list.map((crimCase, ccIndex) => (
-                        <Card key={ccIndex} size="small" className={styles.nestedCard} title={`Уголовное дело ${ccIndex + 1}`}>
-                          <Row gutter={[16, 8]}>
-                            {crimCase.transfer_date && (
-                              <Col xs={24} sm={12} lg={8}>
-                                <Text strong>Дата передачи:</Text> {dayjs(crimCase.transfer_date).format("DD.MM.YYYY")}
-                              </Col>
-                            )}
-                            {crimCase.document_number && (
-                              <Col xs={24} sm={12} lg={8}>
-                                <Text strong>Номер документа:</Text> {crimCase.document_number}
-                              </Col>
-                            )}
-                            {crimCase.department_name && (
-                              <Col xs={24} sm={12} lg={8}>
-                                <Text strong>Подразделение:</Text> {crimCase.department_name}
-                              </Col>
-                            )}
-                            {crimCase.case_number && (
-                              <Col xs={24} sm={12} lg={8}>
-                                <Text strong>Номер дела:</Text> {crimCase.case_number}
-                              </Col>
-                            )}
-                            {crimCase.law_article && (
-                              <Col xs={24} sm={12} lg={8}>
-                                <Text strong>Статья закона:</Text> {crimCase.law_article}
-                              </Col>
-                            )}
-                            {crimCase.review_result && (
-                              <Col xs={24}>
-                                <Text strong>Результат рассмотрения:</Text> {crimCase.review_result}
-                              </Col>
-                            )}
-                          </Row>
-                        </Card>
-                      ))}
+                      <Title level={5}>Уголовное дело</Title>
+                      <ul className={styles.fieldList}>
+                        {addition.criminal_case.transfer_date && (
+                          <li className={styles.fieldItem}>
+                            <Text strong>Дата передачи в ПРоО:</Text> {dayjs(addition.criminal_case.transfer_date).format("DD.MM.YYYY")}
+                          </li>
+                        )}
+                        {addition.criminal_case.document_number && (
+                          <li className={styles.fieldItem}>
+                            <Text strong>Номер документа/КУСП:</Text> {addition.criminal_case.document_number}
+                          </li>
+                        )}
+                        {addition.criminal_case.department_name && (
+                          <li className={styles.fieldItem}>
+                            <Text strong>Подразделение:</Text> {addition.criminal_case.department_name}
+                          </li>
+                        )}
+                        {addition.criminal_case.review_result && (
+                          <li className={styles.fieldItem}>
+                            <Text strong>Результат рассмотрения материалов:</Text> {addition.criminal_case.review_result}
+                          </li>
+                        )}
+                        {addition.criminal_case.rejection_date && (
+                          <li className={styles.fieldItem}>
+                            <Text strong>Дата отказа в ВУД/ВАД:</Text> {dayjs(addition.criminal_case.rejection_date).format("DD.MM.YYYY")}
+                          </li>
+                        )}
+                        {addition.criminal_case.rejection_reason && (
+                          <li className={styles.fieldItem}>
+                            <Text strong>Причина отказа в ВУД/ВАД:</Text> {addition.criminal_case.rejection_reason}
+                          </li>
+                        )}
+                        {addition.criminal_case.appeal_date && (
+                          <li className={styles.fieldItem}>
+                            <Text strong>Дата обжалования отказа:</Text> {dayjs(addition.criminal_case.appeal_date).format("DD.MM.YYYY")}
+                          </li>
+                        )}
+                        {addition.criminal_case.case_date && (
+                          <li className={styles.fieldItem}>
+                            <Text strong>Дата ВУД/ВАД:</Text> {dayjs(addition.criminal_case.case_date).format("DD.MM.YYYY")}
+                          </li>
+                        )}
+                        {addition.criminal_case.case_number && (
+                          <li className={styles.fieldItem}>
+                            <Text strong>Номер УД/АД:</Text> {addition.criminal_case.case_number}
+                          </li>
+                        )}
+                        {addition.criminal_case.law_article && (
+                          <li className={styles.fieldItem}>
+                            <Text strong>Статья УК РФ/КоАП РФ:</Text> {addition.criminal_case.law_article}
+                          </li>
+                        )}
+                        {addition.criminal_case.initiator && (
+                          <li className={styles.fieldItem}>
+                            <Text strong>Инициатор возбуждения УД/АД:</Text> {addition.criminal_case.initiator}
+                          </li>
+                        )}
+                        {addition.criminal_case.subject && (
+                          <li className={styles.fieldItem}>
+                            <Text strong>Субъект преступления УД/АД:</Text> {addition.criminal_case.subject}
+                          </li>
+                        )}
+                        {addition.criminal_case.detained_count && (
+                          <li className={styles.fieldItem}>
+                            <Text strong>Задержано:</Text> {addition.criminal_case.detained_count} чел.
+                          </li>
+                        )}
+                        {addition.criminal_case.person_name && (
+                          <li className={styles.fieldItem}>
+                            <Text strong>ФИО лица/название юр.лица:</Text> {addition.criminal_case.person_name}
+                          </li>
+                        )}
+                        {addition.criminal_case.case_result && (
+                          <li className={styles.fieldItem}>
+                            <Text strong>Результат рассмотрения УД/АД:</Text> {addition.criminal_case.case_result}
+                          </li>
+                        )}
+                        {addition.criminal_case.court_decision && (
+                          <li className={styles.fieldItem}>
+                            <Text strong>Решение суда:</Text> {addition.criminal_case.court_decision}
+                          </li>
+                        )}
+                        {addition.criminal_case.convicted_count && (
+                          <li className={styles.fieldItem}>
+                            <Text strong>Осуждено:</Text> {addition.criminal_case.convicted_count} чел.
+                          </li>
+                        )}
+                      </ul>
                     </div>
                   )}
 

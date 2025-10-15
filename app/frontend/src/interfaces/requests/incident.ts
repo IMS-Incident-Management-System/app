@@ -123,7 +123,7 @@ export interface CreateIncidentBody {
     detected_damage?: number; // Выявленный ущерб
     prevented_damage?: number; // Предотвращенный ущерб
     recovered_damage?: number; // Возмещенный ущерб
-    criminal_cases_list?: CriminalCaseAttributes[];
+    criminal_case?: CriminalCaseAttributes;
     punishments?: PunishmentAttributes[];
   }>;
 }

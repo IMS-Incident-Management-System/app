@@ -98,218 +98,183 @@ export const IncidentAdditionally = () => {
                       </Row>
                     </Card>
 
-                    {/* Уголовные дела */}
-                    <Card className={styles.subSectionCard} title="Уголовные дела">
-                      <Form.List name={[field.name, "criminal_cases_list"]}>
-                        {(criminalFields, { add: addCriminal, remove: removeCriminal }) => (
-                          <>
-                            {criminalFields.map((crimField) => (
-                              <Card 
-                                key={crimField.key}
-                                className={styles.nestedCard}
-                                size="small"
-                                title={`Уголовное дело ${crimField.name + 1}`}
-                                extra={
-                                  <Button
-                                    type="text"
-                                    danger
-                                    icon={<DeleteOutlined />}
-                                    onClick={() => removeCriminal(crimField.name)}
-                                    size="small"
-                                  >
-                                    Удалить
-                                  </Button>
-                                }
-                              >
-                                <Divider orientation="left" plain>Передача материалов</Divider>
-                                <Row gutter={[16, 16]}>
-                                  <Col xs={24} sm={12} lg={8}>
-                                    <Form.Item
-                                      label="Дата передачи в ПРоО"
-                                      name={[crimField.name, "transfer_date"]}
-                                      tooltip="Дата передачи материалов в правоохранительные органы"
-                                    >
-                                      <DatePicker style={{ width: "100%" }} placeholder="Выберите дату" />
-                                    </Form.Item>
-                                  </Col>
-                                  <Col xs={24} sm={12} lg={8}>
-                                    <Form.Item
-                                      label="Номер документа/КУСП"
-                                      name={[crimField.name, "document_number"]}
-                                      tooltip="Номер вх./исх. документа или Номер КУСП"
-                                    >
-                                      <Input placeholder="Введите номер" />
-                                    </Form.Item>
-                                  </Col>
-                                  <Col xs={24} sm={12} lg={8}>
-                                    <Form.Item
-                                      label="Подразделение"
-                                      name={[crimField.name, "department_name"]}
-                                      tooltip="Наименование подразделения, куда переданы материалы"
-                                    >
-                                      <Input placeholder="Название подразделения" />
-                                    </Form.Item>
-                                  </Col>
-                                </Row>
+                    {/* Уголовное дело */}
+                    <Card className={styles.subSectionCard} title="Уголовное дело">
+                      <Divider orientation="left" plain>Передача материалов</Divider>
+                      <Row gutter={[16, 16]}>
+                        <Col xs={24} sm={12} lg={8}>
+                          <Form.Item
+                            label="Дата передачи в ПРоО"
+                            name={[field.name, "criminal_case", "transfer_date"]}
+                            tooltip="Дата передачи материалов в правоохранительные органы"
+                          >
+                            <DatePicker style={{ width: "100%" }} placeholder="Выберите дату" />
+                          </Form.Item>
+                        </Col>
+                        <Col xs={24} sm={12} lg={8}>
+                          <Form.Item
+                            label="Номер документа/КУСП"
+                            name={[field.name, "criminal_case", "document_number"]}
+                            tooltip="Номер вх./исх. документа или Номер КУСП"
+                          >
+                            <Input placeholder="Введите номер" />
+                          </Form.Item>
+                        </Col>
+                        <Col xs={24} sm={12} lg={8}>
+                          <Form.Item
+                            label="Подразделение"
+                            name={[field.name, "criminal_case", "department_name"]}
+                            tooltip="Наименование подразделения, куда переданы материалы"
+                          >
+                            <Input placeholder="Название подразделения" />
+                          </Form.Item>
+                        </Col>
+                      </Row>
 
-                                <Divider orientation="left" plain>Рассмотрение материалов</Divider>
-                                <Row gutter={[16, 16]}>
-                                  <Col xs={24}>
-                                    <Form.Item
-                                      label="Результат рассмотрения"
-                                      name={[crimField.name, "review_result"]}
-                                    >
-                                      <Input.TextArea rows={2} placeholder="Опишите результат" />
-                                    </Form.Item>
-                                  </Col>
-                                </Row>
-                                <Row gutter={[16, 16]}>
-                                  <Col xs={24} sm={12} lg={8}>
-                                    <Form.Item
-                                      label="Дата отказа"
-                                      name={[crimField.name, "rejection_date"]}
-                                      tooltip="Дата отказа в возбуждении УД/АД"
-                                    >
-                                      <DatePicker style={{ width: "100%" }} placeholder="Выберите дату" />
-                                    </Form.Item>
-                                  </Col>
-                                  <Col xs={24} sm={12} lg={8}>
-                                    <Form.Item
-                                      label="Дата обжалования"
-                                      name={[crimField.name, "appeal_date"]}
-                                      tooltip="Дата обжалования отказа"
-                                    >
-                                      <DatePicker style={{ width: "100%" }} placeholder="Выберите дату" />
-                                    </Form.Item>
-                                  </Col>
-                                  <Col xs={24} sm={24} lg={8}>
-                                    <Form.Item
-                                      label="Причина отказа"
-                                      name={[crimField.name, "rejection_reason"]}
-                                      tooltip="Причина отказа в возбуждении УД/АД"
-                                    >
-                                      <Input placeholder="Укажите причину" />
-                                    </Form.Item>
-                                  </Col>
-                                </Row>
+                      <Divider orientation="left" plain>Рассмотрение материалов</Divider>
+                      <Row gutter={[16, 16]}>
+                        <Col xs={24}>
+                          <Form.Item
+                            label="Результат рассмотрения"
+                            name={[field.name, "criminal_case", "review_result"]}
+                          >
+                            <Input.TextArea rows={2} placeholder="Опишите результат" />
+                          </Form.Item>
+                        </Col>
+                      </Row>
+                      <Row gutter={[16, 16]}>
+                        <Col xs={24} sm={12} lg={8}>
+                          <Form.Item
+                            label="Дата отказа"
+                            name={[field.name, "criminal_case", "rejection_date"]}
+                            tooltip="Дата отказа в возбуждении УД/АД"
+                          >
+                            <DatePicker style={{ width: "100%" }} placeholder="Выберите дату" />
+                          </Form.Item>
+                        </Col>
+                        <Col xs={24} sm={12} lg={8}>
+                          <Form.Item
+                            label="Дата обжалования"
+                            name={[field.name, "criminal_case", "appeal_date"]}
+                            tooltip="Дата обжалования отказа"
+                          >
+                            <DatePicker style={{ width: "100%" }} placeholder="Выберите дату" />
+                          </Form.Item>
+                        </Col>
+                        <Col xs={24} sm={24} lg={8}>
+                          <Form.Item
+                            label="Причина отказа"
+                            name={[field.name, "criminal_case", "rejection_reason"]}
+                            tooltip="Причина отказа в возбуждении УД/АД"
+                          >
+                            <Input placeholder="Укажите причину" />
+                          </Form.Item>
+                        </Col>
+                      </Row>
 
-                                <Divider orientation="left" plain>Возбуждение дела</Divider>
-                                <Row gutter={[16, 16]}>
-                                  <Col xs={24} sm={12} lg={8}>
-                                    <Form.Item
-                                      label="Дата возбуждения"
-                                      name={[crimField.name, "case_date"]}
-                                      tooltip="Дата возбуждения УД/АД"
-                                    >
-                                      <DatePicker style={{ width: "100%" }} placeholder="Выберите дату" />
-                                    </Form.Item>
-                                  </Col>
-                                  <Col xs={24} sm={12} lg={8}>
-                                    <Form.Item
-                                      label="Номер дела"
-                                      name={[crimField.name, "case_number"]}
-                                      tooltip="Номер УД/АД"
-                                    >
-                                      <Input placeholder="Введите номер" />
-                                    </Form.Item>
-                                  </Col>
-                                  <Col xs={24} sm={12} lg={8}>
-                                    <Form.Item
-                                      label="Статья"
-                                      name={[crimField.name, "law_article"]}
-                                      tooltip="Статья УКРФ/КоАПРФ"
-                                    >
-                                      <Input placeholder="Номер статьи" />
-                                    </Form.Item>
-                                  </Col>
-                                </Row>
-                                <Row gutter={[16, 16]}>
-                                  <Col xs={24} sm={12} lg={8}>
-                                    <Form.Item
-                                      label="Инициатор"
-                                      name={[crimField.name, "initiator"]}
-                                      tooltip="Инициатор возбуждения УД/АД"
-                                    >
-                                      <Input placeholder="ФИО инициатора" />
-                                    </Form.Item>
-                                  </Col>
-                                  <Col xs={24} sm={12} lg={8}>
-                                    <Form.Item
-                                      label="Задержано"
-                                      name={[crimField.name, "detained_count"]}
-                                      tooltip="Задержано, человек"
-                                    >
-                                      <InputNumber style={{ width: "100%" }} min={0} placeholder="0" addonAfter="чел." />
-                                    </Form.Item>
-                                  </Col>
-                                  <Col xs={24} sm={24} lg={8}>
-                                    <Form.Item
-                                      label="Субъект преступления"
-                                      name={[crimField.name, "subject"]}
-                                      tooltip="Субъект преступления УД/АД"
-                                    >
-                                      <Input placeholder="Описание субъекта" />
-                                    </Form.Item>
-                                  </Col>
-                                </Row>
+                      <Divider orientation="left" plain>Возбуждение дела</Divider>
+                      <Row gutter={[16, 16]}>
+                        <Col xs={24} sm={12} lg={8}>
+                          <Form.Item
+                            label="Дата возбуждения"
+                            name={[field.name, "criminal_case", "case_date"]}
+                            tooltip="Дата возбуждения УД/АД"
+                          >
+                            <DatePicker style={{ width: "100%" }} placeholder="Выберите дату" />
+                          </Form.Item>
+                        </Col>
+                        <Col xs={24} sm={12} lg={8}>
+                          <Form.Item
+                            label="Номер дела"
+                            name={[field.name, "criminal_case", "case_number"]}
+                            tooltip="Номер УД/АД"
+                          >
+                            <Input placeholder="Введите номер" />
+                          </Form.Item>
+                        </Col>
+                        <Col xs={24} sm={12} lg={8}>
+                          <Form.Item
+                            label="Статья"
+                            name={[field.name, "criminal_case", "law_article"]}
+                            tooltip="Статья УКРФ/КоАПРФ"
+                          >
+                            <Input placeholder="Номер статьи" />
+                          </Form.Item>
+                        </Col>
+                      </Row>
+                      <Row gutter={[16, 16]}>
+                        <Col xs={24} sm={12} lg={8}>
+                          <Form.Item
+                            label="Инициатор"
+                            name={[field.name, "criminal_case", "initiator"]}
+                            tooltip="Инициатор возбуждения УД/АД"
+                          >
+                            <Input placeholder="ФИО инициатора" />
+                          </Form.Item>
+                        </Col>
+                        <Col xs={24} sm={12} lg={8}>
+                          <Form.Item
+                            label="Задержано"
+                            name={[field.name, "criminal_case", "detained_count"]}
+                            tooltip="Задержано, человек"
+                          >
+                            <InputNumber style={{ width: "100%" }} min={0} placeholder="0" addonAfter="чел." />
+                          </Form.Item>
+                        </Col>
+                        <Col xs={24} sm={24} lg={8}>
+                          <Form.Item
+                            label="Субъект преступления"
+                            name={[field.name, "criminal_case", "subject"]}
+                            tooltip="Субъект преступления УД/АД"
+                          >
+                            <Input placeholder="Описание субъекта" />
+                          </Form.Item>
+                        </Col>
+                      </Row>
 
-                                <Divider orientation="left" plain>Привлекаемое лицо</Divider>
-                                <Row gutter={[16, 16]}>
-                                  <Col xs={24}>
-                                    <Form.Item
-                                      label="ФИО / Название организации"
-                                      name={[crimField.name, "person_name"]}
-                                      tooltip="ФИО лица или название юридического лица, привлекаемого к уголовной/административной ответственности"
-                                    >
-                                      <Input placeholder="Введите ФИО или название организации" />
-                                    </Form.Item>
-                                  </Col>
-                                </Row>
+                      <Divider orientation="left" plain>Привлекаемое лицо</Divider>
+                      <Row gutter={[16, 16]}>
+                        <Col xs={24}>
+                          <Form.Item
+                            label="ФИО / Название организации"
+                            name={[field.name, "criminal_case", "person_name"]}
+                            tooltip="ФИО лица или название юридического лица, привлекаемого к уголовной/административной ответственности"
+                          >
+                            <Input placeholder="Введите ФИО или название организации" />
+                          </Form.Item>
+                        </Col>
+                      </Row>
 
-                                <Divider orientation="left" plain>Результаты</Divider>
-                                <Row gutter={[16, 16]}>
-                                  <Col xs={24}>
-                                    <Form.Item
-                                      label="Результат рассмотрения"
-                                      name={[crimField.name, "case_result"]}
-                                      tooltip="Результат рассмотрения УД/АД"
-                                    >
-                                      <Input.TextArea rows={2} placeholder="Опишите результат рассмотрения" />
-                                    </Form.Item>
-                                  </Col>
-                                  <Col xs={24}>
-                                    <Form.Item
-                                      label="Решение суда"
-                                      name={[crimField.name, "court_decision"]}
-                                      tooltip="Решение (приговор) суда"
-                                    >
-                                      <Input.TextArea rows={2} placeholder="Опишите решение или приговор" />
-                                    </Form.Item>
-                                  </Col>
-                                  <Col xs={24} sm={12} lg={8}>
-                                    <Form.Item
-                                      label="Осуждено"
-                                      name={[crimField.name, "convicted_count"]}
-                                      tooltip="Осуждено, человек"
-                                    >
-                                      <InputNumber style={{ width: "100%" }} min={0} placeholder="0" addonAfter="чел." />
-                                    </Form.Item>
-                                  </Col>
-                                </Row>
-                              </Card>
-                            ))}
-                            <Button
-                              type="dashed"
-                              onClick={() => addCriminal()}
-                              block
-                              icon={<PlusOutlined />}
-                              className={styles.addButton}
-                            >
-                              Добавить уголовное дело
-                            </Button>
-                          </>
-                        )}
-                      </Form.List>
+                      <Divider orientation="left" plain>Результаты</Divider>
+                      <Row gutter={[16, 16]}>
+                        <Col xs={24}>
+                          <Form.Item
+                            label="Результат рассмотрения"
+                            name={[field.name, "criminal_case", "case_result"]}
+                            tooltip="Результат рассмотрения УД/АД"
+                          >
+                            <Input.TextArea rows={2} placeholder="Опишите результат рассмотрения" />
+                          </Form.Item>
+                        </Col>
+                        <Col xs={24}>
+                          <Form.Item
+                            label="Решение суда"
+                            name={[field.name, "criminal_case", "court_decision"]}
+                            tooltip="Решение (приговор) суда"
+                          >
+                            <Input.TextArea rows={2} placeholder="Опишите решение или приговор" />
+                          </Form.Item>
+                        </Col>
+                        <Col xs={24} sm={12} lg={8}>
+                          <Form.Item
+                            label="Осуждено"
+                            name={[field.name, "criminal_case", "convicted_count"]}
+                            tooltip="Осуждено, человек"
+                          >
+                            <InputNumber style={{ width: "100%" }} min={0} placeholder="0" addonAfter="чел." />
+                          </Form.Item>
+                        </Col>
+                      </Row>
                     </Card>
 
                     {/* Наказания */}

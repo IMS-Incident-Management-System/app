@@ -50,14 +50,25 @@ interface CreateIncidentBody {
     detected_damage?: number; // Выявленный ущерб
     prevented_damage?: number; // Предотвращенный ущерб
     recovered_damage?: number; // Возмещенный ущерб
-    criminal_cases_list?: Array<{
+    criminal_case?: {
       transfer_date?: Date;
       document_number?: string;
       department_name?: string;
       review_result?: string;
       case_number?: string;
       law_article?: string;
-    }>;
+      rejection_date?: Date;
+      rejection_reason?: string;
+      appeal_date?: Date;
+      case_date?: Date;
+      initiator?: string;
+      subject?: string;
+      detained_count?: number;
+      person_name?: string;
+      case_result?: string;
+      court_decision?: string;
+      convicted_count?: number;
+    };
     punishments?: Array<{
       punishment_type_id: number;
       description?: string;
@@ -135,7 +146,7 @@ export const createIncident = asyncErrorHandler(
       if (data.additionally.length) {
         for (const additionallyData of data.additionally) {
           // Исключаем id и связанные данные
-          const { id, criminal_cases_list, punishments, ...additionallyDataWithoutId } = additionallyData;
+          const { id, criminal_case, punishments, ...additionallyDataWithoutId } = additionallyData;
           
           // Создаем дополнение
           const additionally = await additionallyService.createAdditionally(
@@ -143,13 +154,10 @@ export const createIncident = asyncErrorHandler(
             { transaction }
           );
 
-          // Создаем уголовные дела
-          if (criminal_cases_list && criminal_cases_list.length > 0) {
-            await criminalCaseService.createCriminalCases(
-              criminal_cases_list.map(cc => ({
-                ...cc,
-                additionally_id: additionally.id
-              })),
+          // Создаем уголовное дело (только одно)
+          if (criminal_case) {
+            await criminalCaseService.createCriminalCase(
+              { ...criminal_case, additionally_id: additionally.id },
               { transaction }
             );
           }

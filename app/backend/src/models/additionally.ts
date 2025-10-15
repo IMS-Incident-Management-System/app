@@ -17,7 +17,7 @@ export interface AdditionallyAttributes {
 
 export interface AdditionallyWithRelations extends AdditionallyAttributes {
   incident?: IncidentAttributes;
-  criminal_cases_list?: CriminalCaseAttributes[];
+  criminal_case?: CriminalCaseAttributes;
   punishments?: PunishmentAttributes[];
 }
 

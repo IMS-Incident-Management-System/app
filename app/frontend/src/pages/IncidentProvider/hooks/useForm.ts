@@ -58,13 +58,13 @@ export const useForm = ({
           ...additionallyWithoutId,
           incident_date: additionally.incident_date ? dayjs(additionally.incident_date).toDate() : undefined,
           addition_date: additionally.addition_date ? dayjs(additionally.addition_date).toDate() : undefined,
-          criminal_cases_list: additionally.criminal_cases_list?.map((cc: CriminalCaseAttributes) => ({
-            ...cc,
-            transfer_date: cc.transfer_date ? dayjs(cc.transfer_date).toDate() : undefined,
-            rejection_date: cc.rejection_date ? dayjs(cc.rejection_date).toDate() : undefined,
-            appeal_date: cc.appeal_date ? dayjs(cc.appeal_date).toDate() : undefined,
-            case_date: cc.case_date ? dayjs(cc.case_date).toDate() : undefined,
-          })) ?? [],
+          criminal_case: additionally.criminal_case ? {
+            ...additionally.criminal_case,
+            transfer_date: additionally.criminal_case.transfer_date ? dayjs(additionally.criminal_case.transfer_date).toDate() : undefined,
+            rejection_date: additionally.criminal_case.rejection_date ? dayjs(additionally.criminal_case.rejection_date).toDate() : undefined,
+            appeal_date: additionally.criminal_case.appeal_date ? dayjs(additionally.criminal_case.appeal_date).toDate() : undefined,
+            case_date: additionally.criminal_case.case_date ? dayjs(additionally.criminal_case.case_date).toDate() : undefined,
+          } : undefined,
           punishments: additionally.punishments?.map((p: PunishmentAttributes) => ({
             ...p,
             date: p.date ? dayjs(p.date).toDate() : new Date(),
@@ -113,13 +113,13 @@ export const useForm = ({
           ...additionally,
           incident_date: additionally.incident_date ? dayjs(additionally.incident_date) : undefined,
           addition_date: additionally.addition_date ? dayjs(additionally.addition_date) : undefined,
-          criminal_cases_list: additionally.criminal_cases_list?.map((cc: CriminalCaseAttributes) => ({
-            ...cc,
-            transfer_date: cc.transfer_date ? dayjs(cc.transfer_date) : undefined,
-            rejection_date: cc.rejection_date ? dayjs(cc.rejection_date) : undefined,
-            appeal_date: cc.appeal_date ? dayjs(cc.appeal_date) : undefined,
-            case_date: cc.case_date ? dayjs(cc.case_date) : undefined,
-          })) ?? [],
+          criminal_case: additionally.criminal_case ? {
+            ...additionally.criminal_case,
+            transfer_date: additionally.criminal_case.transfer_date ? dayjs(additionally.criminal_case.transfer_date) : undefined,
+            rejection_date: additionally.criminal_case.rejection_date ? dayjs(additionally.criminal_case.rejection_date) : undefined,
+            appeal_date: additionally.criminal_case.appeal_date ? dayjs(additionally.criminal_case.appeal_date) : undefined,
+            case_date: additionally.criminal_case.case_date ? dayjs(additionally.criminal_case.case_date) : undefined,
+          } : undefined,
           punishments: additionally.punishments?.map((p: PunishmentAttributes) => ({
             ...p,
             date: p.date ? dayjs(p.date) : undefined,

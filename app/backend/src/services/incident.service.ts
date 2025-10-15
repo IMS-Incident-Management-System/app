@@ -148,7 +148,7 @@ export const incidentService = {
           include: [
             {
               model: CriminalCase,
-              as: 'criminal_cases_list'
+              as: 'criminal_case'
             },
             {
               model: Punishment,
@@ -213,7 +213,7 @@ export const incidentService = {
           include: [
             {
               model: CriminalCase,
-              as: 'criminal_cases_list'
+              as: 'criminal_case'
             },
             {
               model: Punishment,
