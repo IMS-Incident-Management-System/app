@@ -18,6 +18,11 @@
 ### 002_fix_criminal_and_punishment_tables.sql
 Пересоздает таблицы `criminal_cases` и `punishments` с правильной структурой (добавляет связь с `additionally_id`).
 
+### 003_align_criminal_punishment_with_models.sql
+Приводит схему таблиц к актуальным моделям:
+- `criminal_cases`: добавлены поля `rejection_date`, `rejection_reason`, `appeal_date`, `case_date`, `initiator`, `subject`, `detained_count`, `case_result`, `court_decision`, `convicted_count` + комментарии
+- `punishments`: удалены устаревшие `punishment_type_id`, `description`, `date`, `fired_count`; добавлены агрегированные поля `guilty_persons_count`, `measures_taken_count`, `warning_letter_rp398`, `remark`, `reprimand`, `dismissed_count` + комментарии
+
 ## 🚀 Как применить миграцию
 
 ### На сервере (Production)
@@ -34,6 +39,7 @@ git pull
 # Примените миграцию
 docker exec -i ims-postgres psql -U admin -d ims < app/backend/migrations/001_add_new_incident_fields.sql
 docker exec -i ims-postgres psql -U admin -d ims < app/backend/migrations/002_fix_criminal_and_punishment_tables.sql
+docker exec -i ims-postgres psql -U admin -d ims < app/backend/migrations/003_align_criminal_punishment_with_models.sql
 
 # Перезапустите бэкенд
 docker-compose restart ims-backend
