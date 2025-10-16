@@ -20,6 +20,7 @@ export const objectTypeController = {
 
       const transformToTreeData = (objectType: any) => ({
         object_type_id: objectType.object_type_id,
+        key: String(objectType.object_type_id),
         value: objectType.object_type_id,
         title: objectType.title,
         children: objectType.children?.map(transformToTreeData) || []

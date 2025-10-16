@@ -15,6 +15,7 @@ export interface ObjectTypeWithChildren extends ObjectTypeAttributes {
 
 export interface ObjectTypeTree {
   object_type_id: number;
+  key: string;
   value: string;
   title: string;
   children: ObjectTypeTree[];

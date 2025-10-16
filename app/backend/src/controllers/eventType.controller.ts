@@ -21,6 +21,7 @@ export const eventTypeController = {
 
       const transformToTreeData = (eventType: any) => ({
         event_type_id: eventType.event_type_id,
+        key: String(eventType.event_type_id),
         value: eventType.event_type_id,
         title: eventType.title,
         children: eventType.children?.map(transformToTreeData) || []

@@ -17,11 +17,20 @@ ALTER TABLE IF EXISTS criminal_cases
   ADD COLUMN IF NOT EXISTS subject TEXT,
   ADD COLUMN IF NOT EXISTS detained_count INTEGER;
 
+-- Данные о привлекаемом лице
+ALTER TABLE IF EXISTS criminal_cases
+  ADD COLUMN IF NOT EXISTS person_name VARCHAR(255);
+
 -- Результаты рассмотрения дела
 ALTER TABLE IF EXISTS criminal_cases
   ADD COLUMN IF NOT EXISTS case_result TEXT,
   ADD COLUMN IF NOT EXISTS court_decision TEXT,
   ADD COLUMN IF NOT EXISTS convicted_count INTEGER;
+
+-- Добавляем timestamps если они отсутствуют
+ALTER TABLE IF EXISTS criminal_cases
+  ADD COLUMN IF NOT EXISTS "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  ADD COLUMN IF NOT EXISTS "updatedAt" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP;
 
 -- Комментарии для новых колонок
 COMMENT ON COLUMN criminal_cases.rejection_date IS 'Дата отказа в ВУД/ВАД';
@@ -31,6 +40,7 @@ COMMENT ON COLUMN criminal_cases.case_date IS 'Дата ВУД/ВАД';
 COMMENT ON COLUMN criminal_cases.initiator IS 'Инициатор возбуждения УД/АД';
 COMMENT ON COLUMN criminal_cases.subject IS 'Субъект преступления УД/АД';
 COMMENT ON COLUMN criminal_cases.detained_count IS 'Задержано, чел.';
+COMMENT ON COLUMN criminal_cases.person_name IS 'ФИО лица (название юр.лица), привлекаемого к УО/АО';
 COMMENT ON COLUMN criminal_cases.case_result IS 'Результат рассмотрения УД/АД';
 COMMENT ON COLUMN criminal_cases.court_decision IS 'Решение (приговор) суда';
 COMMENT ON COLUMN criminal_cases.convicted_count IS 'Осуждено, чел.';
@@ -61,12 +71,28 @@ COMMENT ON COLUMN punishments.reprimand IS 'Выговор';
 COMMENT ON COLUMN punishments.dismissed_count IS 'Уволено – кол-во';
 
 -- 3) Индексы и внешние ключи уже существуют с 001/002; дополнительно убеждаемся, что FK корректен
-ALTER TABLE IF EXISTS criminal_cases
-  ADD CONSTRAINT IF NOT EXISTS criminal_cases_additionally_id_fkey
-  FOREIGN KEY (additionally_id) REFERENCES additionally(id) ON DELETE CASCADE;
+DO $$ 
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint 
+    WHERE conname = 'criminal_cases_additionally_id_fkey'
+  ) THEN
+    ALTER TABLE criminal_cases
+      ADD CONSTRAINT criminal_cases_additionally_id_fkey
+      FOREIGN KEY (additionally_id) REFERENCES additionally(id) ON DELETE CASCADE;
+  END IF;
+END $$;
 
-ALTER TABLE IF EXISTS punishments
-  ADD CONSTRAINT IF NOT EXISTS punishments_additionally_id_fkey
-  FOREIGN KEY (additionally_id) REFERENCES additionally(id) ON DELETE CASCADE;
+DO $$ 
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint 
+    WHERE conname = 'punishments_additionally_id_fkey'
+  ) THEN
+    ALTER TABLE punishments
+      ADD CONSTRAINT punishments_additionally_id_fkey
+      FOREIGN KEY (additionally_id) REFERENCES additionally(id) ON DELETE CASCADE;
+  END IF;
+END $$;
 
 

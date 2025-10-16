@@ -1,0 +1,302 @@
+.treeContainer {
+  padding: 32px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  overflow-x: auto;
+}
+
+.nodeWrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 100%;
+}
+
+.nodeCard {
+  display: flex;
+  flex-direction: column;
+  padding: 18px 24px;
+  background: white;
+  border: 3px solid #e0e0e0;
+  border-radius: 16px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  width: 100%;
+  box-sizing: border-box;
+
+  &:hover {
+    box-shadow: 0 6px 24px var(--node-shadow);
+    border-color: var(--node-border);
+
+    .nodeActions {
+      opacity: 1;
+    }
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 6px;
+    background: var(--node-border);
+    border-radius: 16px 0 0 16px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  &:hover::before {
+    opacity: 1;
+  }
+}
+
+.nodeContent {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.levelBadge {
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  flex-shrink: 0;
+}
+
+.expandButton {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 2px solid;
+  background: white;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+
+  &:hover {
+    transform: scale(1.15) rotate(90deg);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.nodeTitle {
+  flex: 1;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+  letter-spacing: -0.3px;
+}
+
+.nodeActions {
+  display: flex;
+  gap: 6px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.childrenIndicator {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 2px dashed rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.childrenLine {
+  width: 32px;
+  height: 3px;
+  border-radius: 2px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.childrenCount {
+  font-size: 12px;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+.children {
+  margin-top: 20px;
+  padding-left: 40px;
+  width: 100%;
+  max-width: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-sizing: border-box;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 18px;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: currentColor;
+    opacity: 0.3;
+    border-radius: 2px;
+  }
+}
+
+.childrenConnector {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: relative;
+}
+
+.childBranch {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: -22px;
+    top: 50%;
+    width: 19px;
+    height: 3px;
+    background: currentColor;
+    opacity: 0.5;
+    border-radius: 2px;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: -25px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 0 3px white, 0 2px 6px rgba(0, 0, 0, 0.2);
+  }
+}
+
+.branchLine {
+  display: none;
+}
+
+// Адаптивность
+@media (max-width: 768px) {
+  .treeContainer {
+    padding: 16px;
+    gap: 24px;
+  }
+
+  .nodeCard {
+    padding: 14px 18px;
+  }
+
+  .nodeTitle {
+    font-size: 15px;
+  }
+
+  .nodeActions {
+    opacity: 1;
+  }
+
+  .children {
+    padding-left: 32px;
+
+    &::before {
+      left: 14px;
+    }
+  }
+
+  .childBranch {
+    &::before {
+      left: -18px;
+      width: 15px;
+    }
+
+    &::after {
+      left: -21px;
+    }
+  }
+}
+
+@media (max-width: 576px) {
+  .treeContainer {
+    padding: 12px;
+    gap: 20px;
+  }
+
+  .nodeCard {
+    padding: 12px 16px;
+  }
+
+  .nodeTitle {
+    font-size: 14px;
+  }
+
+  .expandButton {
+    width: 24px;
+    height: 24px;
+    font-size: 16px;
+  }
+
+  .levelBadge {
+    padding: 3px 8px;
+    font-size: 10px;
+  }
+
+  .children {
+    padding-left: 24px;
+    gap: 12px;
+
+    &::before {
+      left: 10px;
+      width: 2px;
+    }
+  }
+
+  .childBranch {
+    &::before {
+      left: -14px;
+      width: 11px;
+      height: 2px;
+    }
+
+    &::after {
+      left: -17px;
+      width: 8px;
+      height: 8px;
+    }
+  }
+
+  .childrenConnector {
+    gap: 12px;
+  }
+}

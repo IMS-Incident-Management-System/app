@@ -6,22 +6,11 @@
   background: linear-gradient(180deg, #fafafa 0%, #ffffff 100%);
 }
 
-.header {
+.description {
   margin-bottom: 48px;
   text-align: center;
 
-  h2 {
-    font-size: 36px;
-    font-weight: 700;
-    background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin-bottom: 16px;
-    letter-spacing: -0.5px;
-  }
-
-  .description {
+  :global(.ant-typography) {
     font-size: 16px;
     color: #8c8c8c;
     max-width: 700px;
@@ -190,16 +179,11 @@
     padding: 24px 16px;
   }
 
-  .header {
+  .description {
     margin-bottom: 32px;
 
-    h2 {
-      font-size: 28px;
-    }
-
-    .description {
+    :global(.ant-typography) {
       font-size: 14px;
-      margin-top: 12px;
     }
   }
 
@@ -229,9 +213,6 @@
     padding: 20px 12px;
   }
 
-  .header h2 {
-    font-size: 24px;
-  }
 
   .referenceCard {
     :global(.ant-card-body) {

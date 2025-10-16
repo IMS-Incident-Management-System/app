@@ -1,13 +1,14 @@
 import dayjs from "dayjs";
 import { ITable } from "../../../interfaces/common/common";
 import { EventWithRelations } from "../../../interfaces/requests/event";
-import { Button, Modal, Tag } from "antd";
+import { Modal, Tag } from "antd";
 import classes from "../EventsList.module.scss";
 import { DeleteOutlined, EditOutlined, EyeOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { ERoutes } from "../../../enums/routes";
 import { useDeleteEvent } from "../../../services/requests/events/deleteEvent";
 import { EventDirectionLabels, getCategoryLabel } from "../../../enums/event";
+import { IconButton } from "../../../components/IconButton";
 
 export const usePrepareTableData = (data: ITable<EventWithRelations>) => {
   const navigate = useNavigate();
@@ -155,86 +156,25 @@ export const usePrepareTableData = (data: ITable<EventWithRelations>) => {
       dataIndex: "actions",
       title: "Действия",
       position: "right",
+      fixed: 'right' as const,
+      width: 140,
       render: (value: any, record: any) => {
         return (
-          <div className={classes.actions} style={{
-            display: 'flex',
-            gap: '8px',
-            justifyContent: 'center',
-            alignItems: 'center'
-          }}>
-            <Button
-              type="text"
+          <div className={classes.actions}>
+            <IconButton
               onClick={() => handleViewEvent(record.id)}
-              shape="circle"
               icon={<EyeOutlined />}
-              size="middle"
-              title="Просмотреть событие"
-              style={{
-                color: '#1890ff',
-                border: '1px solid #1890ff',
-                background: '#ffffff',
-                boxShadow: '0 2px 4px rgba(24, 144, 255, 0.2)'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#1890ff';
-                e.currentTarget.style.color = '#ffffff';
-                e.currentTarget.style.transform = 'scale(1.05)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = '#ffffff';
-                e.currentTarget.style.color = '#1890ff';
-                e.currentTarget.style.transform = 'scale(1)';
-              }}
+              tooltip="Просмотреть событие"
             />
-            <Button
-              type="text"
+            <IconButton
               onClick={() => handleEditEvent(record.id)}
-              shape="circle"
               icon={<EditOutlined />}
-              size="middle"
-              title="Редактировать событие"
-              style={{
-                color: '#52c41a',
-                border: '1px solid #52c41a',
-                background: '#ffffff',
-                boxShadow: '0 2px 4px rgba(82, 196, 26, 0.2)'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#52c41a';
-                e.currentTarget.style.color = '#ffffff';
-                e.currentTarget.style.transform = 'scale(1.05)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = '#ffffff';
-                e.currentTarget.style.color = '#52c41a';
-                e.currentTarget.style.transform = 'scale(1)';
-              }}
+              tooltip="Редактировать событие"
             />
-            <Button
-              type="text"
-              danger
+            <IconButton
               onClick={() => handleDeleteEvent(record.id)}
-              shape="circle"
               icon={<DeleteOutlined />}
-              size="middle"
-              title="Удалить событие"
-              style={{
-                color: '#ff4d4f',
-                border: '1px solid #ff4d4f',
-                background: '#ffffff',
-                boxShadow: '0 2px 4px rgba(255, 77, 79, 0.2)'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#ff4d4f';
-                e.currentTarget.style.color = '#ffffff';
-                e.currentTarget.style.transform = 'scale(1.05)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = '#ffffff';
-                e.currentTarget.style.color = '#ff4d4f';
-                e.currentTarget.style.transform = 'scale(1)';
-              }}
+              tooltip="Удалить событие"
             />
           </div>
         );

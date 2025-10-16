@@ -19,17 +19,19 @@
 }
 
 .header {
-  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #1e3c72 100%);
   color: white;
   padding: 24px;
   margin-bottom: 0;
+  border-radius: 16px 16px 0 0;
 }
 
 .title {
   color: white !important;
   margin: 0 !important;
   font-weight: 600;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  font-size: 24px;
 }
 
 .headerActions {
@@ -44,18 +46,28 @@
   color: white;
   font-weight: 500;
   transition: all 0.3s ease;
+  height: 40px;
+  padding: 0 20px;
+  border-radius: 10px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   
   &:hover {
     background: rgba(255, 255, 255, 0.25);
     border-color: rgba(255, 255, 255, 0.5);
     color: white;
     transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   }
   
   &:focus {
     background: rgba(255, 255, 255, 0.25);
     border-color: rgba(255, 255, 255, 0.5);
     color: white;
+  }
+
+  &:active {
+    transform: translateY(0);
   }
 }
 
@@ -88,19 +100,21 @@
 .saveButton {
   height: 48px;
   padding: 0 32px;
-  border-radius: 8px;
+  border-radius: 12px;
   font-weight: 600;
   font-size: 16px;
-  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.2);
+  background: linear-gradient(135deg, #667eea 0%, #7085ec 100%);
+  border: none;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
   transition: all 0.3s ease;
 
   &:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 16px rgba(24, 144, 255, 0.3);
+    background: linear-gradient(135deg, #7589ed 0%, #7f9def 100%);
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
   }
 
   &:active {
-    transform: translateY(0);
+    transform: scale(0.98);
   }
 }
 

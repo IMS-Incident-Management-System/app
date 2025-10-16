@@ -1,56 +1,95 @@
- # 🚀 IMS Project Makefile
+.PHONY: help dev dev-no-build fe down logs restart clean
 
-.PHONY: dev down frontend logs clean
+# По умолчанию показываем help
+.DEFAULT_GOAL := help
 
-# 🌐 Запуск frontend
-frontend:
-	@echo "🌐 Запускаем Frontend..."
-	cd frontend && npm start
+help: ## Показать справку по доступным командам
+	@echo "Доступные команды:"
+	@echo ""
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
+	@echo ""
 
-# 🚀 Full development - backend + frontend with logs
-dev:
-	@echo "🚀 Starting full Development mode..."
-	@echo "Backend and Frontend logs will be shown together"
-	# Start backend in background
-	docker compose up -d --build
-	# Wait for backend to start
-	@echo "⏳ Waiting for backend to start..."
-	sleep 8
-	# Show backend logs in background
-	@echo "📋 Showing logs from Backend and Frontend (Ctrl+C to stop all):"
-	docker compose logs -f ims-backend &
-	# Start frontend in foreground to see its logs
-	@echo "🌐 Starting Frontend..."
-	cd frontend && npm start
+dev: ## Запустить development окружение с пересборкой контейнеров (docker-compose up -d --build)
+	@echo "🚀 Запуск development окружения с пересборкой..."
+	docker-compose up -d --build
+	@echo "✅ Готово! Проверьте логи: make logs"
 
-# 📋 Логи backend
-logs:
-	@echo "📋 Логи Backend (Ctrl+C для выхода):"
-	docker compose logs -f ims-backend
+dev-no-build: ## Запустить development окружение без пересборки (docker-compose up -d)
+	@echo "🚀 Запуск development окружения без пересборки..."
+	docker-compose up -d
+	@echo "✅ Готово! Проверьте логи: make logs"
 
-# 🛑 Остановить все
-down:
-	@echo "🛑 Останавливаем все контейнеры..."
-	docker compose down
+fe: ## Запустить frontend в dev режиме (npm run start в директории frontend)
+	@echo "🎨 Запуск frontend dev сервера..."
+	cd frontend && npm run start
 
-# 🧹 Полная очистка
-clean:
-	@echo "🧹 Полная очистка контейнеров и volumes..."
-	docker compose down -v
-	docker system prune -f
-	@echo "✅ Очистка завершена"
+down: ## Остановить все контейнеры (docker-compose down)
+	@echo "🛑 Остановка контейнеров..."
+	docker-compose down
 
-# 🔧 Пересборка только backend
-rebuild-backend:
-	@echo "🔧 Пересборка Backend..."
-	docker compose build --no-cache ims-backend
+stop: ## Остановить контейнеры без удаления (docker-compose stop)
+	@echo "⏸️  Остановка контейнеров..."
+	docker-compose stop
 
-# 📦 Установка зависимостей frontend
-install-frontend:
-	@echo "📦 Установка зависимостей Frontend..."
+restart: ## Перезапустить все контейнеры
+	@echo "🔄 Перезапуск контейнеров..."
+	docker-compose restart
+	@echo "✅ Готово!"
+
+logs: ## Показать логи всех контейнеров
+	docker-compose logs -f
+
+logs-backend: ## Показать логи backend
+	docker-compose logs -f ims-backend
+
+logs-frontend: ## Показать логи nginx (frontend)
+	docker-compose logs -f ims-nginx
+
+logs-postgres: ## Показать логи PostgreSQL
+	docker-compose logs -f ims-postgres
+
+ps: ## Показать статус контейнеров
+	docker-compose ps
+
+clean: ## Остановить и удалить все контейнеры, сети и volumes
+	@echo "🧹 Очистка контейнеров и volumes..."
+	docker-compose down -v
+	@echo "✅ Очистка завершена!"
+
+build: ## Пересобрать все контейнеры
+	@echo "🔨 Пересборка контейнеров..."
+	docker-compose build
+	@echo "✅ Сборка завершена!"
+
+build-backend: ## Пересобрать только backend
+	@echo "🔨 Пересборка backend..."
+	docker-compose build ims-backend
+	@echo "✅ Сборка backend завершена!"
+
+shell-backend: ## Открыть shell в контейнере backend
+	docker exec -it ims-backend sh
+
+shell-postgres: ## Открыть psql в контейнере PostgreSQL
+	docker exec -it ims-postgres psql -U admin -d ims
+
+migrate-status: ## Показать статус миграций
+	@echo "📊 Статус миграций:"
+	docker exec -it ims-backend npm run migrate:status
+
+migrate-up: ## Применить миграции вручную
+	@echo "🔄 Применение миграций..."
+	docker exec -it ims-backend npm run migrate:up
+
+install-backend: ## Установить зависимости backend
+	cd backend && npm install
+
+install-frontend: ## Установить зависимости frontend
 	cd frontend && npm install
 
-# 🔍 Статус сервисов  
-status:
-	@echo "🔍 Статус сервисов:"
-	docker compose ps
+install: ## Установить все зависимости
+	@echo "📦 Установка зависимостей backend..."
+	cd backend && npm install
+	@echo "📦 Установка зависимостей frontend..."
+	cd frontend && npm install
+	@echo "✅ Все зависимости установлены!"
+

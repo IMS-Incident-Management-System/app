@@ -10,6 +10,7 @@ export const departmentController = {
 
     const transformToTreeData = (department: any) => ({
       department_id: department.department_id,
+      key: String(department.department_id),
       value: department.department_id,
       title: department.title,
       children: department.children?.map(transformToTreeData) || []

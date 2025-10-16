@@ -3,7 +3,6 @@ import { useState } from "react";
 import {
   Checkbox,
   Form,
-  Button,
   Card,
   Tabs,
   message,
@@ -21,6 +20,7 @@ import { useForm } from "./hooks/useForm";
 import styles from "./incidentProvider.module.scss";
 import { useUpdateIncident } from "../../services/requests/initiators/updateIncident";
 import { ERoutes } from "../../enums/routes";
+import { PrimaryButton } from "../../components/PrimaryButton";
 
 const { Title } = Typography;
 
@@ -66,20 +66,18 @@ export const IncidentProvider = () => {
         </span>
       ),
       children: (
-        <div className={styles.tabContent}>
-          <MainInfo />
-          <div className={styles.tabActions}>
-            <Button
-              type="primary"
-              size="large"
-              onClick={handleSubmit}
-              loading={isCreatingIncident || isUpdatingIncident}
-              className={styles.saveButton}
-            >
-              {id ? "Сохранить изменения" : "Создать инцидент"}
-            </Button>
+          <div className={styles.tabContent}>
+            <MainInfo />
+            <div className={styles.tabActions}>
+              <PrimaryButton
+                size="large"
+                onClick={handleSubmit}
+                loading={isCreatingIncident || isUpdatingIncident}
+              >
+                {id ? "Сохранить изменения" : "Создать инцидент"}
+              </PrimaryButton>
+            </div>
           </div>
-        </div>
       ),
     },
     {
@@ -92,20 +90,18 @@ export const IncidentProvider = () => {
       ),
       disabled: !id,
       children: (
-        <div className={styles.tabContent}>
-          <IncidentAdditionally />
-          <div className={styles.tabActions}>
-            <Button
-              type="primary"
-              size="large"
-              onClick={handleSubmit}
-              loading={isCreatingIncident || isUpdatingIncident}
-              className={styles.saveButton}
-            >
-              Сохранить
-            </Button>
+          <div className={styles.tabContent}>
+            <IncidentAdditionally />
+            <div className={styles.tabActions}>
+              <PrimaryButton
+                size="large"
+                onClick={handleSubmit}
+                loading={isCreatingIncident || isUpdatingIncident}
+              >
+                Сохранить
+              </PrimaryButton>
+            </div>
           </div>
-        </div>
       ),
     },
   ];
@@ -117,32 +113,32 @@ export const IncidentProvider = () => {
           {isIncidentLoading ? (
             <Spin size="large" />
           ) : (
-            <Space direction="vertical" size="small" style={{ width: "100%" }}>
+            <>
+              <div className={styles.headerTop}>
               <Title level={2} className={styles.title}>
                 {id ? `Инцидент #${incident?.id}` : "Создание инцидента"}
               </Title>
-              <div className={styles.headerActions}>
-                <Space>
-                  {id && (
-                    <Button
-                      type="default"
-                      icon={<EyeOutlined />}
-                      onClick={handleViewIncident}
-                      className={styles.viewButton}
-                    >
-                      Просмотр инцидента
-                    </Button>
-                  )}
-                  <Checkbox 
-                    className={styles.dbCheckbox}
-                    checked={form.getFieldValue('is_db')}
-                    onChange={(e) => form.setFieldValue('is_db', e.target.checked)}
-                  >
-                    <span className={styles.dbLabel}>Дело безопасности (1-ДБ)</span>
-                  </Checkbox>
-                </Space>
+              {id && (
+                <PrimaryButton
+                  variant="secondary"
+                  icon={<EyeOutlined />}
+                  onClick={handleViewIncident}
+                  className={styles.viewButton}
+                >
+                  Просмотр инцидента
+                </PrimaryButton>
+              )}
               </div>
-            </Space>
+              <div className={styles.headerBottom}>
+                <Checkbox 
+                  className={styles.dbCheckbox}
+                  checked={form.getFieldValue('is_db')}
+                  onChange={(e) => form.setFieldValue('is_db', e.target.checked)}
+                >
+                  <span className={styles.dbLabel}>Дело безопасности (1-ДБ)</span>
+                </Checkbox>
+              </div>
+            </>
           )}
         </div>
         

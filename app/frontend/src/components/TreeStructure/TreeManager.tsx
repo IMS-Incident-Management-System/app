@@ -1,11 +1,15 @@
 import React, { useState, useMemo } from 'react';
-import { Card, Button, Modal, Form, Input, Select, InputNumber } from 'antd';
+import { Card, Modal, Form, Input, Select, InputNumber, Tabs } from 'antd';
 import { useQuery } from 'react-query';
 import { TreeNode, TreeData, CreateNodeData, UpdateNodeData, TreeConfig, TreeMutations, TreeCustomization, FormConfig } from './types';
 import { axiosGatewayBackend } from '../../plugins/axios';
-import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+import { EditOutlined, DeleteOutlined, PlusOutlined, ApartmentOutlined, UnorderedListOutlined, BarChartOutlined } from '@ant-design/icons';
 import styles from './TreeManager.module.scss';
 import { SpinComponent } from '../Spin/Spin';
+import { PageHeader } from '../PageHeader';
+import { IconButton } from '../IconButton';
+import { TreeVisualization } from './TreeVisualization';
+import { PrimaryButton } from '../PrimaryButton';
 
 const { TextArea } = Input;
 
@@ -67,30 +71,29 @@ const NodeCard: React.FC<NodeCardProps> = ({
       }}
       extra={
         <div className={styles.actions}>
-          <Button
-            type="text"
+          <IconButton
             icon={<PlusOutlined />}
             onClick={(e) => {
               e.stopPropagation();
               onAdd(node);
             }}
+            tooltip="Добавить дочерний элемент"
           />
-          <Button
-            type="text"
+          <IconButton
             icon={<EditOutlined />}
             onClick={(e) => {
               e.stopPropagation();
               onEdit(node);
             }}
+            tooltip="Редактировать"
           />
-          <Button
-            type="text"
+          <IconButton
             icon={<DeleteOutlined />}
             onClick={(e) => {
               e.stopPropagation();
               onDelete(node);
             }}
-            danger
+            tooltip="Удалить"
           />
         </div>
       }
@@ -118,6 +121,8 @@ const TreeManager: React.FC<TreeManagerProps> = ({ config, mutations, customizat
   const [selectedNode, setSelectedNode] = useState<TreeNode | null>(null);
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [viewMode, setViewMode] = useState<'tree' | 'cards'>('tree');
+  const [isStatsVisible, setIsStatsVisible] = useState(false);
   const [form] = Form.useForm();
 
   const { data: rawData, isLoading: isDataLoading, refetch } = useQuery<TreeData>(
@@ -141,6 +146,31 @@ const TreeManager: React.FC<TreeManagerProps> = ({ config, mutations, customizat
     
     return addKeys(rawData.treeData);
   }, [rawData, config.idField]);
+
+  const statistics = useMemo(() => {
+    const countNodes = (nodes: TreeNode[], depth = 0): { total: number; byLevel: number[]; maxDepth: number } => {
+      let total = nodes.length;
+      let byLevel = [nodes.length];
+      let maxDepth = depth;
+      
+      nodes.forEach(node => {
+        if (node.children && node.children.length > 0) {
+          const childStats = countNodes(node.children, depth + 1);
+          total += childStats.total;
+          maxDepth = Math.max(maxDepth, childStats.maxDepth);
+          
+          childStats.byLevel.forEach((count, index) => {
+            const level = index + depth + 1;
+            byLevel[level] = (byLevel[level] || 0) + count;
+          });
+        }
+      });
+      
+      return { total, byLevel, maxDepth };
+    };
+    
+    return countNodes(treeData);
+  }, [treeData]);
 
   const handleAdd = (node?: TreeNode) => {
     form.resetFields();
@@ -252,26 +282,114 @@ const TreeManager: React.FC<TreeManagerProps> = ({ config, mutations, customizat
 
   return (
     <div className={styles.container}>
-      <div className={styles.header}>
-        <h2>{config.title}</h2>
-        <Button type="primary" icon={<PlusOutlined />} onClick={() => handleAdd()}>
-          {config.addButtonText}
-        </Button>
-      </div>
+      <PageHeader
+        title={config.title}
+        actions={
+          <>
+            <IconButton
+              buttonStyle="glass"
+              icon={<BarChartOutlined />}
+              onClick={() => setIsStatsVisible(!isStatsVisible)}
+              tooltip={isStatsVisible ? "Скрыть статистику" : "Показать статистику"}
+            />
+            <PrimaryButton icon={<PlusOutlined />} onClick={() => handleAdd()}>
+              {config.addButtonText}
+            </PrimaryButton>
+          </>
+        }
+      />
 
-      <div className={styles.grid}>
-        {treeData.map((node) => (
-          <NodeCard
-            key={node[config.idField]}
-            node={node}
-            onEdit={handleEdit}
-            onAdd={handleAdd}
-            onDelete={handleDelete}
-            level={0}
-            idField={config.idField}
-          />
-        ))}
-      </div>
+      {treeData.length > 0 && isStatsVisible && (
+        <div className={styles.statsBar}>
+          <div className={styles.statCard}>
+            <div className={styles.statIcon}>📊</div>
+            <div className={styles.statContent}>
+              <div className={styles.statValue}>{statistics.total}</div>
+              <div className={styles.statLabel}>Всего элементов</div>
+            </div>
+          </div>
+          <div className={styles.statCard}>
+            <div className={styles.statIcon}>🎯</div>
+            <div className={styles.statContent}>
+              <div className={styles.statValue}>{treeData.length}</div>
+              <div className={styles.statLabel}>Корневых</div>
+            </div>
+          </div>
+          <div className={styles.statCard}>
+            <div className={styles.statIcon}>📈</div>
+            <div className={styles.statContent}>
+              <div className={styles.statValue}>{statistics.maxDepth + 1}</div>
+              <div className={styles.statLabel}>Уровней</div>
+            </div>
+          </div>
+          <div className={styles.levelDistribution}>
+            {statistics.byLevel.map((count, index) => (
+              <div key={index} className={styles.levelBar} title={`Уровень ${index + 1}: ${count} элементов`}>
+                <div 
+                  className={styles.levelBarFill}
+                  style={{ 
+                    height: `${(count / Math.max(...statistics.byLevel)) * 100}%`,
+                    background: `linear-gradient(180deg, ${index === 0 ? '#2a5298' : index === 1 ? '#5a7a9c' : index === 2 ? '#6c8aa8' : '#7d99b5'} 0%, ${index === 0 ? '#1e3c72' : index === 1 ? '#3d5a7a' : index === 2 ? '#5a7a9c' : '#6c8aa8'} 100%)`
+                  }}
+                >
+                  <span className={styles.levelBarValue}>{count}</span>
+                </div>
+                <div className={styles.levelBarLabel}>L{index + 1}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <Tabs
+        activeKey={viewMode}
+        onChange={(key) => setViewMode(key as 'tree' | 'cards')}
+        className={styles.viewTabs}
+        items={[
+          {
+            key: 'tree',
+            label: (
+              <span className={styles.tabLabel}>
+                <ApartmentOutlined />
+                Граф дерева
+              </span>
+            ),
+            children: (
+              <TreeVisualization
+                data={treeData}
+                idField={config.idField}
+                onAdd={handleAdd}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+              />
+            ),
+          },
+          {
+            key: 'cards',
+            label: (
+              <span className={styles.tabLabel}>
+                <UnorderedListOutlined />
+                Карточки
+              </span>
+            ),
+            children: (
+              <div className={styles.grid}>
+                {treeData.map((node) => (
+                  <NodeCard
+                    key={node[config.idField]}
+                    node={node}
+                    onEdit={handleEdit}
+                    onAdd={handleAdd}
+                    onDelete={handleDelete}
+                    level={0}
+                    idField={config.idField}
+                  />
+                ))}
+              </div>
+            ),
+          },
+        ]}
+      />
 
       <Modal
         title={config.addFormConfig?.title || "Добавить"}

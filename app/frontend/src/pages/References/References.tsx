@@ -9,6 +9,7 @@ import {
 } from '@ant-design/icons';
 import { ERoutes } from '../../enums/routes';
 import styles from './References.module.scss';
+import { PageHeader } from '../../components/PageHeader';
 
 const { Title, Paragraph } = Typography;
 
@@ -57,9 +58,9 @@ export const References: React.FC = () => {
 
   return (
     <div className={styles.container}>
-      <div className={styles.header}>
-        <Title level={2}>Справочники</Title>
-        <Paragraph className={styles.description}>
+      <PageHeader title="Справочники" />
+      <div className={styles.description}>
+        <Paragraph>
           Централизованное управление справочными данными системы. 
           Здесь вы можете настроить все основные классификаторы и структуры данных.
         </Paragraph>

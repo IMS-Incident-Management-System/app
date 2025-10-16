@@ -7,6 +7,7 @@ import { sequelize } from './src/models/sequelize';
 import { errorHandler } from './src/middlewares/errorHandler.middleware';
 import { responseHandler } from './src/middlewares/responseHandler.middleware';
 import { runSeeders } from './src/seeders';
+import { runMigrations } from './src/utils/migrations';
 import https from 'https';
 import fs from 'fs';
 import path from 'path';
@@ -71,15 +72,13 @@ const startServer = async () => {
       throw new Error('Database connection failed');
     }
 
+    // Применяем миграции БД
+    await runMigrations();
+
     // Синхронизируем модели с БД
     // В продакшене используем sync без alter для избежания блокировок
-    if (process.env.NODE_ENV === 'production') {
-      await sequelize.sync({ alter: false });
-      console.log('Database synchronized (production mode - no alter)');
-    } else {
-      await sequelize.sync({ alter: true });
-      console.log('Database synchronized (development mode - with alter)');
-    }
+    await sequelize.sync({ alter: false });
+
 
     // Запускаем сидеры
     await runSeeders();

@@ -25,6 +25,9 @@ FROM node:18-alpine
 # Копируем только собранные файлы из предыдущего этапа
 COPY --from=builder /app/dist ./dist
 
+# Копируем директорию миграций (нужна для автоматического применения)
+COPY --from=builder /app/migrations ./migrations
+
 # Копируем package.json для запуска
 COPY --from=builder /app/package*.json ./
 

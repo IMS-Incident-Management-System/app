@@ -1,0 +1,61 @@
+.primaryButton {
+  height: 40px;
+  padding: 0 24px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 15px;
+  background: linear-gradient(135deg, #667eea 0%, #7085ec 100%) !important;
+  border: none !important;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;
+  transition: all 0.3s ease !important;
+  color: white !important;
+
+  &:hover {
+    background: linear-gradient(135deg, #7589ed 0%, #7f9def 100%) !important;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4) !important;
+    color: white !important;
+  }
+
+  &:focus {
+    background: linear-gradient(135deg, #7589ed 0%, #7f9def 100%) !important;
+    color: white !important;
+  }
+
+  &:active {
+    background: linear-gradient(135deg, #667eea 0%, #7085ec 100%) !important;
+    transform: scale(0.98) !important;
+  }
+
+  &:global(.ant-btn-lg) {
+    height: 48px;
+    padding: 0 32px;
+    border-radius: 12px;
+    font-size: 16px;
+  }
+}
+
+.secondaryButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 20px;
+  border-radius: 10px;
+  font-weight: 500;
+  border: 1px solid #d9d9d9 !important;
+  background: white !important;
+  color: #595959 !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06) !important;
+
+  &:hover {
+    color: #262626 !important;
+    border-color: #2a5298 !important;
+    background: #f8f9fa !important;
+    box-shadow: 0 4px 12px rgba(42, 82, 152, 0.15) !important;
+  }
+
+  &:active {
+    transform: scale(0.98) !important;
+  }
+}

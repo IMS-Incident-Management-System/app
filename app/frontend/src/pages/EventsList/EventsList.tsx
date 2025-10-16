@@ -1,4 +1,3 @@
-import { Button } from "antd";
 import type { TablePaginationConfig } from "antd/es/table";
 import styles from "./EventsList.module.scss";
 import { useNavigate } from "react-router-dom";
@@ -17,6 +16,9 @@ import { queryClient } from "../../plugins/query";
 import { EQueryKeys } from "../../enums/query";
 import { Table } from "../../components/Table/Table";
 import { useGetEvents } from "../../services/requests/events/getEvents";
+import { PageHeader } from "../../components/PageHeader";
+import { IconButton } from "../../components/IconButton";
+import { PrimaryButton } from "../../components/PrimaryButton";
 
 export const EventsList = () => {
   const navigate = useNavigate();
@@ -71,24 +73,31 @@ export const EventsList = () => {
 
   return (
     <div>
-      <div className={styles.header}>
-        <h2>Список событий</h2>
-        <div className={styles.headerActions}>
-          <Button
-            icon={<FilterOutlined />}
-            onClick={toggleFilterForm}
-            type={isFilterFormOpen ? "primary" : "default"}
-          />
-          <Button icon={<ReloadOutlined />} onClick={handleReload} />
-          <Button
-            type="primary"
-            onClick={handleAddEvent}
-            icon={<PlusOutlined />}
-          >
-            Добавить событие
-          </Button>
-        </div>
-      </div>
+      <PageHeader
+        title="Список событий"
+        actions={
+          <>
+            <IconButton
+              buttonStyle="glass"
+              icon={<FilterOutlined />}
+              onClick={toggleFilterForm}
+              tooltip={isFilterFormOpen ? "Скрыть фильтры" : "Показать фильтры"}
+            />
+            <IconButton
+              buttonStyle="glass"
+              icon={<ReloadOutlined />}
+              onClick={handleReload}
+              tooltip="Обновить"
+            />
+            <PrimaryButton
+              onClick={handleAddEvent}
+              icon={<PlusOutlined />}
+            >
+              Добавить событие
+            </PrimaryButton>
+          </>
+        }
+      />
       {isFilterFormOpen && (
         <FilterForm filter={filter.filter} onFilter={handleFilter} />
       )}
@@ -103,6 +112,7 @@ export const EventsList = () => {
         }}
         onChange={(pagination) => handleTableChange(pagination)}
         loading={isLoading}
+        scroll={{ x: 'max-content' }}
       />
     </div>
   );

@@ -2,6 +2,54 @@
 
 Этот каталог содержит SQL миграции для базы данных PostgreSQL.
 
+## 🚀 Автоматическое применение миграций
+
+**Миграции применяются автоматически при запуске приложения!**
+
+Система миграций:
+- ✅ Автоматически применяет только новые миграции
+- ✅ Отслеживает уже применённые миграции в таблице `migrations`
+- ✅ Безопасно пропускает уже применённые файлы
+- ✅ Применяет миграции в правильном порядке (по имени файла)
+- ✅ Работает в CI/CD пайплайне автоматически при деплое
+- ✅ Не требует ручного вмешательства
+
+### Как это работает в пайплайне
+
+При деплое новой версии приложения:
+1. Docker контейнер собирается с новым кодом и файлами миграций
+2. При старте контейнера автоматически запускается проверка миграций
+3. Система сравнивает файлы в `migrations/` с записями в таблице `migrations`
+4. Применяются только новые миграции (которых еще нет в БД)
+5. Приложение запускается с актуальной схемой БД
+
+**Вам нужно только:**
+- Добавить новый SQL файл в `migrations/` с именем вида `XXX_description.sql`
+- Закоммитить и запушить в репозиторий
+- Миграция применится автоматически при следующем деплое!
+
+### Ручное управление миграциями
+
+Если нужно применить миграции вручную (без запуска приложения):
+
+```bash
+# Применить все неприменённые миграции
+npm run migrate:up
+
+# Посмотреть статус миграций
+npm run migrate:status
+```
+
+### Проверка статуса в Docker
+
+```bash
+# В контейнере
+docker exec -it ims-backend npm run migrate:status
+
+# Применить миграции вручную в контейнере
+docker exec -it ims-backend npm run migrate:up
+```
+
 ## 📋 Список миграций
 
 ### 001_add_new_incident_fields.sql
@@ -24,19 +72,34 @@
 - `punishments`: удалены устаревшие `punishment_type_id`, `description`, `date`, `fired_count`; добавлены агрегированные поля `guilty_persons_count`, `measures_taken_count`, `warning_letter_rp398`, `remark`, `reprimand`, `dismissed_count` + комментарии
 
 ## 🚀 Как применить миграцию
+## 📦 Деплой миграций на Production
 
-### На сервере (Production)
-
-#### Вариант 1: Через docker exec (рекомендуется)
+**Рекомендуемый способ (автоматический):**
 
 ```bash
-# Перейдите в директорию проекта
+# 1. Перейдите в директорию проекта
 cd ~/ims
 
-# Обновите код из репозитория
+# 2. Обновите код из репозитория
 git pull
 
-# Примените миграцию
+# 3. Пересоберите и перезапустите бэкенд
+# Миграции применятся автоматически при старте!
+docker-compose up -d --build ims-backend
+
+# 4. Проверьте логи
+docker logs -f ims-backend
+```
+
+### Альтернативный способ (ручное применение)
+
+Если нужно применить миграции без перезапуска приложения:
+
+```bash
+# Применить миграции вручную
+docker exec -it ims-backend npm run migrate:up
+
+# Или применить конкретную миграцию через psql
 docker exec -i ims-postgres psql -U admin -d ims < app/backend/migrations/001_add_new_incident_fields.sql
 docker exec -i ims-postgres psql -U admin -d ims < app/backend/migrations/002_fix_criminal_and_punishment_tables.sql
 docker exec -i ims-postgres psql -U admin -d ims < app/backend/migrations/003_align_criminal_punishment_with_models.sql
@@ -72,41 +135,56 @@ docker exec -it ims-postgres psql -U admin -d ims
 ### Локально (Development)
 
 ```bash
-# Если PostgreSQL запущен локально
-psql -U admin -d ims -f migrations/001_add_new_incident_fields.sql
+# Миграции применяются автоматически при запуске
+npm run dev
 
-# Или через docker-compose в dev режиме
-docker-compose exec postgres psql -U admin -d ims -f /migrations/001_add_new_incident_fields.sql
+# Или применить вручную
+npm run migrate:up
 ```
 
-## ✅ Проверка применения миграции
+## ✅ Проверка применения миграций
 
-После применения миграции проверьте, что все таблицы созданы:
+### Проверить статус миграций
 
 ```bash
+# В контейнере
+docker exec -it ims-backend npm run migrate:status
+
+# Локально
+npm run migrate:status
+```
+
+### Проверить таблицы в БД
+
+```bash
+# Список всех таблиц
 docker exec -it ims-postgres psql -U admin -d ims -c "\dt"
-```
 
-Проверьте структуру таблицы incidents:
-
-```bash
+# Структура конкретной таблицы
 docker exec -it ims-postgres psql -U admin -d ims -c "\d incidents"
+
+# Проверить таблицу миграций
+docker exec -it ims-postgres psql -U admin -d ims -c "SELECT * FROM migrations ORDER BY applied_at;"
 ```
 
 ## ⚠️ Важные замечания
 
-1. **Миграции идемпотентны**: Все миграции используют `IF NOT EXISTS` и `IF EXISTS`, поэтому их безопасно запускать повторно.
+1. **Автоматическое применение**: Миграции применяются автоматически при запуске приложения. Не нужно ничего делать вручную!
 
-2. **Порядок выполнения**: Миграции должны применяться в порядке их номеров (001, 002, и т.д.).
+2. **Отслеживание**: Система отслеживает применённые миграции в таблице `migrations`. Каждая миграция применяется только один раз.
 
-3. **Production режим**: В продакшене используется `sequelize.sync({ alter: false })`, поэтому все изменения структуры БД должны применяться через миграции.
+3. **Миграции идемпотентны**: Все миграции используют `IF NOT EXISTS` и `IF EXISTS`, поэтому их безопасно запускать повторно.
 
-4. **Резервное копирование**: Перед применением миграций на production рекомендуется создать бэкап базы данных:
+4. **Порядок выполнения**: Миграции автоматически применяются в порядке их номеров (001, 002, и т.д.).
+
+5. **Production режим**: В продакшене используется `sequelize.sync({ alter: false })`, поэтому все изменения структуры БД должны применяться через миграции.
+
+6. **Резервное копирование**: Перед применением миграций на production рекомендуется создать бэкап базы данных:
    ```bash
    docker exec ims-postgres pg_dump -U admin ims > backup_$(date +%Y%m%d_%H%M%S).sql
    ```
 
-5. **Откат миграции**: Если что-то пошло не так, восстановите из бэкапа:
+7. **Откат миграции**: Если что-то пошло не так, восстановите из бэкапа:
    ```bash
    docker exec -i ims-postgres psql -U admin -d ims < backup_YYYYMMDD_HHMMSS.sql
    ```
@@ -114,7 +192,15 @@ docker exec -it ims-postgres psql -U admin -d ims -c "\d incidents"
 ## 🐛 Решение проблем
 
 ### Ошибка: "column does not exist"
-Миграция не была применена. Примените соответствующую миграцию.
+Миграция не была применена. Проверьте статус миграций:
+```bash
+docker exec -it ims-backend npm run migrate:status
+```
+
+Если миграция не применилась автоматически, примените вручную:
+```bash
+docker exec -it ims-backend npm run migrate:up
+```
 
 ### Ошибка: "out of shared memory" или "max_locks_per_transaction"
 Не используйте `sequelize.sync({ alter: true })` в продакшене. Убедитесь, что в `index.ts` установлено `alter: false` для production.
@@ -122,20 +208,31 @@ docker exec -it ims-postgres psql -U admin -d ims -c "\d incidents"
 ### Ошибка: "relation already exists"
 Это нормально, если миграция использует `IF NOT EXISTS`. Миграция пропустит создание существующих объектов.
 
-### Ошибка: "column 'additionally_id' does not exist"
-Таблица была создана со старой структурой. Примените миграцию `002_fix_criminal_and_punishment_tables.sql`, которая пересоздаст таблицы.
+### Миграция не применяется автоматически
+1. Проверьте логи при запуске приложения:
+   ```bash
+   docker logs -f ims-backend
+   ```
+2. Убедитесь, что файл миграции находится в `migrations/` и имеет расширение `.sql`
+3. Проверьте, что файл миграции имеет правильное имя (XXX_description.sql)
+4. Попробуйте применить вручную: `npm run migrate:up`
+
+### Посмотреть какие миграции были применены
+```bash
+docker exec -it ims-postgres psql -U admin -d ims -c "SELECT * FROM migrations ORDER BY applied_at;"
+```
 
 ## 📝 Создание новой миграции
 
 При добавлении новых полей или таблиц:
 
-1. Создайте новый файл с номером `XXX_description.sql`
+1. Создайте новый файл с номером `XXX_description.sql` в директории `migrations/`
 2. Используйте `IF NOT EXISTS` для CREATE
 3. Используйте `IF EXISTS` для DROP
 4. Добавьте комментарии к новым полям
-5. Обновите этот README с описанием миграции
+5. Обновите этот README с описанием миграции (в разделе "Список миграций")
 6. Закоммитьте и запушьте изменения
-7. Примените миграцию на сервере
+7. **Миграция применится автоматически при следующем деплое!** 🎉
 
 Пример структуры миграции:
 

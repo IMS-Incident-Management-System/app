@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { Form, Button, Card, Spin, Space, Typography } from "antd";
+import { Form, Card, Spin, Space, Typography } from "antd";
 import { EyeOutlined, SaveOutlined } from "@ant-design/icons";
 import { MainInfo } from "./components/MainInfo/MainInfo";
 import { CategoryFields } from "./components/CategoryFields/CategoryFields";
@@ -9,6 +9,7 @@ import { useForm } from "./hooks/useForm";
 import styles from "./EventProvider.module.scss";
 import { useUpdateEvent } from "../../services/requests/events/updateEvent";
 import { ERoutes } from "../../enums/routes";
+import { PrimaryButton } from "../../components/PrimaryButton";
 
 const { Title } = Typography;
 
@@ -62,14 +63,14 @@ export const EventProvider = () => {
             <div className={styles.headerActions}>
               <Space>
                 {id && (
-                  <Button
-                    type="default"
+                  <PrimaryButton
+                    variant="secondary"
                     icon={<EyeOutlined />}
                     onClick={handleViewEvent}
                     className={styles.viewButton}
                   >
                     Просмотр события
-                  </Button>
+                  </PrimaryButton>
                 )}
               </Space>
             </div>
@@ -93,16 +94,14 @@ export const EventProvider = () => {
 
             {/* Кнопки управления */}
             <div className={styles.footer}>
-              <Button
-                type="primary"
+              <PrimaryButton
                 size="large"
                 onClick={handleSubmit}
                 loading={isCreatingEvent || isUpdatingEvent}
                 icon={<SaveOutlined />}
-                className={styles.saveButton}
               >
                 {id ? "Сохранить изменения" : "Создать событие"}
-              </Button>
+              </PrimaryButton>
             </div>
           </Form>
           </Space>

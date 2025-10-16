@@ -3,7 +3,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import {
   Card,
   Typography,
-  Button,
   Spin,
   Space,
   Divider,
@@ -21,6 +20,7 @@ import {
 } from "../../enums/event";
 import dayjs from "dayjs";
 import styles from "./EventView.module.scss";
+import { PrimaryButton } from "../../components/PrimaryButton";
 
 const { Title } = Typography;
 
@@ -52,7 +52,7 @@ export const EventView = () => {
       <div className={styles.container}>
         <Card>
           <p>Событие не найдено</p>
-          <Button onClick={handleBack}>Назад к списку</Button>
+          <PrimaryButton variant="secondary" onClick={handleBack}>Назад к списку</PrimaryButton>
         </Card>
       </div>
     );
@@ -333,31 +333,29 @@ export const EventView = () => {
 
   return (
     <div className={styles.container}>
-      <Card className={styles.card}>
-        <Space direction="vertical" size="large" style={{ width: "100%" }}>
-          {/* Заголовок и кнопки */}
-          <div className={styles.header}>
-            <div className={styles.headerLeft}>
-              <Button
-                icon={<ArrowLeftOutlined />}
-                onClick={handleBack}
-                size="large"
-              >
-                Назад
-              </Button>
-              <Title level={3} style={{ margin: 0 }}>
-                Просмотр события #{event.id}
-              </Title>
-            </div>
-            <Button
-              type="primary"
+      <Card className={styles.mainCard}>
+        <div className={styles.header}>
+          <div className={styles.headerTop}>
+            <PrimaryButton
+              variant="secondary"
+              icon={<ArrowLeftOutlined />}
+              onClick={handleBack}
+            >
+              Назад
+            </PrimaryButton>
+            <Title level={2} className={styles.title}>
+              Событие #{event.id}
+            </Title>
+            <PrimaryButton
               icon={<EditOutlined />}
               onClick={handleEdit}
-              size="large"
             >
               Редактировать
-            </Button>
+            </PrimaryButton>
           </div>
+        </div>
+
+        <div className={styles.content}>
 
           {/* Основная информация */}
           <Card title="Основная информация" className={styles.sectionCard}>
@@ -412,7 +410,7 @@ export const EventView = () => {
               </p>
             </Card>
           )}
-        </Space>
+        </div>
       </Card>
     </div>
   );

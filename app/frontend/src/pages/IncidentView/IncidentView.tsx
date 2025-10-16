@@ -1,12 +1,13 @@
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Card, Typography, Button, Spin, Space, Divider, Row, Col, Tag, Descriptions } from "antd";
+import { Card, Typography, Spin, Space, Divider, Row, Col, Tag, Descriptions } from "antd";
 import { ArrowLeftOutlined, EditOutlined } from "@ant-design/icons";
 import { useGetIncident } from "../../services/requests/initiators/getIncident";
 import { ERoutes } from "../../enums/routes";
 import { EIncidentDirection } from "../../enums/incident";
 import dayjs from "dayjs";
 import styles from "./IncidentView.module.scss";
+import { PrimaryButton } from "../../components/PrimaryButton";
 
 const { Title, Text } = Typography;
 
@@ -51,7 +52,7 @@ export const IncidentView = () => {
       <div className={styles.container}>
         <Card>
           <Title level={3}>Инцидент не найден</Title>
-          <Button onClick={handleBack}>Вернуться на главную</Button>
+          <PrimaryButton variant="secondary" onClick={handleBack}>Вернуться на главную</PrimaryButton>
         </Card>
       </div>
     );
@@ -61,30 +62,24 @@ export const IncidentView = () => {
     <div className={styles.container}>
       <Card className={styles.mainCard}>
         <div className={styles.header}>
-          <Space direction="vertical" size="small" style={{ width: "100%" }}>
-            <div className={styles.headerTop}>
-              <Button 
-                icon={<ArrowLeftOutlined />} 
-                onClick={handleBack}
-                className={styles.backButton}
-              >
-                Назад
-              </Button>
-              <Title level={2} className={styles.title}>
-                Инцидент #{incident.id}
-              </Title>
-            </div>
-            
-            <div className={styles.headerActions}>
-              <Button 
-                type="primary" 
-                icon={<EditOutlined />}
-                onClick={handleEdit}
-              >
-                Редактировать
-              </Button>
-            </div>
-          </Space>
+          <div className={styles.headerTop}>
+            <PrimaryButton 
+              variant="secondary"
+              icon={<ArrowLeftOutlined />} 
+              onClick={handleBack}
+            >
+              Назад
+            </PrimaryButton>
+            <Title level={2} className={styles.title}>
+              Инцидент #{incident.id}
+            </Title>
+            <PrimaryButton 
+              icon={<EditOutlined />}
+              onClick={handleEdit}
+            >
+              Редактировать
+            </PrimaryButton>
+          </div>
         </div>
 
         <div className={styles.content}>
@@ -279,130 +274,240 @@ export const IncidentView = () => {
                   {/* Уголовное дело */}
                   {addition.criminal_case && (
                     <div className={styles.subSection}>
-                      <Title level={5}>Уголовное дело</Title>
-                      <ul className={styles.fieldList}>
-                        {addition.criminal_case.transfer_date && (
-                          <li className={styles.fieldItem}>
-                            <Text strong>Дата передачи в ПРоО:</Text> {dayjs(addition.criminal_case.transfer_date).format("DD.MM.YYYY")}
-                          </li>
-                        )}
-                        {addition.criminal_case.document_number && (
-                          <li className={styles.fieldItem}>
-                            <Text strong>Номер документа/КУСП:</Text> {addition.criminal_case.document_number}
-                          </li>
-                        )}
-                        {addition.criminal_case.department_name && (
-                          <li className={styles.fieldItem}>
-                            <Text strong>Подразделение:</Text> {addition.criminal_case.department_name}
-                          </li>
-                        )}
-                        {addition.criminal_case.review_result && (
-                          <li className={styles.fieldItem}>
-                            <Text strong>Результат рассмотрения материалов:</Text> {addition.criminal_case.review_result}
-                          </li>
-                        )}
-                        {addition.criminal_case.rejection_date && (
-                          <li className={styles.fieldItem}>
-                            <Text strong>Дата отказа в ВУД/ВАД:</Text> {dayjs(addition.criminal_case.rejection_date).format("DD.MM.YYYY")}
-                          </li>
-                        )}
-                        {addition.criminal_case.rejection_reason && (
-                          <li className={styles.fieldItem}>
-                            <Text strong>Причина отказа в ВУД/ВАД:</Text> {addition.criminal_case.rejection_reason}
-                          </li>
-                        )}
-                        {addition.criminal_case.appeal_date && (
-                          <li className={styles.fieldItem}>
-                            <Text strong>Дата обжалования отказа:</Text> {dayjs(addition.criminal_case.appeal_date).format("DD.MM.YYYY")}
-                          </li>
-                        )}
-                        {addition.criminal_case.case_date && (
-                          <li className={styles.fieldItem}>
-                            <Text strong>Дата ВУД/ВАД:</Text> {dayjs(addition.criminal_case.case_date).format("DD.MM.YYYY")}
-                          </li>
-                        )}
-                        {addition.criminal_case.case_number && (
-                          <li className={styles.fieldItem}>
-                            <Text strong>Номер УД/АД:</Text> {addition.criminal_case.case_number}
-                          </li>
-                        )}
-                        {addition.criminal_case.law_article && (
-                          <li className={styles.fieldItem}>
-                            <Text strong>Статья УК РФ/КоАП РФ:</Text> {addition.criminal_case.law_article}
-                          </li>
-                        )}
-                        {addition.criminal_case.initiator && (
-                          <li className={styles.fieldItem}>
-                            <Text strong>Инициатор возбуждения УД/АД:</Text> {addition.criminal_case.initiator}
-                          </li>
-                        )}
-                        {addition.criminal_case.subject && (
-                          <li className={styles.fieldItem}>
-                            <Text strong>Субъект преступления УД/АД:</Text> {addition.criminal_case.subject}
-                          </li>
-                        )}
-                        {addition.criminal_case.detained_count && addition.criminal_case.detained_count > 0 && (
-                          <li className={styles.fieldItem}>
-                            <Text strong>Задержано:</Text> {addition.criminal_case.detained_count} чел.
-                          </li>
-                        )}
-                        {addition.criminal_case.person_name && (
-                          <li className={styles.fieldItem}>
-                            <Text strong>ФИО лица/название юр.лица:</Text> {addition.criminal_case.person_name}
-                          </li>
-                        )}
-                        {addition.criminal_case.case_result && (
-                          <li className={styles.fieldItem}>
-                            <Text strong>Результат рассмотрения УД/АД:</Text> {addition.criminal_case.case_result}
-                          </li>
-                        )}
-                        {addition.criminal_case.court_decision && (
-                          <li className={styles.fieldItem}>
-                            <Text strong>Решение суда:</Text> {addition.criminal_case.court_decision}
-                          </li>
-                        )}
-                        {addition.criminal_case.convicted_count && addition.criminal_case.convicted_count > 0 && (
-                          <li className={styles.fieldItem}>
-                            <Text strong>Осуждено:</Text> {addition.criminal_case.convicted_count} чел.
-                          </li>
-                        )}
-                      </ul>
+                      <Title level={5} className={styles.subSectionTitle}>Уголовное дело</Title>
+                      
+                      {/* Передача материалов */}
+                      {(addition.criminal_case.transfer_date || addition.criminal_case.document_number || addition.criminal_case.department_name) && (
+                        <div className={styles.criminalBlock}>
+                          <div className={styles.blockHeader}>Передача материалов</div>
+                          <Row gutter={[16, 16]}>
+                            {addition.criminal_case.transfer_date && (
+                              <Col xs={24} sm={12} lg={8}>
+                                <div className={styles.field}>
+                                  <div className={styles.fieldLabel}>Дата передачи в ПРоО</div>
+                                  <div className={styles.fieldValue}>{dayjs(addition.criminal_case.transfer_date).format("DD.MM.YYYY")}</div>
+                                </div>
+                              </Col>
+                            )}
+                            {addition.criminal_case.document_number && (
+                              <Col xs={24} sm={12} lg={8}>
+                                <div className={styles.field}>
+                                  <div className={styles.fieldLabel}>Номер документа/КУСП</div>
+                                  <div className={styles.fieldValue}>{addition.criminal_case.document_number}</div>
+                                </div>
+                              </Col>
+                            )}
+                            {addition.criminal_case.department_name && (
+                              <Col xs={24} sm={12} lg={8}>
+                                <div className={styles.field}>
+                                  <div className={styles.fieldLabel}>Подразделение</div>
+                                  <div className={styles.fieldValue}>{addition.criminal_case.department_name}</div>
+                                </div>
+                              </Col>
+                            )}
+                          </Row>
+                        </div>
+                      )}
+
+                      {/* Рассмотрение материалов */}
+                      {(addition.criminal_case.review_result || addition.criminal_case.rejection_date || addition.criminal_case.rejection_reason || addition.criminal_case.appeal_date) && (
+                        <div className={styles.criminalBlock}>
+                          <div className={styles.blockHeader}>Рассмотрение материалов</div>
+                          <Row gutter={[16, 16]}>
+                            {addition.criminal_case.review_result && (
+                              <Col xs={24} sm={12} lg={8}>
+                                <div className={styles.field}>
+                                  <div className={styles.fieldLabel}>Результат рассмотрения</div>
+                                  <div className={styles.fieldValue}>{addition.criminal_case.review_result}</div>
+                                </div>
+                              </Col>
+                            )}
+                            {addition.criminal_case.rejection_date && (
+                              <Col xs={24} sm={12} lg={8}>
+                                <div className={styles.field}>
+                                  <div className={styles.fieldLabel}>Дата отказа в ВУД/ВАД</div>
+                                  <div className={styles.fieldValue}>{dayjs(addition.criminal_case.rejection_date).format("DD.MM.YYYY")}</div>
+                                </div>
+                              </Col>
+                            )}
+                            {addition.criminal_case.rejection_reason && (
+                              <Col xs={24} sm={12} lg={8}>
+                                <div className={styles.field}>
+                                  <div className={styles.fieldLabel}>Причина отказа</div>
+                                  <div className={styles.fieldValue}>{addition.criminal_case.rejection_reason}</div>
+                                </div>
+                              </Col>
+                            )}
+                            {addition.criminal_case.appeal_date && (
+                              <Col xs={24} sm={12} lg={8}>
+                                <div className={styles.field}>
+                                  <div className={styles.fieldLabel}>Дата обжалования отказа</div>
+                                  <div className={styles.fieldValue}>{dayjs(addition.criminal_case.appeal_date).format("DD.MM.YYYY")}</div>
+                                </div>
+                              </Col>
+                            )}
+                          </Row>
+                        </div>
+                      )}
+
+                      {/* Возбуждение дела */}
+                      {(addition.criminal_case.case_date || addition.criminal_case.case_number || addition.criminal_case.law_article || addition.criminal_case.initiator || addition.criminal_case.subject || addition.criminal_case.detained_count) && (
+                        <div className={styles.criminalBlock}>
+                          <div className={styles.blockHeader}>Возбуждение дела</div>
+                          <Row gutter={[16, 16]}>
+                            {addition.criminal_case.case_date && (
+                              <Col xs={24} sm={12} lg={8}>
+                                <div className={styles.field}>
+                                  <div className={styles.fieldLabel}>Дата ВУД/ВАД</div>
+                                  <div className={styles.fieldValue}>{dayjs(addition.criminal_case.case_date).format("DD.MM.YYYY")}</div>
+                                </div>
+                              </Col>
+                            )}
+                            {addition.criminal_case.case_number && (
+                              <Col xs={24} sm={12} lg={8}>
+                                <div className={styles.field}>
+                                  <div className={styles.fieldLabel}>Номер УД/АД</div>
+                                  <div className={styles.fieldValue}>{addition.criminal_case.case_number}</div>
+                                </div>
+                              </Col>
+                            )}
+                            {addition.criminal_case.law_article && (
+                              <Col xs={24} sm={12} lg={8}>
+                                <div className={styles.field}>
+                                  <div className={styles.fieldLabel}>Статья УК РФ/КоАП РФ</div>
+                                  <div className={styles.fieldValue}>{addition.criminal_case.law_article}</div>
+                                </div>
+                              </Col>
+                            )}
+                            {addition.criminal_case.initiator && (
+                              <Col xs={24} sm={12} lg={8}>
+                                <div className={styles.field}>
+                                  <div className={styles.fieldLabel}>Инициатор возбуждения</div>
+                                  <div className={styles.fieldValue}>{addition.criminal_case.initiator}</div>
+                                </div>
+                              </Col>
+                            )}
+                            {addition.criminal_case.subject && (
+                              <Col xs={24} sm={12} lg={8}>
+                                <div className={styles.field}>
+                                  <div className={styles.fieldLabel}>Субъект преступления</div>
+                                  <div className={styles.fieldValue}>{addition.criminal_case.subject}</div>
+                                </div>
+                              </Col>
+                            )}
+                            {addition.criminal_case.detained_count && addition.criminal_case.detained_count > 0 && (
+                              <Col xs={24} sm={12} lg={8}>
+                                <div className={styles.field}>
+                                  <div className={styles.fieldLabel}>Задержано</div>
+                                  <div className={styles.fieldValue}>{addition.criminal_case.detained_count} чел.</div>
+                                </div>
+                              </Col>
+                            )}
+                          </Row>
+                        </div>
+                      )}
+
+                      {/* Привлекаемое лицо */}
+                      {addition.criminal_case.person_name && (
+                        <div className={styles.criminalBlock}>
+                          <div className={styles.blockHeader}>Привлекаемое лицо</div>
+                          <Row gutter={[16, 16]}>
+                            <Col xs={24}>
+                              <div className={styles.field}>
+                                <div className={styles.fieldLabel}>ФИО лица/название юр.лица</div>
+                                <div className={styles.fieldValue}>{addition.criminal_case.person_name}</div>
+                              </div>
+                            </Col>
+                          </Row>
+                        </div>
+                      )}
+
+                      {/* Результаты */}
+                      {(addition.criminal_case.case_result || addition.criminal_case.court_decision || addition.criminal_case.convicted_count) && (
+                        <div className={styles.criminalBlock}>
+                          <div className={styles.blockHeader}>Результаты</div>
+                          <Row gutter={[16, 16]}>
+                            {addition.criminal_case.case_result && (
+                              <Col xs={24}>
+                                <div className={styles.field}>
+                                  <div className={styles.fieldLabel}>Результат рассмотрения УД/АД</div>
+                                  <div className={styles.fieldValue}>{addition.criminal_case.case_result}</div>
+                                </div>
+                              </Col>
+                            )}
+                            {addition.criminal_case.court_decision && (
+                              <Col xs={24}>
+                                <div className={styles.field}>
+                                  <div className={styles.fieldLabel}>Решение суда</div>
+                                  <div className={styles.fieldValue}>{addition.criminal_case.court_decision}</div>
+                                </div>
+                              </Col>
+                            )}
+                            {addition.criminal_case.convicted_count && addition.criminal_case.convicted_count > 0 && (
+                              <Col xs={24} sm={12} lg={8}>
+                                <div className={styles.field}>
+                                  <div className={styles.fieldLabel}>Осуждено</div>
+                                  <div className={styles.fieldValue}>{addition.criminal_case.convicted_count} чел.</div>
+                                </div>
+                              </Col>
+                            )}
+                          </Row>
+                        </div>
+                      )}
                     </div>
                   )}
 
                   {/* Наказание */}
                   {addition.punishment && (
                     <div className={styles.subSection}>
-                      <Title level={5}>Наказание</Title>
-                      <Row gutter={[16, 8]}>
+                      <Title level={5} className={styles.subSectionTitle}>Наказание</Title>
+                      <Row gutter={[16, 16]}>
                         {addition.punishment.guilty_persons_count !== undefined && (
                           <Col xs={24} sm={12} lg={8}>
-                            <Text strong>Установлено виновных лиц:</Text> {addition.punishment.guilty_persons_count}
+                            <div className={styles.field}>
+                              <div className={styles.fieldLabel}>Установлено виновных лиц</div>
+                              <div className={styles.fieldValue}>{addition.punishment.guilty_persons_count}</div>
+                            </div>
                           </Col>
                         )}
                         {addition.punishment.measures_taken_count !== undefined && (
                           <Col xs={24} sm={12} lg={8}>
-                            <Text strong>Принято мер к виновным лицам:</Text> {addition.punishment.measures_taken_count}
+                            <div className={styles.field}>
+                              <div className={styles.fieldLabel}>Принято мер к виновным лицам</div>
+                              <div className={styles.fieldValue}>{addition.punishment.measures_taken_count}</div>
+                            </div>
                           </Col>
                         )}
                         {addition.punishment.warning_letter_rp398 !== undefined && (
                           <Col xs={24} sm={12} lg={8}>
-                            <Text strong>Предупреждение предупредительным письмом по РП-398:</Text> {addition.punishment.warning_letter_rp398}
+                            <div className={styles.field}>
+                              <div className={styles.fieldLabel}>Предупреждение по РП-398</div>
+                              <div className={styles.fieldValue}>{addition.punishment.warning_letter_rp398}</div>
+                            </div>
                           </Col>
                         )}
                         {addition.punishment.remark !== undefined && (
                           <Col xs={24} sm={12} lg={8}>
-                            <Text strong>Замечание:</Text> {addition.punishment.remark}
+                            <div className={styles.field}>
+                              <div className={styles.fieldLabel}>Замечание</div>
+                              <div className={styles.fieldValue}>{addition.punishment.remark}</div>
+                            </div>
                           </Col>
                         )}
                         {addition.punishment.reprimand !== undefined && (
                           <Col xs={24} sm={12} lg={8}>
-                            <Text strong>Выговор:</Text> {addition.punishment.reprimand}
+                            <div className={styles.field}>
+                              <div className={styles.fieldLabel}>Выговор</div>
+                              <div className={styles.fieldValue}>{addition.punishment.reprimand}</div>
+                            </div>
                           </Col>
                         )}
                         {addition.punishment.dismissed_count !== undefined && (
                           <Col xs={24} sm={12} lg={8}>
-                            <Text strong>Уволено:</Text> {addition.punishment.dismissed_count}
+                            <div className={styles.field}>
+                              <div className={styles.fieldLabel}>Уволено</div>
+                              <div className={styles.fieldValue}>{addition.punishment.dismissed_count}</div>
+                            </div>
                           </Col>
                         )}
                       </Row>
@@ -412,21 +517,30 @@ export const IncidentView = () => {
                   {/* Финансовый ущерб */}
                   {(addition.detected_damage !== undefined || addition.prevented_damage !== undefined || addition.recovered_damage !== undefined) && (
                     <div className={styles.subSection}>
-                      <Title level={5}>Финансовый ущерб</Title>
-                      <Row gutter={[16, 8]}>
+                      <Title level={5} className={styles.subSectionTitle}>Финансовый ущерб</Title>
+                      <Row gutter={[16, 16]}>
                         {addition.detected_damage !== undefined && (
                           <Col xs={24} sm={12} lg={8}>
-                            <Text strong>Выявленный ущерб:</Text> {addition.detected_damage ? `${addition.detected_damage.toLocaleString()} ₽` : "0 ₽"}
+                            <div className={styles.field}>
+                              <div className={styles.fieldLabel}>Выявленный ущерб</div>
+                              <div className={`${styles.fieldValue} ${styles.amountValue}`}>{addition.detected_damage ? `${addition.detected_damage.toLocaleString()} ₽` : "0 ₽"}</div>
+                            </div>
                           </Col>
                         )}
                         {addition.prevented_damage !== undefined && (
                           <Col xs={24} sm={12} lg={8}>
-                            <Text strong>Предотвращенный ущерб:</Text> {addition.prevented_damage ? `${addition.prevented_damage.toLocaleString()} ₽` : "0 ₽"}
+                            <div className={styles.field}>
+                              <div className={styles.fieldLabel}>Предотвращенный ущерб</div>
+                              <div className={`${styles.fieldValue} ${styles.amountValue}`}>{addition.prevented_damage ? `${addition.prevented_damage.toLocaleString()} ₽` : "0 ₽"}</div>
+                            </div>
                           </Col>
                         )}
                         {addition.recovered_damage !== undefined && (
                           <Col xs={24} sm={12} lg={8}>
-                            <Text strong>Возмещенный ущерб:</Text> {addition.recovered_damage ? `${addition.recovered_damage.toLocaleString()} ₽` : "0 ₽"}
+                            <div className={styles.field}>
+                              <div className={styles.fieldLabel}>Возмещенный ущерб</div>
+                              <div className={`${styles.fieldValue} ${styles.amountValue}`}>{addition.recovered_damage ? `${addition.recovered_damage.toLocaleString()} ₽` : "0 ₽"}</div>
+                            </div>
                           </Col>
                         )}
                       </Row>
