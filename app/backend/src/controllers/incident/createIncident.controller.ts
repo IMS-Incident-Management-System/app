@@ -10,6 +10,7 @@ import { eventHistoryService } from '../../services/eventHistory.service';
 import { additionallyService } from '../../services/additionally.service';
 import { incidentAddressService } from '../../services/incidentAddress.service';
 import { incidentPersonService } from '../../services/incidentPerson.service';
+import { additionallyPersonService } from '../../services/additionallyPerson.service';
 import { criminalCaseService } from '../../services/criminalCase.service';
 import { punishmentService } from '../../services/punishment.service';
 import { sequelize } from '../../models/sequelize';
@@ -77,6 +78,13 @@ interface CreateIncidentBody {
       reprimand?: number;
       dismissed_count?: number;
     };
+    persons?: Array<{
+      last_name?: string;
+      first_name?: string;
+      middle_name?: string;
+      birth_date?: Date;
+      employee_number?: string;
+    }>;
   }>
 }
 
@@ -148,7 +156,7 @@ export const createIncident = asyncErrorHandler(
       if (data.additionally.length) {
         for (const additionallyData of data.additionally) {
           // Исключаем id и связанные данные
-          const { id, criminal_case, punishment, ...additionallyDataWithoutId } = additionallyData;
+          const { id, criminal_case, punishment, persons, ...additionallyDataWithoutId } = additionallyData;
           
           // Создаем дополнение (addition_date проставляется автоматически)
           const { addition_date, ...additionallyDataWithoutDate } = additionallyDataWithoutId;
@@ -160,6 +168,17 @@ export const createIncident = asyncErrorHandler(
             },
             { transaction }
           );
+
+          // Создаем фигурантов дополнения
+          if (persons && persons.length > 0) {
+            await additionallyPersonService.createPersons(
+              persons.map((person) => ({
+                ...person,
+                additionally_id: additionally.id,
+              })),
+              { transaction }
+            );
+          }
 
           // Создаем уголовное дело (только одно)
           if (criminal_case) {

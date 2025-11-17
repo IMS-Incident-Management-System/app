@@ -263,6 +263,46 @@ export const IncidentView = () => {
                     </Descriptions>
                   </div>
 
+                  {/* ФИО фигуранта */}
+                  {addition.persons && addition.persons.length > 0 && (
+                    <div className={styles.subSection}>
+                      <Title level={5}>ФИО фигуранта</Title>
+                      {addition.persons.map((person, personIndex) => (
+                        <div key={person.id || personIndex} className={styles.itemBlock}>
+                          <Title level={5}>Фигурант {personIndex + 1}</Title>
+                          <Descriptions column={2} size="middle">
+                            {person.last_name && (
+                              <Descriptions.Item label="Фамилия">
+                                {person.last_name}
+                              </Descriptions.Item>
+                            )}
+                            {person.first_name && (
+                              <Descriptions.Item label="Имя">
+                                {person.first_name}
+                              </Descriptions.Item>
+                            )}
+                            {person.middle_name && (
+                              <Descriptions.Item label="Отчество">
+                                {person.middle_name}
+                              </Descriptions.Item>
+                            )}
+                            {person.birth_date && (
+                              <Descriptions.Item label="Дата рождения">
+                                {dayjs(person.birth_date).format("DD.MM.YYYY")}
+                              </Descriptions.Item>
+                            )}
+                            {person.employee_number && (
+                              <Descriptions.Item label="Табельный номер">
+                                {person.employee_number}
+                              </Descriptions.Item>
+                            )}
+                          </Descriptions>
+                          {personIndex < (addition.persons?.length || 0) - 1 && <Divider />}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
                   {/* Описание */}
                   {addition.text_field && (
                     <div className={styles.subSection}>

@@ -7,6 +7,7 @@ import EventHistory from './eventHistory';
 import Additionally from './additionally';
 import IncidentAddress from './incidentAddress';
 import IncidentPerson from './incidentPerson';
+import AdditionallyPerson from './additionallyPerson';
 import CriminalCase from './criminalCase';
 import Punishment from './punishment';
 import Event from './event';
@@ -105,6 +106,17 @@ Punishment.belongsTo(Additionally, {
   as: 'additionally'
 });
 
+Additionally.hasMany(AdditionallyPerson, {
+  foreignKey: 'additionally_id',
+  as: 'persons',
+  onDelete: 'CASCADE'
+});
+
+AdditionallyPerson.belongsTo(Additionally, {
+  foreignKey: 'additionally_id',
+  as: 'additionally'
+});
+
 // Event связи
 Event.belongsTo(Department, { 
   foreignKey: 'department_id', 
@@ -128,6 +140,7 @@ export {
   Additionally,
   IncidentAddress,
   IncidentPerson,
+  AdditionallyPerson,
   CriminalCase,
   Punishment,
   Event,

@@ -6,6 +6,7 @@ import {
   EventHistory,
   EventType,
   Additionally,
+  AdditionallyPerson,
   CriminalCase,
   Punishment,
   sequelize
@@ -153,6 +154,10 @@ export const incidentService = {
             {
               model: Punishment,
               as: 'punishment'
+            },
+            {
+              model: AdditionallyPerson,
+              as: 'persons'
             }
           ]
         },

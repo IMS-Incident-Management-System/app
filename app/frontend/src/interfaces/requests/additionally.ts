@@ -1,4 +1,5 @@
 import { CriminalCaseAttributes, PunishmentAttributes } from './incident';
+import { AdditionallyPersonAttributes } from './additionallyPerson';
 
 export interface AdditionallyAttributes {
   id: number;
@@ -10,6 +11,7 @@ export interface AdditionallyAttributes {
   recovered_damage?: number; // Возмещенный ущерб
   criminal_case?: CriminalCaseAttributes;
   punishment?: PunishmentAttributes;
+  persons?: AdditionallyPersonAttributes[]; // ФИО фигурантов
   createdAt?: Date;
   updatedAt?: Date;
 }

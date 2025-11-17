@@ -127,6 +127,7 @@ export interface CreateIncidentBody {
     recovered_damage?: number; // Возмещенный ущерб
     criminal_case?: CriminalCaseAttributes;
     punishment?: PunishmentAttributes;
+    persons?: AdditionallyPersonAttributes[]; // ФИО фигурантов
   }>;
 }
 
