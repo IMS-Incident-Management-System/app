@@ -17,6 +17,7 @@ export const MainInfo = () => {
     useGetDepartments();
 
   const selectedDirection = Form.useWatch("direction", form);
+  const selectedCategory = Form.useWatch("category", form);
   const categories = selectedDirection
     ? getCategoriesByDirection(selectedDirection)
     : [];
@@ -109,20 +110,22 @@ export const MainInfo = () => {
             </Col>
           </Row>
           
-          <Row gutter={[24, 16]}>
-            <Col xs={24}>
-              <Form.Item<CreateEventBody>
-                label="Описание"
-                name="description"
-              >
-                <Input.TextArea
-                  rows={4}
-                  placeholder="Введите описание события"
-                  className={styles.formInput}
-                />
-              </Form.Item>
-            </Col>
-          </Row>
+          {selectedCategory && (
+            <Row gutter={[24, 16]}>
+              <Col xs={24}>
+                <Form.Item<CreateEventBody>
+                  label="Описание"
+                  name="description"
+                >
+                  <Input.TextArea
+                    rows={4}
+                    placeholder="Введите описание события"
+                    className={styles.formInput}
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
+          )}
         </div>
       </Card>
     </div>
