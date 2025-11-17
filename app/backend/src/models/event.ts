@@ -21,6 +21,7 @@ export interface EventAttributes {
   period_to: Date; // Период по
   direction: EventDirectionEnum; // Тип (ЭБ, ИБ, БПиО)
   category: EventCategoryType; // Категория
+  description?: string; // Описание события
 
   // ====== ЭБ - DEBT_RECOVERY (Работа по возмещению ДЗ и НДС) ======
   total_debt?: number;
@@ -263,6 +264,11 @@ const Event = sequelize.define<EventInstance>(
       type: DataTypes.STRING,
       allowNull: false,
       comment: 'Категория события',
+    },
+    description: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      comment: 'Описание события',
     },
 
     // ЭБ - DEBT_RECOVERY

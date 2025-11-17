@@ -22,6 +22,7 @@ export interface EventAttributes {
   period_to: string; // DATEONLY формат - период по
   direction: EEventDirection;
   category: EEventCategory;
+  description?: string; // Описание события
 
   // ====== ЭБ - DEBT_RECOVERY ======
   total_debt?: number;

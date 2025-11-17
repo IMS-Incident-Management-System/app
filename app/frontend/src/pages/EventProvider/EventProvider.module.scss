@@ -37,7 +37,8 @@
 .headerActions {
   display: flex;
   justify-content: flex-end;
-  margin-top: 16px;
+  margin-top: 20px;
+  gap: 12px;
 }
 
 .viewButton {
@@ -76,6 +77,10 @@
 }
 
 .form {
+  :global(.ant-form-item) {
+    margin-bottom: 16px;
+  }
+  
   .sectionCard {
     margin-bottom: 24px;
     border-radius: 8px;

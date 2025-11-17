@@ -387,6 +387,11 @@ export const EventView = () => {
                   ? dayjs(event.createdAt).format("DD.MM.YYYY HH:mm")
                   : "Не указано"}
               </Descriptions.Item>
+              {event.description && (
+                <Descriptions.Item label="Описание" span={2}>
+                  {event.description}
+                </Descriptions.Item>
+              )}
             </Descriptions>
           </Card>
 
