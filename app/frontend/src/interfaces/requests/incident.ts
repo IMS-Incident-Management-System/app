@@ -48,6 +48,7 @@ export interface IncidentAddressAttributes {
   street?: string;
   house?: string;
   building?: string;
+  apartment?: string;
 }
 
 export interface IncidentPersonAttributes {

@@ -161,6 +161,11 @@ export const IncidentView = () => {
                         <Text strong>Корпус:</Text> {address.building}
                       </Col>
                     )}
+                    {address.apartment && (
+                      <Col xs={24} sm={12} lg={6}>
+                        <Text strong>Квартира:</Text> {address.apartment}
+                      </Col>
+                    )}
                   </Row>
                   {index < (incident.addresses?.length || 0) - 1 ? <Divider /> : null}
                 </div>

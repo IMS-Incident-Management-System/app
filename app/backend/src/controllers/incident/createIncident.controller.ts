@@ -35,6 +35,7 @@ interface CreateIncidentBody {
     street?: string;
     house?: string;
     building?: string;
+    apartment?: string;
   }>;
   persons?: Array<{
     last_name?: string;

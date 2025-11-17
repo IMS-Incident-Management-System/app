@@ -197,6 +197,15 @@ export const MainInfo = () => {
                         <Input placeholder="Введите корпус" />
                       </Form.Item>
                     </Col>
+                    <Col xs={24} sm={12} lg={6}>
+                      <Form.Item
+                        {...restField}
+                        label="Квартира"
+                        name={[name, "apartment"]}
+                      >
+                        <Input placeholder="Введите квартиру" />
+                      </Form.Item>
+                    </Col>
                   </Row>
                 </Card>
               ))}

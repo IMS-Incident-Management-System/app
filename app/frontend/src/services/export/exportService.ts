@@ -119,7 +119,7 @@ export class ExportService {
       yPosition += 5;
 
       // Адрес
-      if (incident.events[0].city || incident.events[0].street || incident.events[0].house || incident.events[0].building) {
+      if (incident.events[0].city || incident.events[0].street || incident.events[0].house || incident.events[0].building || incident.events[0].apartment) {
         doc.setFont('helvetica', 'bold');
         doc.text('АДРЕС', margin, yPosition);
         yPosition += 10;
@@ -130,6 +130,7 @@ export class ExportService {
         if (incident.events[0].street) addressParts.push(`Улица: ${incident.events[0].street}`);
         if (incident.events[0].house) addressParts.push(`Дом: ${incident.events[0].house}`);
         if (incident.events[0].building) addressParts.push(`Корпус: ${incident.events[0].building}`);
+        if (incident.events[0].apartment) addressParts.push(`Квартира: ${incident.events[0].apartment}`);
 
         addressParts.forEach(part => {
           doc.text(part, margin, yPosition);
