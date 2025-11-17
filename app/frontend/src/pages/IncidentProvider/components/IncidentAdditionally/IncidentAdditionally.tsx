@@ -239,6 +239,15 @@ export const IncidentAdditionally = () => {
                               <Input.TextArea rows={2} placeholder="Опишите результат" />
                             </Form.Item>
                           </Col>
+                          <Col xs={24}>
+                            <Form.Item
+                              label="Причина отказа"
+                              name={[field.name, "criminal_case", "rejection_reason"]}
+                              tooltip="Причина отказа в возбуждении УД/АД"
+                            >
+                              <Input.TextArea rows={2} placeholder="Укажите причину отказа" />
+                            </Form.Item>
+                          </Col>
                         </Row>
                         <Row gutter={[16, 16]}>
                           <Col xs={24} sm={12} lg={8}>
@@ -257,15 +266,6 @@ export const IncidentAdditionally = () => {
                               tooltip="Дата обжалования отказа"
                             >
                               <DatePicker style={{ width: "100%" }} placeholder="Выберите дату" />
-                            </Form.Item>
-                          </Col>
-                          <Col xs={24} sm={24} lg={8}>
-                            <Form.Item
-                              label="Причина отказа"
-                              name={[field.name, "criminal_case", "rejection_reason"]}
-                              tooltip="Причина отказа в возбуждении УД/АД"
-                            >
-                              <Input placeholder="Укажите причину" />
                             </Form.Item>
                           </Col>
                         </Row>
