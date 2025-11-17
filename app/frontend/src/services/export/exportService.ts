@@ -173,7 +173,6 @@ export class ExportService {
 
         doc.setFont('helvetica', 'normal');
         const additionInfo = [
-          ['Дата происшествия:', this.formatDate(addition.incident_date)],
           ['Дата внесения дополнения:', this.formatDate(addition.addition_date)],
           ['Описание:', addition.text_field || 'Не указано'],
           ['Выявленный ущерб:', this.formatCurrency(addition.detected_damage)],

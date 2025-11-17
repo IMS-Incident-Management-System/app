@@ -45,7 +45,6 @@ interface CreateIncidentBody {
   }>;
   additionally: Array<{
     id?: number; // ID записи (исключается при создании)
-    incident_date?: Date; // Дата происшествия
     addition_date?: Date; // Дата внесения дополнения к инциденту
     text_field?: string; // Текстовое поле
     detected_damage?: number; // Выявленный ущерб
@@ -151,9 +150,14 @@ export const createIncident = asyncErrorHandler(
           // Исключаем id и связанные данные
           const { id, criminal_case, punishment, ...additionallyDataWithoutId } = additionallyData;
           
-          // Создаем дополнение
+          // Создаем дополнение (addition_date проставляется автоматически)
+          const { addition_date, ...additionallyDataWithoutDate } = additionallyDataWithoutId;
           const additionally = await additionallyService.createAdditionally(
-            { ...additionallyDataWithoutId, incident_id: incident.id },
+            { 
+              ...additionallyDataWithoutDate, 
+              incident_id: incident.id,
+              addition_date: new Date() // Всегда проставляем текущую дату автоматически
+            },
             { transaction }
           );
 

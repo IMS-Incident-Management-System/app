@@ -73,26 +73,14 @@ export const IncidentAdditionally = () => {
                       <Row gutter={[24, 16]}>
                         <Col xs={24} sm={12}>
                           <Form.Item
-                            label="Дата происшествия"
-                            name={[field.name, "incident_date"]}
-                          >
-                            <DatePicker 
-                              style={{ width: "100%" }} 
-                              placeholder="Выберите дату"
-                              className={styles.formInput}
-                            />
-                          </Form.Item>
-                        </Col>
-                        
-                        <Col xs={24} sm={12}>
-                          <Form.Item
                             label="Дата внесения дополнения"
                             name={[field.name, "addition_date"]}
                             initialValue={dayjs()}
                           >
                             <DatePicker 
                               style={{ width: "100%" }} 
-                              placeholder="Дата внесения"
+                              disabled
+                              placeholder="Сегодняшняя дата"
                               className={styles.formInput}
                             />
                           </Form.Item>

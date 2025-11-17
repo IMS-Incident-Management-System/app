@@ -56,7 +56,6 @@ export const useForm = ({
         const { id, ...additionallyWithoutId } = additionally;
         return {
           ...additionallyWithoutId,
-          incident_date: additionally.incident_date ? dayjs(additionally.incident_date).toDate() : undefined,
           addition_date: additionally.addition_date ? dayjs(additionally.addition_date).toDate() : undefined,
           criminal_case: additionally.criminal_case ? {
             ...additionally.criminal_case,
@@ -110,7 +109,6 @@ export const useForm = ({
         })) ?? [],
         additionally: incident.additionally?.map((additionally) => ({
           ...additionally,
-          incident_date: additionally.incident_date ? dayjs(additionally.incident_date) : undefined,
           addition_date: additionally.addition_date ? dayjs(additionally.addition_date) : undefined,
           criminal_case: additionally.criminal_case ? {
             ...additionally.criminal_case,

@@ -255,11 +255,6 @@ export const IncidentView = () => {
                   <div className={styles.subSection}>
                     <Title level={5}>Основные данные</Title>
                     <Descriptions column={2} size="middle">
-                      {addition.incident_date && (
-                        <Descriptions.Item label="Дата происшествия">
-                          {dayjs(addition.incident_date).format("DD.MM.YYYY")}
-                        </Descriptions.Item>
-                      )}
                       {addition.addition_date && (
                         <Descriptions.Item label="Дата внесения дополнения">
                           {dayjs(addition.addition_date).format("DD.MM.YYYY")}

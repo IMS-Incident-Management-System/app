@@ -44,7 +44,6 @@ interface UpdateIncidentBody {
     employee_number?: string;
   }>;
   additionally: Array<{
-    incident_date?: Date; // Дата происшествия
     addition_date?: Date; // Дата внесения дополнения к инциденту
     text_field?: string; // Текстовое поле
     detected_damage?: number; // Выявленный ущерб
@@ -164,9 +163,14 @@ export const updateIncident = asyncErrorHandler(
         for (const additionallyData of data.additionally) {
           const { criminal_case, punishment, ...additionallyDataWithout} = additionallyData;
           
-          // Создаем дополнение
+          // Создаем дополнение (addition_date проставляется автоматически)
+          const { addition_date, ...additionallyDataWithoutDate } = additionallyDataWithout;
           const additionally = await additionallyService.createAdditionally(
-            { ...additionallyDataWithout, incident_id: Number(id) },
+            { 
+              ...additionallyDataWithoutDate, 
+              incident_id: Number(id),
+              addition_date: new Date() // Всегда проставляем текущую дату автоматически
+            },
             { transaction }
           );
 

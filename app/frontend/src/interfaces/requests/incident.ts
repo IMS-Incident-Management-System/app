@@ -120,7 +120,6 @@ export interface CreateIncidentBody {
   persons?: IncidentPersonAttributes[];
   additionally: Array<{
     id?: number; // ID записи (исключается при создании)
-    incident_date?: Date; // Дата происшествия
     addition_date?: Date; // Дата внесения дополнения к инциденту
     text_field?: string; // Текстовое поле
     detected_damage?: number; // Выявленный ущерб
