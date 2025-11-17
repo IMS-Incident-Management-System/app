@@ -16,7 +16,7 @@ export const isRegionalDepartment = (departmentTitle: string, departmentTree?: a
     return true;
   }
   
-  // Если передан tree, проверяем родительские департаменты
+  // Если передан tree, проверяем родительские подразделения
   if (departmentTree) {
     const findDepartmentInTree = (tree: any[], title: string): any => {
       for (const dept of tree) {
@@ -35,7 +35,7 @@ export const isRegionalDepartment = (departmentTitle: string, departmentTree?: a
     console.log('Found department in tree:', department);
     
     if (department) {
-      // Проверяем, является ли родительский департамент ФО
+      // Проверяем, является ли родительское подразделение ФО
       const checkParentIsFO = (dept: any): boolean => {
         if (!dept.parent) return false;
         const parentTitle = dept.parent.title.toUpperCase();

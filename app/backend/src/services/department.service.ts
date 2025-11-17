@@ -15,14 +15,14 @@ interface UpdateDepartmentData {
 
 export const departmentService = {
   getDepartments: async () => {
-    // Получаем все департаменты
+    // Получаем все подразделения
     const departments = await DepartmentModel.findAll({
       order: [
         ['title', 'ASC']
       ]
     });
 
-    // Создаем Map для быстрого поиска департаментов по ID
+    // Создаем Map для быстрого поиска подразделений по ID
     const departmentMap = new Map<number, DepartmentTree>();
     
     // Инициализируем Map
@@ -45,7 +45,7 @@ export const departmentService = {
       }
     });
 
-    // Получаем корневые департаменты
+    // Получаем корневые подразделения
     const rootDepartments = Array.from(departmentMap.values())
       .filter(dept => !dept.parent_id);
 
@@ -79,10 +79,10 @@ export const departmentService = {
       return a.title.localeCompare(b.title, 'ru');
     };
 
-    // Сортируем корневые департаменты
+    // Сортируем корневые подразделения
     rootDepartments.sort(customSort);
 
-    // Рекурсивно сортируем дочерние департаменты
+    // Рекурсивно сортируем дочерние подразделения
     const sortChildren = (dept: DepartmentTree) => {
       if (dept.children && dept.children.length > 0) {
         dept.children.sort(customSort);
@@ -129,7 +129,7 @@ export const departmentService = {
     const department = await DepartmentModel.findByPk(id);
     if (!department) throw new Error('Department not found');
 
-    // Рекурсивная функция для получения всех ID дочерних департаментов
+    // Рекурсивная функция для получения всех ID дочерних подразделений
     const getAllChildrenIds = async (parentId: number): Promise<number[]> => {
       const children = await DepartmentModel.findAll({
         where: { parent_id: parentId }
@@ -146,10 +146,10 @@ export const departmentService = {
       ];
     };
 
-    // Получаем все ID дочерних департаментов
+    // Получаем все ID дочерних подразделений
     const childrenIds = await getAllChildrenIds(id);
 
-    // Удаляем все департаменты одним запросом
+    // Удаляем все подразделения одним запросом
     if (childrenIds.length > 0) {
       await DepartmentModel.destroy({
         where: {
@@ -158,7 +158,7 @@ export const departmentService = {
       });
     }
 
-    // Удаляем сам департамент
+    // Удаляем само подразделение
     await department.destroy();
 
     return true;

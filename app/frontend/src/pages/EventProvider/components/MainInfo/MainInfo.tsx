@@ -32,16 +32,16 @@ export const MainInfo = () => {
         <Row gutter={[24, 16]}>
           <Col xs={24} sm={12} lg={6}>
             <Form.Item<CreateEventBody>
-              label="Департамент"
+              label="Подразделение"
               name="department_id"
               rules={[
-                { required: true, message: "Пожалуйста, выберите департамент" },
+                { required: true, message: "Пожалуйста, выберите подразделение" },
               ]}
             >
               <TreeSelect
                 showSearch
                 dropdownStyle={{ maxHeight: 400, overflow: "auto" }}
-                placeholder="Выберите департамент"
+                placeholder="Выберите подразделение"
                 allowClear
                 treeDefaultExpandAll
                 treeData={departments?.treeData}

@@ -65,7 +65,7 @@ export const getEvents = asyncErrorHandler(
         key: 'category',
       },
       {
-        title: 'Департамент',
+        title: 'Подразделение',
         dataIndex: 'department',
         key: 'department',
       },

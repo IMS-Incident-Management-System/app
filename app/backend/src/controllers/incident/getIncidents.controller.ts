@@ -61,7 +61,7 @@ export const getIncidents = asyncErrorHandler(
         key: 'direction',
       },
       {
-        title: 'Департамент',
+        title: 'Подразделение',
         dataIndex: 'department',
         key: 'department',
       },

@@ -15,7 +15,7 @@ const createDepartment = async (
     };
   }
 
-  // Получаем родительский департамент для формирования уникального value
+  // Получаем родительское подразделение для формирования уникального value
   const parent = await DepartmentModel.findByPk(parent_id);
   const parentPrefix = parent ? transliterate(parent.title) : '';
   
@@ -35,7 +35,7 @@ export const departmentSeeder = async () => {
       return;
     }
 
-    // Создаем корневые департаменты
+    // Создаем корневые подразделения
     const mainDepartments: DepartmentSeed[] = await Promise.all([
       createDepartment('КЦ'),
       createDepartment('ФО'),
@@ -45,7 +45,7 @@ export const departmentSeeder = async () => {
 
     const createdMain = await DepartmentModel.bulkCreate(mainDepartments);
 
-    // Находим ID основных департаментов
+    // Находим ID основных подразделений
     const ktsId = createdMain[0].department_id;
     const foId = createdMain[1].department_id;
     const dzkId = createdMain[2].department_id;
