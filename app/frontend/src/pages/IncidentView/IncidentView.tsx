@@ -173,9 +173,9 @@ export const IncidentView = () => {
             </Card>
           )}
 
-          {/* Персональные данные */}
+          {/* ФИО */}
           {incident.persons && incident.persons?.length > 0 && (
-            <Card title="Персональные данные" className={styles.sectionCard}>
+            <Card title="ФИО" className={styles.sectionCard}>
               {incident.persons?.map((person, index) => (
                 <div key={person.id || index} className={styles.itemBlock}>
                   <Title level={5}>Персона {index + 1}</Title>

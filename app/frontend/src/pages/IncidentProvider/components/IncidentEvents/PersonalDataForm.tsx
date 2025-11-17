@@ -8,7 +8,7 @@ interface PersonalDataFormProps {
 export const PersonalDataForm = ({ name }: PersonalDataFormProps) => {
   return (
     <div className={styles.container}>
-      <h4 className={styles.title}>Персональные данные</h4>
+      <h4 className={styles.title}>ФИО</h4>
       
       <Form.List name={[name, "persons"]}>
         {(fields, { add, remove }) => (

@@ -223,8 +223,8 @@ export const MainInfo = () => {
         </Form.List>
       </Card>
 
-      {/* Персональные данные */}
-      <Card className={styles.sectionCard} title="Персональные данные">
+      {/* ФИО */}
+      <Card className={styles.sectionCard} title="ФИО">
         <Form.List name="persons">
           {(fields, { add, remove }) => (
             <>

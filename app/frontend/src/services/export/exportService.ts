@@ -139,10 +139,10 @@ export class ExportService {
         yPosition += 5;
       }
 
-      // Персональные данные
+      // ФИО
       if (incident.events[0].last_name || incident.events[0].first_name || incident.events[0].middle_name || incident.events[0].employee_number) {
         doc.setFont('helvetica', 'bold');
-        doc.text('ПЕРСОНАЛЬНЫЕ ДАННЫЕ', margin, yPosition);
+        doc.text('ФИО', margin, yPosition);
         yPosition += 10;
 
         doc.setFont('helvetica', 'normal');
