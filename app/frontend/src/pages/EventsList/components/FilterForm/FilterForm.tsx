@@ -98,15 +98,6 @@ export const FilterForm = ({
               className={styles.formInput}
             />
           </Form.Item>
-
-          <Form.Item label="Создатель" name="created_by">
-            <Select
-              placeholder="Введите ID создателя"
-              allowClear
-              showSearch
-              className={styles.formInput}
-            />
-          </Form.Item>
         </div>
 
         <div className={styles.filterFormGroup}>

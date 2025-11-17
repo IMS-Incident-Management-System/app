@@ -55,7 +55,7 @@ export const eventService = {
           as: 'department',
         },
       ],
-      order: [['period_from', 'DESC'], ['createdAt', 'DESC']],
+      order: [['createdAt', 'DESC'], ['period_from', 'DESC']],
       pagination,
     });
 
