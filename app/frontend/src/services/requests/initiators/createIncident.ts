@@ -14,15 +14,27 @@ export const useCreateIncident = (setStep?: (step: number) => void) => {
   const mutation = useMutation(
     (data: CreateIncidentBody) => createIncident(data),
     {
-      onSuccess: (data) => {
+      onSuccess: (response: any) => {
+        console.log('CreateIncident response:', response);
         queryClient.invalidateQueries({
           queryKey: [EQueryKeys.GET_ALL_INITIATORS],
         });
         app.message.success("Инцидент успешно создан");
         // Перенаправляем на карточку созданного инцидента
-        if (data?.incident?.id) {
-          navigate(`${ERoutes.INCIDENT_VIEW}/${data.incident.id}`);
+        // Ответ обернут в структуру { success: true, data: {...}, message: "..." }
+        // useRequest возвращает response.data, который уже является { success: true, data: CreateIncidentResponse, message: "..." }
+        const incidentData = (response as any)?.data || response;
+        console.log('Extracted data:', incidentData);
+        if (incidentData?.incident?.id) {
+          const incidentId = incidentData.incident.id;
+          console.log('Navigating to incident:', incidentId);
+          // Инвалидируем кеш для этого инцидента перед навигацией
+          queryClient.invalidateQueries({
+            queryKey: ["getIncident", incidentId.toString()],
+          });
+          navigate(`${ERoutes.INCIDENT_VIEW}/${incidentId}`);
         } else {
+          console.warn('No incident ID in response, navigating to list');
           navigate(ERoutes.INCIDENTS_LIST);
         }
       },
