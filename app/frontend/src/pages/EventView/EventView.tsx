@@ -62,6 +62,9 @@ export const EventView = () => {
     if (direction === 'INFORMATION') return 'blue';
     if (direction === 'ECONOMIC') return 'green';
     if (direction === 'SECURITY') return 'orange';
+    if (direction === 'CYBER') return 'purple';
+    if (direction === 'ANTIFRAUD') return 'red';
+    if (direction === 'SORM') return 'cyan';
     return 'default';
   };
 
@@ -106,14 +109,14 @@ export const EventView = () => {
         { key: 'written_off_debt', label: 'Размер списанной ДЗ', type: 'money' },
         { key: 'prevented_writeoff', label: 'Предотвращено списания ДЗ', type: 'money' },
       ],
-      // ЭБ - LAW_ENFORCEMENT
-      'LAW_ENFORCEMENT': [
-        { key: 'incoming_requests', label: 'Поступило входящих запросов ПОО', type: 'number' },
-        { key: 'executed_requests', label: 'Исполнено запросов ПОО', type: 'number' },
-        { key: 'executed_tasks', label: 'Исполнено заданий в запросах', type: 'number' },
-        { key: 'received_presentations', label: 'Поступило представлений ПОО', type: 'number' },
-        { key: 'executed_presentations', label: 'Исполнено представлений', type: 'number' },
-      ],
+      // ЭБ - LAW_ENFORCEMENT (временно отключено)
+      // 'LAW_ENFORCEMENT': [
+      //   { key: 'incoming_requests', label: 'Поступило входящих запросов ПОО', type: 'number' },
+      //   { key: 'executed_requests', label: 'Исполнено запросов ПОО', type: 'number' },
+      //   { key: 'executed_tasks', label: 'Исполнено заданий в запросах', type: 'number' },
+      //   { key: 'received_presentations', label: 'Поступило представлений ПОО', type: 'number' },
+      //   { key: 'executed_presentations', label: 'Исполнено представлений', type: 'number' },
+      // ],
       // ЭБ - INVESTMENT_CONTROL
       'INVESTMENT_CONTROL': [
         { key: 'checked_entities_new', label: 'Проверено юр./физ.лиц (новые)', type: 'number' },
@@ -308,9 +311,20 @@ export const EventView = () => {
       'INVESTIGATIONS': [
         { key: 'investigations_count', label: 'Количество проверок и СР', type: 'number' },
       ],
+      // КБ - LAW_ENFORCEMENT
+      'CYBER_LAW_ENFORCEMENT': [
+        { key: 'cyber_incoming_paper_requests', label: 'Поступило входящих бумажных запросов ПОО на предоставление информации', type: 'number' },
+        { key: 'cyber_executed_paper_requests', label: 'Исполнено бумажных запросов ПОО на предоставление информации', type: 'number' },
+        { key: 'cyber_executed_paper_tasks', label: 'Исполнено заданий в бумажных запросах ПОО на предоставление информации', type: 'number' },
+        { key: 'cyber_received_presentations', label: 'Поступило представлений правоохранительных органов, прокуратуры и суда', type: 'number' },
+        { key: 'cyber_executed_presentations', label: 'из них исполнено (подготовлен ответ)', type: 'number' },
+      ],
     };
 
-    const categoryFields = fieldMappings[event.category] || [];
+    // Определяем ключ для маппинга
+    const mappingKey = event.category;
+
+    const categoryFields = fieldMappings[mappingKey] || [];
     
     categoryFields.forEach(({ key, label, type }) => {
       const value = (event as any)[key];

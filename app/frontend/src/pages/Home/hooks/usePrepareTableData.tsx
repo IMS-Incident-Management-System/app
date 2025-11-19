@@ -144,6 +144,12 @@ export const usePrepareTableData = (data: ITable<IncidentWithRelations>) => {
                 return { text: "ЭБ", color: "green", fullText: "Экономическая безопасность" };
               case EIncidentDirection.SECURITY:
                 return { text: "БПиО", color: "orange", fullText: "Безопасность производства и охраны" };
+              case EIncidentDirection.CYBER:
+                return { text: "КБ", color: "purple", fullText: "Кибербезопасность" };
+              case EIncidentDirection.ANTIFRAUD:
+                return { text: "Антифрод", color: "red", fullText: "Антифрод" };
+              case EIncidentDirection.SORM:
+                return { text: "СОРМ", color: "cyan", fullText: "СОРМ" };
               default:
                 return { text: "Не указано", color: "default", fullText: "Не указано" };
             }

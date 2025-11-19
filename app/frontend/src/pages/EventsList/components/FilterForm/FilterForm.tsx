@@ -92,9 +92,9 @@ export const FilterForm = ({
                 label: getCategoryLabel(category),
                 value: category,
               }))}
-              placeholder="Выберите категорию"
+              placeholder={categories.length === 0 && selectedDirection ? "Для этого направления нет категорий" : "Выберите категорию"}
               allowClear
-              disabled={!selectedDirection}
+              disabled={!selectedDirection || categories.length === 0}
               className={styles.formInput}
             />
           </Form.Item>

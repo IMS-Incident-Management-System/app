@@ -14,6 +14,12 @@ export class ExportService {
         return "Экономическая безопасность (ЭБ)";
       case EIncidentDirection.SECURITY:
         return "Безопасность персонала и объектов (БПиО)";
+      case EIncidentDirection.CYBER:
+        return "Кибербезопасность (КБ)";
+      case EIncidentDirection.ANTIFRAUD:
+        return "Антифрод";
+      case EIncidentDirection.SORM:
+        return "СОРМ";
       default:
         return direction;
     }

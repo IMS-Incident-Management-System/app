@@ -93,7 +93,12 @@ export const MainInfo = () => {
                 label="Категория"
                 name="category"
                 rules={[
-                  { required: true, message: "Пожалуйста, выберите категорию" },
+                  { 
+                    required: categories.length > 0, 
+                    message: categories.length === 0 && selectedDirection 
+                      ? "Для этого направления пока нет категорий" 
+                      : "Пожалуйста, выберите категорию" 
+                  },
                 ]}
               >
                 <Select
@@ -101,9 +106,9 @@ export const MainInfo = () => {
                     label: getCategoryLabel(category),
                     value: category,
                   }))}
-                  placeholder="Выберите категорию"
+                  placeholder={categories.length === 0 && selectedDirection ? "Для этого направления нет категорий" : "Выберите категорию"}
                   allowClear
-                  disabled={!selectedDirection}
+                  disabled={!selectedDirection || categories.length === 0}
                   className={styles.formInput}
                 />
               </Form.Item>

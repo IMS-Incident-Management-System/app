@@ -175,6 +175,9 @@ export const eventService = {
         ECONOMIC: events.filter((e) => e.direction === 'ECONOMIC').length,
         INFORMATION: events.filter((e) => e.direction === 'INFORMATION').length,
         SECURITY: events.filter((e) => e.direction === 'SECURITY').length,
+        CYBER: events.filter((e) => e.direction === 'CYBER').length,
+        ANTIFRAUD: events.filter((e) => e.direction === 'ANTIFRAUD').length,
+        SORM: events.filter((e) => e.direction === 'SORM').length,
       },
       // Можно добавить больше агрегатов по необходимости
     };

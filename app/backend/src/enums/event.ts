@@ -3,12 +3,15 @@ export enum EventDirectionEnum {
   ECONOMIC = 'ECONOMIC', // ЭБ
   INFORMATION = 'INFORMATION', // ИБ
   SECURITY = 'SECURITY', // БПиО
+  CYBER = 'CYBER', // КБ
+  ANTIFRAUD = 'ANTIFRAUD', // Антифрод
+  SORM = 'SORM', // СОРМ
 }
 
 // Категории событий для ЭБ
 export enum EventCategoryEconomicEnum {
   DEBT_RECOVERY = 'DEBT_RECOVERY', // Работа по возмещению ДЗ и НДС
-  LAW_ENFORCEMENT = 'LAW_ENFORCEMENT', // Взаимодействие с правоохранительными органами
+  // LAW_ENFORCEMENT = 'LAW_ENFORCEMENT', // Взаимодействие с правоохранительными органами - временно отключено
   INVESTMENT_CONTROL = 'INVESTMENT_CONTROL', // Контроль инвестиционной, закупочной и договорной деятельности
   AFFILIATION = 'AFFILIATION', // Работа по выявлению признаков аффилированности
   CITIZEN_APPEALS = 'CITIZEN_APPEALS', // Работа с обращениями граждан
@@ -45,5 +48,10 @@ export enum EventCategorySecurityEnum {
   INTRUSION = 'INTRUSION', // Проникновение на объект
   ATTACK = 'ATTACK', // Нападение на объект/сотрудников
   INVESTIGATIONS = 'INVESTIGATIONS', // Проведено проверок и СР
+}
+
+// Категории событий для КБ
+export enum EventCategoryCyberEnum {
+  CYBER_LAW_ENFORCEMENT = 'CYBER_LAW_ENFORCEMENT', // Взаимодействие с правоохранительными органами
 }
 

@@ -41,7 +41,7 @@ export const usePrepareTableData = (data: ITable<EventWithRelations>) => {
     });
   };
 
-  const columnsData = data?.columns?.map((column) => {
+  const columnsData = (data?.columns || [])?.map((column) => {
     if (column.dataIndex === "direction") {
       return {
         ...column,
@@ -51,6 +51,9 @@ export const usePrepareTableData = (data: ITable<EventWithRelations>) => {
             if (direction === 'INFORMATION') return 'blue';
             if (direction === 'ECONOMIC') return 'green';
             if (direction === 'SECURITY') return 'orange';
+            if (direction === 'CYBER') return 'purple';
+            if (direction === 'ANTIFRAUD') return 'red';
+            if (direction === 'SORM') return 'cyan';
             return 'default';
           };
 
@@ -77,20 +80,26 @@ export const usePrepareTableData = (data: ITable<EventWithRelations>) => {
       return {
         ...column,
         render: (value: any, record: any) => {
-          return (
-            <Tag
-              color="purple"
-              className={classes.tag}
-              style={{
-                borderRadius: '6px',
-                fontWeight: '500',
-                border: 'none',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-              }}
-            >
-              {getCategoryLabel(record.category)}
-            </Tag>
-          );
+          try {
+            const categoryLabel = getCategoryLabel(record?.category || '');
+            return (
+              <Tag
+                color="purple"
+                className={classes.tag}
+                style={{
+                  borderRadius: '6px',
+                  fontWeight: '500',
+                  border: 'none',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                }}
+              >
+                {categoryLabel}
+              </Tag>
+            );
+          } catch (error) {
+            console.error('Error rendering category:', error, record);
+            return <Tag color="default">Не указано</Tag>;
+          }
         },
       };
     }
@@ -182,9 +191,9 @@ export const usePrepareTableData = (data: ITable<EventWithRelations>) => {
     },
   ];
 
-  const dataSource = data?.dataSource?.map((item) => ({
+  const dataSource = (data?.dataSource || [])?.map((item) => ({
     ...item,
-    createdAt: dayjs(item.createdAt).format("DD.MM.YYYY HH:mm"),
+    createdAt: item.createdAt ? dayjs(item.createdAt).format("DD.MM.YYYY HH:mm") : '',
     department: item.department?.title,
     key: item.id + (item.createdAt?.toString() || ''),
   }));

@@ -3,6 +3,7 @@ import {
   EEventCategoryEconomic,
   EEventCategoryInformation,
   EEventCategorySecurity,
+  EEventCategoryCyber,
 } from "../../../../enums/event";
 import styles from "./CategoryFields.module.scss";
 
@@ -75,42 +76,42 @@ export const CategoryFields = () => {
     );
   }
 
-  // ЭБ - Взаимодействие с правоохранительными органами
-  if (category === EEventCategoryEconomic.LAW_ENFORCEMENT) {
-    return (
-      <Card className={styles.card} title="Взаимодействие с правоохранительными органами">
-        <div className={styles.formFields}>
-          <Row gutter={[24, 16]}>
-          <Col xs={24} sm={12} lg={8}>
-            <Form.Item label="Поступило входящих запросов ПОО" name="incoming_requests">
-              <InputNumber style={{ width: "100%" }} placeholder="0" />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12} lg={8}>
-            <Form.Item label="Исполнено запросов ПОО" name="executed_requests">
-              <InputNumber style={{ width: "100%" }} placeholder="0" />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12} lg={8}>
-            <Form.Item label="Исполнено заданий в запросах" name="executed_tasks">
-              <InputNumber style={{ width: "100%" }} placeholder="0" />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12} lg={8}>
-            <Form.Item label="Поступило представлений ПОО" name="received_presentations">
-              <InputNumber style={{ width: "100%" }} placeholder="0" />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12} lg={8}>
-            <Form.Item label="Исполнено представлений" name="executed_presentations">
-              <InputNumber style={{ width: "100%" }} placeholder="0" />
-            </Form.Item>
-          </Col>
-        </Row>
-        </div>
-      </Card>
-    );
-  }
+  // ЭБ - Взаимодействие с правоохранительными органами (временно отключено)
+  // if (category === EEventCategoryEconomic.LAW_ENFORCEMENT) {
+  //   return (
+  //     <Card className={styles.card} title="Взаимодействие с правоохранительными органами">
+  //       <div className={styles.formFields}>
+  //         <Row gutter={[24, 16]}>
+  //         <Col xs={24} sm={12} lg={8}>
+  //           <Form.Item label="Поступило входящих запросов ПОО" name="incoming_requests">
+  //             <InputNumber style={{ width: "100%" }} placeholder="0" />
+  //           </Form.Item>
+  //         </Col>
+  //         <Col xs={24} sm={12} lg={8}>
+  //           <Form.Item label="Исполнено запросов ПОО" name="executed_requests">
+  //             <InputNumber style={{ width: "100%" }} placeholder="0" />
+  //           </Form.Item>
+  //         </Col>
+  //         <Col xs={24} sm={12} lg={8}>
+  //           <Form.Item label="Исполнено заданий в запросах" name="executed_tasks">
+  //             <InputNumber style={{ width: "100%" }} placeholder="0" />
+  //           </Form.Item>
+  //         </Col>
+  //         <Col xs={24} sm={12} lg={8}>
+  //           <Form.Item label="Поступило представлений ПОО" name="received_presentations">
+  //             <InputNumber style={{ width: "100%" }} placeholder="0" />
+  //           </Form.Item>
+  //         </Col>
+  //         <Col xs={24} sm={12} lg={8}>
+  //           <Form.Item label="Исполнено представлений" name="executed_presentations">
+  //             <InputNumber style={{ width: "100%" }} placeholder="0" />
+  //           </Form.Item>
+  //         </Col>
+  //       </Row>
+  //       </div>
+  //     </Card>
+  //   );
+  // }
 
   // ЭБ - Контроль инвестиционной, закупочной деятельности (сокращенная версия)
   if (category === EEventCategoryEconomic.INVESTMENT_CONTROL) {
@@ -967,6 +968,43 @@ export const CategoryFields = () => {
             </Form.Item>
           </Col>
         </Row>
+      </Card>
+    );
+  }
+
+  // КБ - Взаимодействие с правоохранительными органами
+  if (category === EEventCategoryCyber.CYBER_LAW_ENFORCEMENT) {
+    return (
+      <Card className={styles.card} title="Взаимодействие с правоохранительными органами">
+        <div className={styles.formFields}>
+          <Row gutter={[24, 16]}>
+            <Col xs={24} sm={12} lg={8}>
+              <Form.Item label="Поступило входящих бумажных запросов ПОО на предоставление информации" name="cyber_incoming_paper_requests">
+                <InputNumber style={{ width: "100%" }} placeholder="0" />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} lg={8}>
+              <Form.Item label="Исполнено бумажных запросов ПОО на предоставление информации" name="cyber_executed_paper_requests">
+                <InputNumber style={{ width: "100%" }} placeholder="0" />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} lg={8}>
+              <Form.Item label="Исполнено заданий в бумажных запросах ПОО на предоставление информации" name="cyber_executed_paper_tasks">
+                <InputNumber style={{ width: "100%" }} placeholder="0" />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} lg={8}>
+              <Form.Item label="Поступило представлений правоохранительных органов, прокуратуры и суда" name="cyber_received_presentations">
+                <InputNumber style={{ width: "100%" }} placeholder="0" />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} lg={8}>
+              <Form.Item label="из них исполнено (подготовлен ответ)" name="cyber_executed_presentations">
+                <InputNumber style={{ width: "100%" }} placeholder="0" />
+              </Form.Item>
+            </Col>
+          </Row>
+        </div>
       </Card>
     );
   }

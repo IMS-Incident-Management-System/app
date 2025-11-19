@@ -32,6 +32,12 @@ export const IncidentView = () => {
         return "ЭБ";
       case EIncidentDirection.SECURITY:
         return "БПиО";
+      case EIncidentDirection.CYBER:
+        return "КБ";
+      case EIncidentDirection.ANTIFRAUD:
+        return "Антифрод";
+      case EIncidentDirection.SORM:
+        return "СОРМ";
       default:
         return direction;
     }
