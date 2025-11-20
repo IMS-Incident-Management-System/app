@@ -105,25 +105,25 @@ services:
       - POSTGRES_PORT=${BACKEND_POSTGRES_PORT}
       # - PGDATA=${BACKEND_POSTGRES_PGDATA}
     volumes:
-      - ims-db-data:/var/lib/postgresql/data
+      - ims-db-data:/var/lib/postgresql
     networks:
       - ims-base-network
 
-  ims-pgadmin:
-    image: dpage/pgadmin4
-    restart: unless-stopped
-    container_name: ims-pgadmin
-    environment:
-      - DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
-      - DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
-    ports:
-      - 8056:80
-    volumes:
-      - pgadmin-data:/var/lib/pgadmin
-    networks:
-      - ims-base-network
-    depends_on:
-      - ims-postgres
+  # ims-pgadmin:
+  #   image: dpage/pgadmin4
+  #   restart: unless-stopped
+  #   container_name: ims-pgadmin
+  #   environment:
+  #     - DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
+  #     - DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+  #   ports:
+  #     - 8056:80
+  #   volumes:
+  #     - pgadmin-data:/var/lib/pgadmin
+  #   networks:
+  #     - ims-base-network
+  #   depends_on:
+  #     - ims-postgres
 
 volumes:
   keycloak-db-data:

@@ -2,6 +2,7 @@ import { EIncidentDirection, EIncidentStatus } from "../../enums/incident";
 import { EventHistoryWithRelations } from "./eventHistory";
 import { ObjectAttributes } from "./object";
 import { AdditionallyAttributes } from "./additionally";
+import { AdditionallyPersonAttributes } from "./additionallyPerson";
 
 export type TIncidentFilter = Partial<{
   department_id: number;
@@ -35,7 +36,8 @@ export interface IncidentDepartmentAttributes {
 export interface IncidentWithRelations extends IncidentAttributes {
   department?: IncidentDepartmentAttributes;
   object?: ObjectAttributes;
-  object_type?: { title: string; object_type_id: number };
+  object_type?: { title: string; object_type_id: number }; // Для обратной совместимости
+  object_types?: Array<{ title: string; object_type_id: number }>; // Массив типов объектов
   events?: EventHistoryWithRelations[];
   additionally?: AdditionallyAttributes[];
   addresses?: IncidentAddressAttributes[];
@@ -103,7 +105,8 @@ export interface PunishmentAttributes {
 export interface CreateIncidentBody {
   department_id: number;
   direction: EIncidentDirection;
-  object_type_id?: number;
+  object_type_id?: number; // Оставляем для обратной совместимости
+  object_type_ids?: number[]; // Массив типов объектов для множественного выбора
   is_db: boolean;
   description?: string;
   source_last_name?: string;

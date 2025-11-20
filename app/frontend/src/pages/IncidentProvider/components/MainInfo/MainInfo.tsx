@@ -63,18 +63,21 @@ export const MainInfo = () => {
           </Col>
           <Col xs={24} sm={12} lg={8}>
             <Form.Item<CreateIncidentBody>
-              label="Тип объекта"
-              name="object_type_id"
+              label="Типы объектов"
+              name="object_type_ids"
             >
               <TreeSelect
                 showSearch
+                multiple
+                treeCheckable
                 dropdownStyle={{ maxHeight: 400, overflow: "auto" }}
-                placeholder="Выберите тип объекта"
+                placeholder="Выберите типы объектов"
                 allowClear
                 treeDefaultExpandAll
                 treeData={objectTypes?.treeData}
                 loading={isObjectTypesLoading}
                 className={styles.formInput}
+                maxTagCount="responsive"
               />
             </Form.Item>
           </Col>

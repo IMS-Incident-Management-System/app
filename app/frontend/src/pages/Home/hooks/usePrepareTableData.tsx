@@ -113,7 +113,53 @@ export const usePrepareTableData = (data: ITable<IncidentWithRelations>) => {
     if (column.dataIndex === "object_type") {
       return {
         ...column,
+        title: "Типы объектов",
         render: (value: any, record: any) => {
+          // Поддерживаем как новый формат (object_types), так и старый (object_type)
+          if (record.object_types && record.object_types.length > 0) {
+            return (
+              <div style={{ 
+                display: 'flex', 
+                flexWrap: 'wrap', 
+                gap: '6px',
+                maxWidth: '200px',
+                alignItems: 'flex-start'
+              }}>
+                {record.object_types.map((ot: any, index: number) => (
+                  <Tag
+                    key={ot.object_type_id || index}
+                    color="purple"
+                    className={classes.tag}
+                    style={{
+                      margin: '2px 0',
+                      fontSize: '12px',
+                      borderRadius: '6px',
+                      fontWeight: '500',
+                      border: 'none',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                    }}
+                  >
+                    {ot.title}
+                  </Tag>
+                ))}
+                {record.object_types.length > 3 && (
+                  <Tag
+                    color="default"
+                    style={{
+                      margin: '2px 0',
+                      fontSize: '11px',
+                      borderRadius: '6px',
+                      fontWeight: '500',
+                      border: '1px dashed #d9d9d9',
+                      background: '#fafafa'
+                    }}
+                  >
+                    +{record.object_types.length - 3} еще
+                  </Tag>
+                )}
+              </div>
+            );
+          }
           return (
             <Tag 
               color="purple" 

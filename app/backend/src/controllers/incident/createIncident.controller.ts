@@ -14,11 +14,13 @@ import { additionallyPersonService } from '../../services/additionallyPerson.ser
 import { criminalCaseService } from '../../services/criminalCase.service';
 import { punishmentService } from '../../services/punishment.service';
 import { sequelize } from '../../models/sequelize';
+import { IncidentObjectType } from '../../models';
 
 interface CreateIncidentBody {
   department_id: number;
   direction: SecurityDirectionEnum;
-  object_type_id?: number;
+  object_type_id?: number; // Для обратной совместимости
+  object_type_ids?: number[]; // Массив типов объектов для множественного выбора
   is_db: boolean;
   description?: string;
   source_last_name?: string;
@@ -98,11 +100,16 @@ export const createIncident = asyncErrorHandler(
 
     const result = await sequelize.transaction(async (transaction) => {
       // 1. Создаем инцидент
+      // Для обратной совместимости берем первый элемент из массива или object_type_id
+      const object_type_id = data.object_type_ids && data.object_type_ids.length > 0
+        ? data.object_type_ids[0]
+        : data.object_type_id;
+
       const incident = await incidentService.createIncident(
         {
           department_id: data.department_id,
           direction: data.direction,
-          object_type_id: data.object_type_id,
+          object_type_id: object_type_id,
           is_db: Boolean(data.is_db),
           description: data.description,
           source_last_name: data.source_last_name,
@@ -113,7 +120,29 @@ export const createIncident = asyncErrorHandler(
         { transaction }
       );
 
-      
+      // 1.1. Создаем связи many-to-many с типами объектов
+      if (data.object_type_ids && data.object_type_ids.length > 0) {
+        await Promise.all(
+          data.object_type_ids.map((object_type_id) =>
+            IncidentObjectType.create(
+              {
+                incident_id: incident.id,
+                object_type_id: object_type_id,
+              },
+              { transaction }
+            )
+          )
+        );
+      } else if (data.object_type_id) {
+        // Если передан старый формат, создаем одну связь
+        await IncidentObjectType.create(
+          {
+            incident_id: incident.id,
+            object_type_id: data.object_type_id,
+          },
+          { transaction }
+        );
+      }
 
       // 2. Создаем события для каждого типа события
       const events = await Promise.all(
@@ -182,17 +211,19 @@ export const createIncident = asyncErrorHandler(
 
           // Создаем уголовное дело (только одно)
           if (criminal_case) {
+            const { id: criminalCaseId, ...criminalCaseWithoutId } = criminal_case as any;
             await criminalCaseService.createCriminalCase(
-              { ...criminal_case, additionally_id: additionally.id },
+              { ...criminalCaseWithoutId, additionally_id: additionally.id },
               { transaction }
             );
           }
 
           // Создаем наказание
           if (punishment) {
+            const { id: punishmentId, ...punishmentWithoutId } = punishment as any;
             await punishmentService.createPunishment(
               {
-                ...punishment,
+                ...punishmentWithoutId,
                 additionally_id: additionally.id
               },
               { transaction }

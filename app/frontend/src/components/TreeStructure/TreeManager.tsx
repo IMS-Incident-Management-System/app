@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from 'react';
-import { Card, Modal, Form, Input, Select, InputNumber, Tabs } from 'antd';
+import { Modal, Form, Input, Select, InputNumber } from 'antd';
 import { useQuery } from 'react-query';
 import { TreeNode, TreeData, CreateNodeData, UpdateNodeData, TreeConfig, TreeMutations, TreeCustomization, FormConfig } from './types';
 import { axiosGatewayBackend } from '../../plugins/axios';
-import { EditOutlined, DeleteOutlined, PlusOutlined, ApartmentOutlined, UnorderedListOutlined, BarChartOutlined } from '@ant-design/icons';
+import { PlusOutlined, BarChartOutlined } from '@ant-design/icons';
 import styles from './TreeManager.module.scss';
 import { SpinComponent } from '../Spin/Spin';
 import { PageHeader } from '../PageHeader';
@@ -19,14 +19,6 @@ interface TreeManagerProps {
   customization?: TreeCustomization;
 }
 
-interface NodeCardProps {
-  node: TreeNode;
-  onEdit: (node: TreeNode) => void;
-  onAdd: (node: TreeNode) => void;
-  onDelete: (node: TreeNode) => void;
-  level: number;
-  idField: string;
-}
 
 const renderFormField = (field: FormConfig['fields'][0]) => {
   switch (field.type) {
@@ -50,78 +42,10 @@ const renderFormField = (field: FormConfig['fields'][0]) => {
   }
 };
 
-const NodeCard: React.FC<NodeCardProps> = ({
-  node,
-  onEdit,
-  onAdd,
-  onDelete,
-  level,
-  idField,
-}) => {
-  const hasChildren = node.children && node.children.length > 0;
-
-  return (
-    <Card
-      title={node.title}
-      className={`${styles.card} ${styles[`level${level}`]} ${hasChildren ? styles.hasChildren : ""}`}
-      styles={{
-        body: {
-          display: level > 0 && !hasChildren ? "none" : "block",
-        },
-      }}
-      extra={
-        <div className={styles.actions}>
-          <IconButton
-            icon={<PlusOutlined />}
-            onClick={(e) => {
-              e.stopPropagation();
-              onAdd(node);
-            }}
-            tooltip="Добавить дочерний элемент"
-          />
-          <IconButton
-            icon={<EditOutlined />}
-            onClick={(e) => {
-              e.stopPropagation();
-              onEdit(node);
-            }}
-            tooltip="Редактировать"
-          />
-          <IconButton
-            icon={<DeleteOutlined />}
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete(node);
-            }}
-            tooltip="Удалить"
-          />
-        </div>
-      }
-    >
-      {node.children && node.children.length > 0 && (
-        <div className={styles.children}>
-          {node.children.map((child) => (
-            <NodeCard
-              key={child[idField]}
-              node={child}
-              onEdit={onEdit}
-              onAdd={onAdd}
-              onDelete={onDelete}
-              level={level + 1}
-              idField={idField}
-            />
-          ))}
-        </div>
-      )}
-    </Card>
-  );
-};
-
 const TreeManager: React.FC<TreeManagerProps> = ({ config, mutations, customization = {} }) => {
   const [selectedNode, setSelectedNode] = useState<TreeNode | null>(null);
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
-  const [viewMode, setViewMode] = useState<'tree' | 'cards'>('tree');
   const [isStatsVisible, setIsStatsVisible] = useState(false);
   const [form] = Form.useForm();
 
@@ -341,54 +265,12 @@ const TreeManager: React.FC<TreeManagerProps> = ({ config, mutations, customizat
         </div>
       )}
 
-      <Tabs
-        activeKey={viewMode}
-        onChange={(key) => setViewMode(key as 'tree' | 'cards')}
-        className={styles.viewTabs}
-        items={[
-          {
-            key: 'tree',
-            label: (
-              <span className={styles.tabLabel}>
-                <ApartmentOutlined />
-                Граф дерева
-              </span>
-            ),
-            children: (
-              <TreeVisualization
-                data={treeData}
-                idField={config.idField}
-                onAdd={handleAdd}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-              />
-            ),
-          },
-          {
-            key: 'cards',
-            label: (
-              <span className={styles.tabLabel}>
-                <UnorderedListOutlined />
-                Карточки
-              </span>
-            ),
-            children: (
-              <div className={styles.grid}>
-                {treeData.map((node) => (
-                  <NodeCard
-                    key={node[config.idField]}
-                    node={node}
-                    onEdit={handleEdit}
-                    onAdd={handleAdd}
-                    onDelete={handleDelete}
-                    level={0}
-                    idField={config.idField}
-                  />
-                ))}
-              </div>
-            ),
-          },
-        ]}
+      <TreeVisualization
+        data={treeData}
+        idField={config.idField}
+        onAdd={handleAdd}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
       />
 
       <Modal

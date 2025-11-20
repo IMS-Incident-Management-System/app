@@ -75,7 +75,11 @@ export class ExportService {
       ['Дата создания:', this.formatDateTime(incident.createdAt)],
       ['Подразделение:', incident.department?.title || 'Не указано'],
       ['Направление:', this.getDirectionText(incident.direction)],
-      ['Тип объекта:', incident.object_type_id ? `ID: ${incident.object_type_id}` : 'Не указан'],
+      ['Тип объекта:', 
+        incident.object_types && incident.object_types.length > 0
+          ? incident.object_types.map((ot) => ot.title).join(', ')
+          : incident.object_type?.title || (incident.object_type_id ? `ID: ${incident.object_type_id}` : 'Не указан')
+      ],
       ['Дело безопасности:', incident.is_db ? 'Да (1-ДБ)' : 'Нет']
     ];
 
@@ -286,6 +290,18 @@ export class ExportService {
               children: [
                 new TextRun({ text: "Направление: ", bold: true }),
                 new TextRun({ text: this.getDirectionText(incident.direction) }),
+              ],
+              spacing: { after: 200 },
+            }),
+
+            new Paragraph({
+              children: [
+                new TextRun({ text: "Типы объектов: ", bold: true }),
+                new TextRun({ 
+                  text: incident.object_types && incident.object_types.length > 0
+                    ? incident.object_types.map((ot) => ot.title).join(', ')
+                    : incident.object_type?.title || (incident.object_type_id ? `ID: ${incident.object_type_id}` : 'Не указан')
+                }),
               ],
               spacing: { after: 200 },
             }),

@@ -11,6 +11,7 @@ import AdditionallyPerson from './additionallyPerson';
 import CriminalCase from './criminalCase';
 import Punishment from './punishment';
 import Event from './event';
+import IncidentObjectType from './incidentObjectType';
 
 // EventHistory связи
 EventHistory.belongsTo(EventType, { 
@@ -34,6 +35,21 @@ Incident.belongsTo(Department, {
 Incident.belongsTo(ObjectType, { 
   foreignKey: 'object_type_id', 
   as: 'object_type'
+});
+
+// Связь many-to-many через промежуточную таблицу
+Incident.belongsToMany(ObjectType, {
+  through: IncidentObjectType,
+  foreignKey: 'incident_id',
+  otherKey: 'object_type_id',
+  as: 'object_types'
+});
+
+ObjectType.belongsToMany(Incident, {
+  through: IncidentObjectType,
+  foreignKey: 'object_type_id',
+  otherKey: 'incident_id',
+  as: 'incidents'
 });
 
 
@@ -144,5 +160,6 @@ export {
   CriminalCase,
   Punishment,
   Event,
+  IncidentObjectType,
   sequelize
 }; 

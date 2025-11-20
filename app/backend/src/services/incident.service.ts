@@ -9,6 +9,7 @@ import {
   AdditionallyPerson,
   CriminalCase,
   Punishment,
+  IncidentObjectType,
   sequelize
 } from '../models';
 import { SecurityDirectionEnum, IncidentCreationAttributes } from '../models/incident';
@@ -109,6 +110,10 @@ export const incidentService = {
           as: 'object_type'
         },
         {
+          model: ObjectType,
+          as: 'object_types'
+        },
+        {
           model: EventHistory,
           as: 'events',
           required: false,
@@ -137,6 +142,10 @@ export const incidentService = {
         {
           model: ObjectType,
           as: 'object_type'
+        },
+        {
+          model: ObjectType,
+          as: 'object_types'
         },
         {
           model: EventHistory,
@@ -206,6 +215,10 @@ export const incidentService = {
         {
           model: ObjectType,
           as: 'object_type'
+        },
+        {
+          model: ObjectType,
+          as: 'object_types'
         },
         {
           model: EventHistory,

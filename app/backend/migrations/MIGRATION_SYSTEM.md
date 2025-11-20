@@ -259,3 +259,7 @@ docker exec ims-postgres pg_dump -U admin -s ims > 001_initial_schema.sql
 - Исходный код системы: `src/utils/migrations.ts`
 - Скрипт управления: `src/scripts/migrate.ts`
 
+
+
+
+

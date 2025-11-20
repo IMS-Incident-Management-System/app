@@ -31,7 +31,10 @@ export const useForm = ({
     const processedData = {
       department_id: formValues.department_id,
       direction: formValues.direction,
-      object_type_id: formValues.object_type_id,
+      object_type_id: formValues.object_type_ids && formValues.object_type_ids.length > 0 
+        ? formValues.object_type_ids[0] // Для обратной совместимости берем первый элемент
+        : formValues.object_type_id,
+      object_type_ids: formValues.object_type_ids || [],
       is_db: formValues.is_db,
       description: formValues.description,
       source_last_name: formValues.source_last_name,
@@ -92,10 +95,18 @@ export const useForm = ({
 
   useEffect(() => {
     if (incident) {
+      // Определяем массив типов объектов: из object_types или из object_type (для обратной совместимости)
+      const object_type_ids = incident.object_types && incident.object_types.length > 0
+        ? incident.object_types.map((ot) => ot.object_type_id)
+        : incident.object_type_id
+        ? [incident.object_type_id]
+        : [];
+
       const formValues = {
         department_id: incident.department_id,
         direction: incident.direction,
         object_type_id: incident.object_type_id,
+        object_type_ids: object_type_ids,
         is_db: incident.is_db,
         description: incident.description,
         source_last_name: incident.source_last_name,

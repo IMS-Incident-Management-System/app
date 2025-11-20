@@ -104,8 +104,18 @@ export const IncidentView = () => {
               <Descriptions.Item label="Направление">
                 <Tag color="green">{getDirectionText(incident.direction)}</Tag>
               </Descriptions.Item>
-              <Descriptions.Item label="Тип объекта">
-                <Tag color="purple">{incident.object_type?.title || "Не указан"}</Tag>
+              <Descriptions.Item label="Типы объектов">
+                {incident.object_types && incident.object_types.length > 0 ? (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                    {incident.object_types.map((ot, index) => (
+                      <Tag key={ot.object_type_id || index} color="purple">
+                        {ot.title}
+                      </Tag>
+                    ))}
+                  </div>
+                ) : (
+                  <Tag color="purple">{incident.object_type?.title || "Не указан"}</Tag>
+                )}
               </Descriptions.Item>
               <Descriptions.Item label="Дело безопасности">
                 <Tag color={incident.is_db ? "red" : "default"}>

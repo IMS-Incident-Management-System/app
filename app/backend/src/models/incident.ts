@@ -31,7 +31,8 @@ export interface IncidentAttributes {
 
 export interface IncidentWithRelations extends IncidentAttributes {
   department?: DepartmentModelType;
-  object_type?: any; // ObjectType
+  object_type?: any; // ObjectType (для обратной совместимости)
+  object_types?: any[]; // ObjectType[] (массив типов объектов)
   events?: EventHistoryWithRelations[];
   additionally?: AdditionallyAttributes[];
   addresses?: IncidentAddressAttributes[];
