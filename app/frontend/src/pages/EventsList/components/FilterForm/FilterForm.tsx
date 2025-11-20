@@ -56,11 +56,11 @@ export const FilterForm = ({
     <Card title="Фильтр" className={styles.filterForm}>
       <Form form={form} layout="vertical">
         <div className={styles.filterFormGroup}>
-          <Form.Item label="Департамент" name="department_id">
+          <Form.Item label="Подразделение" name="department_id">
             <TreeSelect
               showSearch
               dropdownStyle={{ maxHeight: 400, overflow: "auto" }}
-              placeholder="Выберите департамент"
+              placeholder="Выберите подразделение"
               allowClear
               treeDefaultExpandAll
               treeData={departments?.treeData}
@@ -92,18 +92,9 @@ export const FilterForm = ({
                 label: getCategoryLabel(category),
                 value: category,
               }))}
-              placeholder="Выберите категорию"
+              placeholder={categories.length === 0 && selectedDirection ? "Для этого направления нет категорий" : "Выберите категорию"}
               allowClear
-              disabled={!selectedDirection}
-              className={styles.formInput}
-            />
-          </Form.Item>
-
-          <Form.Item label="Создатель" name="created_by">
-            <Select
-              placeholder="Введите ID создателя"
-              allowClear
-              showSearch
+              disabled={!selectedDirection || categories.length === 0}
               className={styles.formInput}
             />
           </Form.Item>

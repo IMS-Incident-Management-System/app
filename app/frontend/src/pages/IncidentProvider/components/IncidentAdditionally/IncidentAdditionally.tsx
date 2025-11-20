@@ -73,31 +73,106 @@ export const IncidentAdditionally = () => {
                       <Row gutter={[24, 16]}>
                         <Col xs={24} sm={12}>
                           <Form.Item
-                            label="Дата происшествия"
-                            name={[field.name, "incident_date"]}
-                          >
-                            <DatePicker 
-                              style={{ width: "100%" }} 
-                              placeholder="Выберите дату"
-                              className={styles.formInput}
-                            />
-                          </Form.Item>
-                        </Col>
-                        
-                        <Col xs={24} sm={12}>
-                          <Form.Item
                             label="Дата внесения дополнения"
                             name={[field.name, "addition_date"]}
                             initialValue={dayjs()}
                           >
                             <DatePicker 
                               style={{ width: "100%" }} 
-                              placeholder="Дата внесения"
+                              disabled
+                              placeholder="Сегодняшняя дата"
                               className={styles.formInput}
                             />
                           </Form.Item>
                         </Col>
                       </Row>
+                    </Card>
+
+                    {/* ФИО фигуранта */}
+                    <Card className={styles.subSectionCard} title="ФИО фигуранта">
+                      <Form.List name={[field.name, "persons"]}>
+                        {(personFields, { add: addPerson, remove: removePerson }) => (
+                          <>
+                            {personFields.map((personField) => (
+                              <Card
+                                key={personField.key}
+                                className={styles.listCard}
+                                size="small"
+                                title={`Фигурант ${personField.name + 1}`}
+                                extra={
+                                  <Button
+                                    type="text"
+                                    danger
+                                    icon={<DeleteOutlined />}
+                                    onClick={() => removePerson(personField.name)}
+                                  >
+                                    Удалить
+                                  </Button>
+                                }
+                              >
+                                <Row gutter={[16, 16]}>
+                                  <Col xs={24} sm={12} lg={6}>
+                                    <Form.Item
+                                      {...personField}
+                                      label="Фамилия"
+                                      name={[personField.name, "last_name"]}
+                                    >
+                                      <Input placeholder="Введите фамилию" />
+                                    </Form.Item>
+                                  </Col>
+                                  <Col xs={24} sm={12} lg={6}>
+                                    <Form.Item
+                                      {...personField}
+                                      label="Имя"
+                                      name={[personField.name, "first_name"]}
+                                    >
+                                      <Input placeholder="Введите имя" />
+                                    </Form.Item>
+                                  </Col>
+                                  <Col xs={24} sm={12} lg={6}>
+                                    <Form.Item
+                                      {...personField}
+                                      label="Отчество"
+                                      name={[personField.name, "middle_name"]}
+                                    >
+                                      <Input placeholder="Введите отчество" />
+                                    </Form.Item>
+                                  </Col>
+                                  <Col xs={24} sm={12} lg={6}>
+                                    <Form.Item
+                                      {...personField}
+                                      label="Дата рождения"
+                                      name={[personField.name, "birth_date"]}
+                                    >
+                                      <DatePicker 
+                                        style={{ width: "100%" }} 
+                                        placeholder="Выберите дату рождения"
+                                      />
+                                    </Form.Item>
+                                  </Col>
+                                  <Col xs={24} sm={12} lg={6}>
+                                    <Form.Item
+                                      {...personField}
+                                      label="Табельный номер"
+                                      name={[personField.name, "employee_number"]}
+                                    >
+                                      <Input placeholder="Введите табельный номер" />
+                                    </Form.Item>
+                                  </Col>
+                                </Row>
+                              </Card>
+                            ))}
+                            <Button
+                              type="dashed"
+                              onClick={() => addPerson()}
+                              icon={<PlusOutlined />}
+                              style={{ width: "100%" }}
+                            >
+                              Добавить фигуранта
+                            </Button>
+                          </>
+                        )}
+                      </Form.List>
                     </Card>
 
                     {/* Дополнительная информация */}
@@ -164,6 +239,15 @@ export const IncidentAdditionally = () => {
                               <Input.TextArea rows={2} placeholder="Опишите результат" />
                             </Form.Item>
                           </Col>
+                          <Col xs={24}>
+                            <Form.Item
+                              label="Причина отказа"
+                              name={[field.name, "criminal_case", "rejection_reason"]}
+                              tooltip="Причина отказа в возбуждении УД/АД"
+                            >
+                              <Input.TextArea rows={2} placeholder="Укажите причину отказа" />
+                            </Form.Item>
+                          </Col>
                         </Row>
                         <Row gutter={[16, 16]}>
                           <Col xs={24} sm={12} lg={8}>
@@ -182,15 +266,6 @@ export const IncidentAdditionally = () => {
                               tooltip="Дата обжалования отказа"
                             >
                               <DatePicker style={{ width: "100%" }} placeholder="Выберите дату" />
-                            </Form.Item>
-                          </Col>
-                          <Col xs={24} sm={24} lg={8}>
-                            <Form.Item
-                              label="Причина отказа"
-                              name={[field.name, "criminal_case", "rejection_reason"]}
-                              tooltip="Причина отказа в возбуждении УД/АД"
-                            >
-                              <Input placeholder="Укажите причину" />
                             </Form.Item>
                           </Col>
                         </Row>

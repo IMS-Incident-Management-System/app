@@ -8,10 +8,10 @@ export const useCreateDepartment = () => {
   return useMutation(createDepartment, {
     onSuccess: () => {
       queryClient.invalidateQueries(["getAllDepartments"]);
-      message.success("Департамент успешно создан");
+      message.success("Подразделение успешно создано");
     },
     onError: () => {
-      message.error("Не удалось создать департамент");
+      message.error("Не удалось создать подразделение");
     },
   });
 };
@@ -25,10 +25,10 @@ export const useUpdateDepartment = () => {
     {
       onSuccess: () => {
         queryClient.invalidateQueries(["getAllDepartments"]);
-        message.success("Департамент успешно обновлен");
+        message.success("Подразделение успешно обновлено");
       },
       onError: () => {
-        message.error("Не удалось обновить департамент");
+        message.error("Не удалось обновить подразделение");
       },
     },
   );
@@ -40,10 +40,10 @@ export const useDeleteDepartment = () => {
   return useMutation(deleteDepartment, {
     onSuccess: () => {
       queryClient.invalidateQueries(["getAllDepartments"]);
-      message.success("Департамент успешно удален");
+      message.success("Подразделение успешно удалено");
     },
     onError: () => {
-      message.error("Не удалось удалить департамент");
+      message.error("Не удалось удалить подразделение");
     },
   });
 }; 

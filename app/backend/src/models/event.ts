@@ -6,12 +6,14 @@ import {
   EventCategoryEconomicEnum,
   EventCategoryInformationEnum,
   EventCategorySecurityEnum,
+  EventCategoryCyberEnum,
 } from '../enums/event';
 
 export type EventCategoryType =
   | EventCategoryEconomicEnum
   | EventCategoryInformationEnum
-  | EventCategorySecurityEnum;
+  | EventCategorySecurityEnum
+  | EventCategoryCyberEnum;
 
 export interface EventAttributes {
   id: number;
@@ -21,6 +23,7 @@ export interface EventAttributes {
   period_to: Date; // Период по
   direction: EventDirectionEnum; // Тип (ЭБ, ИБ, БПиО)
   category: EventCategoryType; // Категория
+  description?: string; // Описание события
 
   // ====== ЭБ - DEBT_RECOVERY (Работа по возмещению ДЗ и НДС) ======
   total_debt?: number;
@@ -205,6 +208,13 @@ export interface EventAttributes {
   // ====== БПиО - INVESTIGATIONS (Проведено проверок и СР) ======
   investigations_count?: number;
 
+  // ====== КБ - LAW_ENFORCEMENT (Взаимодействие с правоохранительными органами) ======
+  cyber_incoming_paper_requests?: number; // Поступило входящих бумажных запросов ПОО на предоставление информации
+  cyber_executed_paper_requests?: number; // Исполнено бумажных запросов ПОО на предоставление информации
+  cyber_executed_paper_tasks?: number; // Исполнено заданий в бумажных запросах ПОО на предоставление информации
+  cyber_received_presentations?: number; // Поступило представлений правоохранительных органов, прокуратуры и суда
+  cyber_executed_presentations?: number; // из них исполнено (подготовлен ответ)
+
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -263,6 +273,11 @@ const Event = sequelize.define<EventInstance>(
       type: DataTypes.STRING,
       allowNull: false,
       comment: 'Категория события',
+    },
+    description: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      comment: 'Описание события',
     },
 
     // ЭБ - DEBT_RECOVERY
@@ -447,6 +462,13 @@ const Event = sequelize.define<EventInstance>(
 
     // БПиО - INVESTIGATIONS
     investigations_count: { type: DataTypes.INTEGER, allowNull: true },
+
+    // КБ - LAW_ENFORCEMENT
+    cyber_incoming_paper_requests: { type: DataTypes.INTEGER, allowNull: true },
+    cyber_executed_paper_requests: { type: DataTypes.INTEGER, allowNull: true },
+    cyber_executed_paper_tasks: { type: DataTypes.INTEGER, allowNull: true },
+    cyber_received_presentations: { type: DataTypes.INTEGER, allowNull: true },
+    cyber_executed_presentations: { type: DataTypes.INTEGER, allowNull: true },
   },
   {
     timestamps: true,

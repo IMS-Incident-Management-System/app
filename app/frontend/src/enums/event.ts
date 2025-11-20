@@ -3,12 +3,15 @@ export enum EEventDirection {
   ECONOMIC = 'ECONOMIC', // ЭБ
   INFORMATION = 'INFORMATION', // ИБ
   SECURITY = 'SECURITY', // БПиО
+  CYBER = 'CYBER', // КБ
+  ANTIFRAUD = 'ANTIFRAUD', // Антифрод
+  SORM = 'SORM', // СОРМ
 }
 
 // Категории событий для ЭБ (Экономическая безопасность)
 export enum EEventCategoryEconomic {
   DEBT_RECOVERY = 'DEBT_RECOVERY', // Работа по возмещению ДЗ и НДС
-  LAW_ENFORCEMENT = 'LAW_ENFORCEMENT', // Взаимодействие с правоохранительными органами
+  // LAW_ENFORCEMENT = 'LAW_ENFORCEMENT', // Взаимодействие с правоохранительными органами - временно отключено
   INVESTMENT_CONTROL = 'INVESTMENT_CONTROL', // Контроль инвестиционной, закупочной и договорной деятельности
   AFFILIATION = 'AFFILIATION', // Работа по выявлению признаков аффилированности
   CITIZEN_APPEALS = 'CITIZEN_APPEALS', // Работа с обращениями граждан
@@ -47,23 +50,32 @@ export enum EEventCategorySecurity {
   INVESTIGATIONS = 'INVESTIGATIONS', // Проведено проверок и СР
 }
 
+// Категории событий для КБ (Кибербезопасность)
+export enum EEventCategoryCyber {
+  CYBER_LAW_ENFORCEMENT = 'CYBER_LAW_ENFORCEMENT', // Взаимодействие с правоохранительными органами
+}
+
 // Общий тип для всех категорий
 export type EEventCategory =
   | EEventCategoryEconomic
   | EEventCategoryInformation
-  | EEventCategorySecurity;
+  | EEventCategorySecurity
+  | EEventCategoryCyber;
 
 // Человекочитаемые названия направлений
 export const EventDirectionLabels: Record<EEventDirection, string> = {
-  [EEventDirection.ECONOMIC]: 'Экономическая безопасность (ЭБ)',
-  [EEventDirection.INFORMATION]: 'Информационная безопасность (ИБ)',
-  [EEventDirection.SECURITY]: 'Безопасность и охрана (БПиО)',
+  [EEventDirection.ECONOMIC]: 'ЭБ',
+  [EEventDirection.INFORMATION]: 'ИБ',
+  [EEventDirection.SECURITY]: 'БПиО',
+  [EEventDirection.CYBER]: 'КБ',
+  [EEventDirection.ANTIFRAUD]: 'Антифрод',
+  [EEventDirection.SORM]: 'СОРМ',
 };
 
 // Человекочитаемые названия категорий ЭБ
 export const EventCategoryEconomicLabels: Record<EEventCategoryEconomic, string> = {
   [EEventCategoryEconomic.DEBT_RECOVERY]: 'Работа по возмещению ДЗ и НДС',
-  [EEventCategoryEconomic.LAW_ENFORCEMENT]: 'Взаимодействие с правоохранительными органами',
+  // [EEventCategoryEconomic.LAW_ENFORCEMENT]: 'Взаимодействие с правоохранительными органами', // временно отключено
   [EEventCategoryEconomic.INVESTMENT_CONTROL]: 'Контроль инвестиционной, закупочной и договорной деятельности',
   [EEventCategoryEconomic.AFFILIATION]: 'Работа по выявлению признаков аффилированности',
   [EEventCategoryEconomic.CITIZEN_APPEALS]: 'Работа с обращениями граждан',
@@ -102,6 +114,11 @@ export const EventCategorySecurityLabels: Record<EEventCategorySecurity, string>
   [EEventCategorySecurity.INVESTIGATIONS]: 'Проведено проверок и СР',
 };
 
+// Человекочитаемые названия категорий КБ
+export const EventCategoryCyberLabels: Record<EEventCategoryCyber, string> = {
+  [EEventCategoryCyber.CYBER_LAW_ENFORCEMENT]: 'Взаимодействие с правоохранительными органами',
+};
+
 // Получить категории по направлению
 export const getCategoriesByDirection = (direction: EEventDirection): EEventCategory[] => {
   switch (direction) {
@@ -111,17 +128,26 @@ export const getCategoriesByDirection = (direction: EEventDirection): EEventCate
       return Object.values(EEventCategoryInformation);
     case EEventDirection.SECURITY:
       return Object.values(EEventCategorySecurity);
+    case EEventDirection.CYBER:
+      return Object.values(EEventCategoryCyber);
+    case EEventDirection.ANTIFRAUD:
+    case EEventDirection.SORM:
+      // Для новых направлений пока нет категорий
+      return [];
     default:
       return [];
   }
 };
 
 // Получить название категории
-export const getCategoryLabel = (category: EEventCategory): string => {
+export const getCategoryLabel = (category: string | EEventCategory): string => {
+  if (!category) return 'Не указано';
+  
   return (
     EventCategoryEconomicLabels[category as EEventCategoryEconomic] ||
     EventCategoryInformationLabels[category as EEventCategoryInformation] ||
     EventCategorySecurityLabels[category as EEventCategorySecurity] ||
+    EventCategoryCyberLabels[category as EEventCategoryCyber] ||
     category
   );
 };

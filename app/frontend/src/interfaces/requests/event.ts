@@ -22,6 +22,7 @@ export interface EventAttributes {
   period_to: string; // DATEONLY формат - период по
   direction: EEventDirection;
   category: EEventCategory;
+  description?: string; // Описание события
 
   // ====== ЭБ - DEBT_RECOVERY ======
   total_debt?: number;
@@ -205,6 +206,13 @@ export interface EventAttributes {
 
   // ====== БПиО - INVESTIGATIONS ======
   investigations_count?: number;
+
+  // ====== КБ - LAW_ENFORCEMENT ======
+  cyber_incoming_paper_requests?: number; // Поступило входящих бумажных запросов ПОО на предоставление информации
+  cyber_executed_paper_requests?: number; // Исполнено бумажных запросов ПОО на предоставление информации
+  cyber_executed_paper_tasks?: number; // Исполнено заданий в бумажных запросах ПОО на предоставление информации
+  cyber_received_presentations?: number; // Поступило представлений правоохранительных органов, прокуратуры и суда
+  cyber_executed_presentations?: number; // из них исполнено (подготовлен ответ)
 
   createdAt?: string;
   updatedAt?: string;

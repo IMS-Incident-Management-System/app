@@ -39,8 +39,8 @@ export const AddressForm = ({ name }: AddressFormProps) => {
                     </Form.Item>
                   </Col>
                   <Col xs={24} sm={6}>
-                    <Form.Item label="Номер" name={[field.name, "number"]}>
-                      <Input placeholder="Введите номер (необязательно)" />
+                    <Form.Item label="Квартира" name={[field.name, "apartment"]}>
+                      <Input placeholder="Введите квартиру (необязательно)" />
                     </Form.Item>
                   </Col>
                 </Row>

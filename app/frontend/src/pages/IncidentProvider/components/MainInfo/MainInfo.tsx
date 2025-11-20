@@ -24,16 +24,16 @@ export const MainInfo = () => {
         <Row gutter={[24, 16]}>
           <Col xs={24} sm={12} lg={8}>
             <Form.Item<CreateIncidentBody>
-              label="Департамент"
+              label="Подразделение"
               name="department_id"
               rules={[
-                { required: true, message: "Пожалуйста, выберите департамент" },
+                { required: true, message: "Пожалуйста, выберите подразделение" },
               ]}
             >
               <TreeSelect
                 showSearch
                 dropdownStyle={{ maxHeight: 400, overflow: "auto" }}
-                placeholder="Выберите департамент"
+                placeholder="Выберите подразделение"
                 allowClear
                 treeDefaultExpandAll
                 treeData={departments?.treeData}
@@ -197,6 +197,15 @@ export const MainInfo = () => {
                         <Input placeholder="Введите корпус" />
                       </Form.Item>
                     </Col>
+                    <Col xs={24} sm={12} lg={6}>
+                      <Form.Item
+                        {...restField}
+                        label="Квартира"
+                        name={[name, "apartment"]}
+                      >
+                        <Input placeholder="Введите квартиру" />
+                      </Form.Item>
+                    </Col>
                   </Row>
                 </Card>
               ))}
@@ -214,8 +223,8 @@ export const MainInfo = () => {
         </Form.List>
       </Card>
 
-      {/* Персональные данные */}
-      <Card className={styles.sectionCard} title="Персональные данные">
+      {/* ФИО */}
+      <Card className={styles.sectionCard} title="ФИО">
         <Form.List name="persons">
           {(fields, { add, remove }) => (
             <>

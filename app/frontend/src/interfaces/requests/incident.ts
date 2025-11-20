@@ -48,6 +48,7 @@ export interface IncidentAddressAttributes {
   street?: string;
   house?: string;
   building?: string;
+  apartment?: string;
 }
 
 export interface IncidentPersonAttributes {
@@ -119,7 +120,6 @@ export interface CreateIncidentBody {
   persons?: IncidentPersonAttributes[];
   additionally: Array<{
     id?: number; // ID записи (исключается при создании)
-    incident_date?: Date; // Дата происшествия
     addition_date?: Date; // Дата внесения дополнения к инциденту
     text_field?: string; // Текстовое поле
     detected_damage?: number; // Выявленный ущерб
@@ -127,6 +127,7 @@ export interface CreateIncidentBody {
     recovered_damage?: number; // Возмещенный ущерб
     criminal_case?: CriminalCaseAttributes;
     punishment?: PunishmentAttributes;
+    persons?: AdditionallyPersonAttributes[]; // ФИО фигурантов
   }>;
 }
 

@@ -25,7 +25,7 @@ interface ReferenceItem {
 const referencesData: ReferenceItem[] = [
   {
     id: 'departments',
-    title: 'Департаменты',
+    title: 'Подразделения',
     description: 'Организационная структура компании. Управление подразделениями и их иерархией.',
     icon: <PartitionOutlined />,
     route: ERoutes.DEPARTMENTS,

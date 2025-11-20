@@ -3,6 +3,7 @@ import {
   EEventCategoryEconomic,
   EEventCategoryInformation,
   EEventCategorySecurity,
+  EEventCategoryCyber,
 } from "../../../../enums/event";
 import styles from "./CategoryFields.module.scss";
 
@@ -27,7 +28,8 @@ export const CategoryFields = () => {
   if (category === EEventCategoryEconomic.DEBT_RECOVERY) {
     return (
       <Card className={styles.card} title="Работа по возмещению ДЗ и НДС">
-        <Row gutter={[16, 16]}>
+        <div className={styles.formFields}>
+          <Row gutter={[24, 16]}>
           <Col xs={24} sm={12} lg={8}>
             <Form.Item label="Общий размер ДЗ (руб.)" name="total_debt">
               <InputNumber style={{ width: "100%" }} placeholder="0.00" />
@@ -69,51 +71,54 @@ export const CategoryFields = () => {
             </Form.Item>
           </Col>
         </Row>
+        </div>
       </Card>
     );
   }
 
-  // ЭБ - Взаимодействие с правоохранительными органами
-  if (category === EEventCategoryEconomic.LAW_ENFORCEMENT) {
-    return (
-      <Card className={styles.card} title="Взаимодействие с правоохранительными органами">
-        <Row gutter={[16, 16]}>
-          <Col xs={24} sm={12} lg={8}>
-            <Form.Item label="Поступило входящих запросов ПОО" name="incoming_requests">
-              <InputNumber style={{ width: "100%" }} placeholder="0" />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12} lg={8}>
-            <Form.Item label="Исполнено запросов ПОО" name="executed_requests">
-              <InputNumber style={{ width: "100%" }} placeholder="0" />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12} lg={8}>
-            <Form.Item label="Исполнено заданий в запросах" name="executed_tasks">
-              <InputNumber style={{ width: "100%" }} placeholder="0" />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12} lg={8}>
-            <Form.Item label="Поступило представлений ПОО" name="received_presentations">
-              <InputNumber style={{ width: "100%" }} placeholder="0" />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12} lg={8}>
-            <Form.Item label="Исполнено представлений" name="executed_presentations">
-              <InputNumber style={{ width: "100%" }} placeholder="0" />
-            </Form.Item>
-          </Col>
-        </Row>
-      </Card>
-    );
-  }
+  // ЭБ - Взаимодействие с правоохранительными органами (временно отключено)
+  // if (category === EEventCategoryEconomic.LAW_ENFORCEMENT) {
+  //   return (
+  //     <Card className={styles.card} title="Взаимодействие с правоохранительными органами">
+  //       <div className={styles.formFields}>
+  //         <Row gutter={[24, 16]}>
+  //         <Col xs={24} sm={12} lg={8}>
+  //           <Form.Item label="Поступило входящих запросов ПОО" name="incoming_requests">
+  //             <InputNumber style={{ width: "100%" }} placeholder="0" />
+  //           </Form.Item>
+  //         </Col>
+  //         <Col xs={24} sm={12} lg={8}>
+  //           <Form.Item label="Исполнено запросов ПОО" name="executed_requests">
+  //             <InputNumber style={{ width: "100%" }} placeholder="0" />
+  //           </Form.Item>
+  //         </Col>
+  //         <Col xs={24} sm={12} lg={8}>
+  //           <Form.Item label="Исполнено заданий в запросах" name="executed_tasks">
+  //             <InputNumber style={{ width: "100%" }} placeholder="0" />
+  //           </Form.Item>
+  //         </Col>
+  //         <Col xs={24} sm={12} lg={8}>
+  //           <Form.Item label="Поступило представлений ПОО" name="received_presentations">
+  //             <InputNumber style={{ width: "100%" }} placeholder="0" />
+  //           </Form.Item>
+  //         </Col>
+  //         <Col xs={24} sm={12} lg={8}>
+  //           <Form.Item label="Исполнено представлений" name="executed_presentations">
+  //             <InputNumber style={{ width: "100%" }} placeholder="0" />
+  //           </Form.Item>
+  //         </Col>
+  //       </Row>
+  //       </div>
+  //     </Card>
+  //   );
+  // }
 
   // ЭБ - Контроль инвестиционной, закупочной деятельности (сокращенная версия)
   if (category === EEventCategoryEconomic.INVESTMENT_CONTROL) {
     return (
       <Card className={styles.card} title="Контроль инвестиционной, закупочной и договорной деятельности">
         <Divider orientation="left" plain>Проверка контрагентов</Divider>
-        <Row gutter={[16, 16]}>
+        <Row gutter={[24, 16]}>
           <Col xs={24} sm={12} lg={8}>
             <Form.Item label="Проверено юр./физ.лиц (новые)" name="checked_entities_new">
               <InputNumber style={{ width: "100%" }} placeholder="0" />
@@ -137,7 +142,7 @@ export const CategoryFields = () => {
         </Row>
 
         <Divider orientation="left" plain>Проверка договоров</Divider>
-        <Row gutter={[16, 16]}>
+        <Row gutter={[24, 16]}>
           <Col xs={24} sm={12} lg={8}>
             <Form.Item label="Проверено проектов договоров" name="checked_draft_contracts">
               <InputNumber style={{ width: "100%" }} placeholder="0" />
@@ -161,7 +166,7 @@ export const CategoryFields = () => {
         </Row>
 
         <Divider orientation="left" plain>Закупочная деятельность</Divider>
-        <Row gutter={[16, 16]}>
+        <Row gutter={[24, 16]}>
           <Col xs={24} sm={12} lg={8}>
             <Form.Item label="Бюджет закупок на год (руб.)" name="planned_budget">
               <InputNumber style={{ width: "100%" }} placeholder="0.00" />
@@ -201,7 +206,7 @@ export const CategoryFields = () => {
   if (category === EEventCategoryEconomic.AFFILIATION) {
     return (
       <Card className={styles.card} title="Работа по выявлению признаков аффилированности">
-        <Row gutter={[16, 16]}>
+        <Row gutter={[24, 16]}>
           <Col xs={24} sm={12} lg={8}>
             <Form.Item label="Проверено сотрудников" name="checked_employees">
               <InputNumber style={{ width: "100%" }} placeholder="0" />
@@ -236,7 +241,7 @@ export const CategoryFields = () => {
   if (category === EEventCategoryEconomic.CITIZEN_APPEALS) {
     return (
       <Card className={styles.card} title="Работа с обращениями граждан">
-        <Row gutter={[16, 16]}>
+        <Row gutter={[24, 16]}>
           <Col xs={24} sm={12} lg={8}>
             <Form.Item label="Всего обращений" name="total_appeals">
               <InputNumber style={{ width: "100%" }} placeholder="0" />
@@ -286,23 +291,25 @@ export const CategoryFields = () => {
   if (category === EEventCategoryInformation.INSPECTIONS) {
     return (
       <Card className={styles.card} title="Сведения об участии в проверочных мероприятиях">
-        <Row gutter={[16, 16]}>
-          <Col xs={24} sm={12} lg={8}>
-            <Form.Item label="Проверок по инцидентам ИБ" name="ib_incident_checks">
-              <InputNumber style={{ width: "100%" }} placeholder="0" />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12} lg={8}>
-            <Form.Item label="Плановых проверок ИБ" name="planned_ib_checks">
-              <InputNumber style={{ width: "100%" }} placeholder="0" />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12} lg={8}>
-            <Form.Item label="Несоответствий нормативам" name="non_compliances">
-              <InputNumber style={{ width: "100%" }} placeholder="0" />
-            </Form.Item>
-          </Col>
-        </Row>
+        <div className={styles.formFields}>
+          <Row gutter={[24, 16]}>
+            <Col xs={24} sm={12} lg={8}>
+              <Form.Item label="Проверок по инцидентам ИБ" name="ib_incident_checks">
+                <InputNumber style={{ width: "100%" }} placeholder="0" />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} lg={8}>
+              <Form.Item label="Плановых проверок ИБ" name="planned_ib_checks">
+                <InputNumber style={{ width: "100%" }} placeholder="0" />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} lg={8}>
+              <Form.Item label="Несоответствий нормативам" name="non_compliances">
+                <InputNumber style={{ width: "100%" }} placeholder="0" />
+              </Form.Item>
+            </Col>
+          </Row>
+        </div>
       </Card>
     );
   }
@@ -311,7 +318,7 @@ export const CategoryFields = () => {
   if (category === EEventCategoryInformation.VIOLATORS_MEASURES) {
     return (
       <Card className={styles.card} title="Меры, принятые к нарушителям">
-        <Row gutter={[16, 16]}>
+        <Row gutter={[24, 16]}>
           <Col xs={24} sm={12} lg={6}>
             <Form.Item label="Предупреждений" name="warnings">
               <InputNumber style={{ width: "100%" }} placeholder="0" />
@@ -341,7 +348,7 @@ export const CategoryFields = () => {
   if (category === EEventCategoryInformation.ACCESS_APPROVALS) {
     return (
       <Card className={styles.card} title="Количество согласованных доступов к информационным активам">
-        <Row gutter={[16, 16]}>
+        <Row gutter={[24, 16]}>
           <Col xs={24} sm={12}>
             <Form.Item label="Согласовано доступов" name="approved_accesses">
               <InputNumber style={{ width: "100%" }} placeholder="0" />
@@ -356,7 +363,7 @@ export const CategoryFields = () => {
   if (category === EEventCategoryInformation.MEMOS_PREPARED) {
     return (
       <Card className={styles.card} title="Подготовлено служебных записок руководству">
-        <Row gutter={[16, 16]}>
+        <Row gutter={[24, 16]}>
           <Col xs={24} sm={12}>
             <Form.Item label="Подготовлено служебных записок" name="memos_count">
               <InputNumber style={{ width: "100%" }} placeholder="0" />
@@ -371,7 +378,7 @@ export const CategoryFields = () => {
   if (category === EEventCategoryInformation.RISK_MINIMIZATION) {
     return (
       <Card className={styles.card} title="События и мероприятия, связанные с минимизацией рисков и угроз">
-        <Row gutter={[16, 16]}>
+        <Row gutter={[24, 16]}>
           <Col xs={24}>
             <Form.Item label="Описание проводимых работ" name="audit_description">
               <TextArea rows={4} placeholder="Описание работ по аудиту и контролю защищённости" />
@@ -396,7 +403,7 @@ export const CategoryFields = () => {
   if (category === EEventCategoryInformation.CT_KI_PROTECTION) {
     return (
       <Card className={styles.card} title="Реализация режима защиты КТ и КИ">
-        <Row gutter={[16, 16]}>
+        <Row gutter={[24, 16]}>
           <Col xs={24}>
             <Form.Item label="Описание проведенных работ" name="ct_ki_description">
               <TextArea rows={4} placeholder="Описание работ по защите КТ и КИ" />
@@ -421,7 +428,7 @@ export const CategoryFields = () => {
   if (category === EEventCategoryInformation.AWARENESS_RAISING) {
     return (
       <Card className={styles.card} title="Повышение осведомленности в области ИБ">
-        <Row gutter={[16, 16]}>
+        <Row gutter={[24, 16]}>
           <Col xs={24}>
             <Form.Item label="Описание проведенных работ" name="awareness_description">
               <TextArea rows={4} placeholder="Описание информирований сотрудников об ИБ" />
@@ -436,7 +443,7 @@ export const CategoryFields = () => {
   if (category === EEventCategoryInformation.ACCESS_CONTROL) {
     return (
       <Card className={styles.card} title="Контроль доступа к ИС и действий привилегированных пользователей">
-        <Row gutter={[16, 16]}>
+        <Row gutter={[24, 16]}>
           <Col xs={24}>
             <Form.Item label="Описание проведенных работ" name="access_control_description">
               <TextArea rows={4} placeholder="Описание контроля удаленного доступа к ИС" />
@@ -471,7 +478,7 @@ export const CategoryFields = () => {
   if (category === EEventCategoryInformation.INCIDENT_MONITORING) {
     return (
       <Card className={styles.card} title="Мониторинг инцидентов ИБ">
-        <Row gutter={[16, 16]}>
+        <Row gutter={[24, 16]}>
           <Col xs={24} sm={12} lg={8}>
             <Form.Item label="Обработано инцидентов ИБ" name="processed_incidents">
               <InputNumber style={{ width: "100%" }} placeholder="0" />
@@ -541,7 +548,7 @@ export const CategoryFields = () => {
   if (category === EEventCategoryInformation.FRAUD_PREVENTION) {
     return (
       <Card className={styles.card} title="Мероприятия по противодействию фроду">
-        <Row gutter={[16, 16]}>
+        <Row gutter={[24, 16]}>
           <Col xs={24} sm={12}>
             <Form.Item label="Выявлено инцидентов фрода" name="fraud_incidents">
               <InputNumber style={{ width: "100%" }} placeholder="0" />
@@ -561,7 +568,7 @@ export const CategoryFields = () => {
   if (category === EEventCategoryInformation.INFRASTRUCTURE_ANALYSIS) {
     return (
       <Card className={styles.card} title="Анализ изменений в информационной инфраструктуре">
-        <Row gutter={[16, 16]}>
+        <Row gutter={[24, 16]}>
           <Col xs={24} sm={12}>
             <Form.Item label="Обработано документов" name="analyzed_documents">
               <InputNumber style={{ width: "100%" }} placeholder="0" />
@@ -576,7 +583,7 @@ export const CategoryFields = () => {
   if (category === EEventCategoryInformation.RISK_ANALYSIS) {
     return (
       <Card className={styles.card} title="Анализ текущих рисков и угроз в сфере ИБ">
-        <Row gutter={[16, 16]}>
+        <Row gutter={[24, 16]}>
           <Col xs={24}>
             <Form.Item label="Описание работ по оценке рисков" name="risk_analysis_description">
               <TextArea rows={4} placeholder="Описание оценки, регистрации и нивелирования рисков" />
@@ -591,7 +598,7 @@ export const CategoryFields = () => {
   if (category === EEventCategoryInformation.PROJECT_ACTIVITIES) {
     return (
       <Card className={styles.card} title="Мероприятия по реализации проектной и нормотворческой деятельности">
-        <Row gutter={[16, 16]}>
+        <Row gutter={[24, 16]}>
           <Col xs={24}>
             <Form.Item label="Статус и описание проектных работ" name="project_status_description">
               <TextArea rows={4} placeholder="Статус обновления/внедрения систем ИБ" />
@@ -611,7 +618,7 @@ export const CategoryFields = () => {
   if (category === EEventCategoryInformation.SYSTEM_OPERATION) {
     return (
       <Card className={styles.card} title="Мероприятия по эксплуатации средств и систем ИБ">
-        <Row gutter={[16, 16]}>
+        <Row gutter={[24, 16]}>
           <Col xs={24}>
             <Form.Item label="Договоры на техподдержку" name="support_contracts">
               <TextArea rows={3} placeholder="Перечень и статус договоров" />
@@ -641,7 +648,7 @@ export const CategoryFields = () => {
   if (category === EEventCategoryInformation.OTHER_ACTIVITIES) {
     return (
       <Card className={styles.card} title="Прочая деятельность">
-        <Row gutter={[16, 16]}>
+        <Row gutter={[24, 16]}>
           <Col xs={24}>
             <Form.Item label="Описание прочей деятельности" name="other_activities_description">
               <TextArea rows={4} placeholder="Важные события, проверки регуляторов, аналитические записки и т.п." />
@@ -656,7 +663,7 @@ export const CategoryFields = () => {
   if (category === EEventCategorySecurity.STAFF_COUNT) {
     return (
       <Card className={styles.card} title="Штатное количество сотрудников безопасности">
-        <Row gutter={[16, 16]}>
+        <Row gutter={[24, 16]}>
           <Col xs={24} sm={12}>
             <Form.Item label="Количество сотрудников (включая филиалы и ДЗО)" name="staff_count">
               <InputNumber style={{ width: "100%" }} placeholder="0" />
@@ -671,7 +678,7 @@ export const CategoryFields = () => {
   if (category === EEventCategorySecurity.OBJECTS_COUNT) {
     return (
       <Card className={styles.card} title="Количество объектов">
-        <Row gutter={[16, 16]}>
+        <Row gutter={[24, 16]}>
           <Col xs={24} sm={12}>
             <Form.Item label="Под физической охраной" name="objects_physical_security">
               <InputNumber style={{ width: "100%" }} placeholder="0" />
@@ -691,7 +698,7 @@ export const CategoryFields = () => {
   if (category === EEventCategorySecurity.CAPEX_BUDGET) {
     return (
       <Card className={styles.card} title="Бюджет на усиление АТЗ объектов (CAPEX)">
-        <Row gutter={[16, 16]}>
+        <Row gutter={[24, 16]}>
           <Col xs={24} sm={12}>
             <Form.Item label="Выделенный бюджет на год (руб.)" name="capex_allocated">
               <InputNumber style={{ width: "100%" }} placeholder="0.00" />
@@ -711,7 +718,7 @@ export const CategoryFields = () => {
   if (category === EEventCategorySecurity.OPEX_BUDGET) {
     return (
       <Card className={styles.card} title="Бюджет на физ. охрану (OPEX)">
-        <Row gutter={[16, 16]}>
+        <Row gutter={[24, 16]}>
           <Col xs={24} sm={12}>
             <Form.Item label="Выделенный бюджет на год (руб.)" name="opex_allocated">
               <InputNumber style={{ width: "100%" }} placeholder="0.00" />
@@ -726,7 +733,7 @@ export const CategoryFields = () => {
   if (category === EEventCategorySecurity.ATZ_INSPECTIONS) {
     return (
       <Card className={styles.card} title="Проведено проверок состояния АТЗ объектов">
-        <Row gutter={[16, 16]}>
+        <Row gutter={[24, 16]}>
           <Col xs={24} sm={12}>
             <Form.Item label="Сотрудниками ПБ ДЗК/ДЗО" name="atz_checks_pb">
               <InputNumber style={{ width: "100%" }} placeholder="0" />
@@ -746,7 +753,7 @@ export const CategoryFields = () => {
   if (category === EEventCategorySecurity.ATU_ATT) {
     return (
       <Card className={styles.card} title="Проведено АТУ и АТТ на объектах">
-        <Row gutter={[16, 16]}>
+        <Row gutter={[24, 16]}>
           <Col xs={24} sm={12}>
             <Form.Item label="Сотрудниками ПБ" name="atu_att_pb">
               <InputNumber style={{ width: "100%" }} placeholder="0" />
@@ -766,7 +773,7 @@ export const CategoryFields = () => {
   if (category === EEventCategorySecurity.SECURITY_COMPANY) {
     return (
       <Card className={styles.card} title="Взаимодействие с ЧОП/ЧОО">
-        <Row gutter={[16, 16]}>
+        <Row gutter={[24, 16]}>
           <Col xs={24} sm={12}>
             <Form.Item label="Проведено проверок несения службы" name="chop_checks">
               <InputNumber style={{ width: "100%" }} placeholder="0" />
@@ -787,7 +794,7 @@ export const CategoryFields = () => {
     return (
       <Card className={styles.card} title="Проникновение на объект">
         <Divider orientation="left" plain>Случаи проникновения</Divider>
-        <Row gutter={[16, 16]}>
+        <Row gutter={[24, 16]}>
           <Col xs={24} sm={12} lg={8}>
             <Form.Item label="Всего случаев (попыток)" name="intrusion_total">
               <InputNumber style={{ width: "100%" }} placeholder="0" />
@@ -811,7 +818,7 @@ export const CategoryFields = () => {
         </Row>
 
         <Divider orientation="left" plain>Ущерб</Divider>
-        <Row gutter={[16, 16]}>
+        <Row gutter={[24, 16]}>
           <Col xs={24} sm={12} lg={8}>
             <Form.Item label="Установленный ущерб (руб.)" name="intrusion_damage">
               <InputNumber style={{ width: "100%" }} placeholder="0.00" />
@@ -830,7 +837,7 @@ export const CategoryFields = () => {
         </Row>
 
         <Divider orientation="left" plain>Меры</Divider>
-        <Row gutter={[16, 16]}>
+        <Row gutter={[24, 16]}>
           <Col xs={24} sm={12} lg={6}>
             <Form.Item label="Сотрудников причастных" name="intrusion_employees">
               <InputNumber style={{ width: "100%" }} placeholder="0" />
@@ -871,7 +878,7 @@ export const CategoryFields = () => {
     return (
       <Card className={styles.card} title="Нападение на объект/сотрудников (грабеж, разбой)">
         <Divider orientation="left" plain>Случаи нападения</Divider>
-        <Row gutter={[16, 16]}>
+        <Row gutter={[24, 16]}>
           <Col xs={24} sm={12} lg={8}>
             <Form.Item label="Всего случаев (попыток)" name="attack_total">
               <InputNumber style={{ width: "100%" }} placeholder="0" />
@@ -895,7 +902,7 @@ export const CategoryFields = () => {
         </Row>
 
         <Divider orientation="left" plain>Ущерб</Divider>
-        <Row gutter={[16, 16]}>
+        <Row gutter={[24, 16]}>
           <Col xs={24} sm={12} lg={8}>
             <Form.Item label="Установленный ущерб (руб.)" name="attack_damage">
               <InputNumber style={{ width: "100%" }} placeholder="0.00" />
@@ -914,7 +921,7 @@ export const CategoryFields = () => {
         </Row>
 
         <Divider orientation="left" plain>Меры</Divider>
-        <Row gutter={[16, 16]}>
+        <Row gutter={[24, 16]}>
           <Col xs={24} sm={12} lg={6}>
             <Form.Item label="Сотрудников причастных" name="attack_employees">
               <InputNumber style={{ width: "100%" }} placeholder="0" />
@@ -954,13 +961,50 @@ export const CategoryFields = () => {
   if (category === EEventCategorySecurity.INVESTIGATIONS) {
     return (
       <Card className={styles.card} title="Проведено проверок и СР">
-        <Row gutter={[16, 16]}>
+        <Row gutter={[24, 16]}>
           <Col xs={24} sm={12}>
             <Form.Item label="Количество проверок и СР" name="investigations_count">
               <InputNumber style={{ width: "100%" }} placeholder="0" />
             </Form.Item>
           </Col>
         </Row>
+      </Card>
+    );
+  }
+
+  // КБ - Взаимодействие с правоохранительными органами
+  if (category === EEventCategoryCyber.CYBER_LAW_ENFORCEMENT) {
+    return (
+      <Card className={styles.card} title="Взаимодействие с правоохранительными органами">
+        <div className={styles.formFields}>
+          <Row gutter={[24, 16]}>
+            <Col xs={24} sm={12} lg={8}>
+              <Form.Item label="Поступило входящих бумажных запросов ПОО на предоставление информации" name="cyber_incoming_paper_requests">
+                <InputNumber style={{ width: "100%" }} placeholder="0" />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} lg={8}>
+              <Form.Item label="Исполнено бумажных запросов ПОО на предоставление информации" name="cyber_executed_paper_requests">
+                <InputNumber style={{ width: "100%" }} placeholder="0" />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} lg={8}>
+              <Form.Item label="Исполнено заданий в бумажных запросах ПОО на предоставление информации" name="cyber_executed_paper_tasks">
+                <InputNumber style={{ width: "100%" }} placeholder="0" />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} lg={8}>
+              <Form.Item label="Поступило представлений правоохранительных органов, прокуратуры и суда" name="cyber_received_presentations">
+                <InputNumber style={{ width: "100%" }} placeholder="0" />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} lg={8}>
+              <Form.Item label="из них исполнено (подготовлен ответ)" name="cyber_executed_presentations">
+                <InputNumber style={{ width: "100%" }} placeholder="0" />
+              </Form.Item>
+            </Col>
+          </Row>
+        </div>
       </Card>
     );
   }

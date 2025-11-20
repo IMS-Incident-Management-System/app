@@ -14,6 +14,12 @@ export class ExportService {
         return "Экономическая безопасность (ЭБ)";
       case EIncidentDirection.SECURITY:
         return "Безопасность персонала и объектов (БПиО)";
+      case EIncidentDirection.CYBER:
+        return "Кибербезопасность (КБ)";
+      case EIncidentDirection.ANTIFRAUD:
+        return "Антифрод";
+      case EIncidentDirection.SORM:
+        return "СОРМ";
       default:
         return direction;
     }
@@ -119,7 +125,7 @@ export class ExportService {
       yPosition += 5;
 
       // Адрес
-      if (incident.events[0].city || incident.events[0].street || incident.events[0].house || incident.events[0].building) {
+      if (incident.events[0].city || incident.events[0].street || incident.events[0].house || incident.events[0].building || incident.events[0].apartment) {
         doc.setFont('helvetica', 'bold');
         doc.text('АДРЕС', margin, yPosition);
         yPosition += 10;
@@ -130,6 +136,7 @@ export class ExportService {
         if (incident.events[0].street) addressParts.push(`Улица: ${incident.events[0].street}`);
         if (incident.events[0].house) addressParts.push(`Дом: ${incident.events[0].house}`);
         if (incident.events[0].building) addressParts.push(`Корпус: ${incident.events[0].building}`);
+        if (incident.events[0].apartment) addressParts.push(`Квартира: ${incident.events[0].apartment}`);
 
         addressParts.forEach(part => {
           doc.text(part, margin, yPosition);
@@ -138,10 +145,10 @@ export class ExportService {
         yPosition += 5;
       }
 
-      // Персональные данные
+      // ФИО
       if (incident.events[0].last_name || incident.events[0].first_name || incident.events[0].middle_name || incident.events[0].employee_number) {
         doc.setFont('helvetica', 'bold');
-        doc.text('ПЕРСОНАЛЬНЫЕ ДАННЫЕ', margin, yPosition);
+        doc.text('ФИО', margin, yPosition);
         yPosition += 10;
 
         doc.setFont('helvetica', 'normal');
@@ -172,7 +179,6 @@ export class ExportService {
 
         doc.setFont('helvetica', 'normal');
         const additionInfo = [
-          ['Дата происшествия:', this.formatDate(addition.incident_date)],
           ['Дата внесения дополнения:', this.formatDate(addition.addition_date)],
           ['Описание:', addition.text_field || 'Не указано'],
           ['Выявленный ущерб:', this.formatCurrency(addition.detected_damage)],

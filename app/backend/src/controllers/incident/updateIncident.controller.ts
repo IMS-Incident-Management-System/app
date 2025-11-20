@@ -9,6 +9,7 @@ import { eventHistoryService } from '../../services/eventHistory.service';
 import { additionallyService } from '../../services/additionally.service';
 import { incidentAddressService } from '../../services/incidentAddress.service';
 import { incidentPersonService } from '../../services/incidentPerson.service';
+import { additionallyPersonService } from '../../services/additionallyPerson.service';
 import { criminalCaseService } from '../../services/criminalCase.service';
 import { punishmentService } from '../../services/punishment.service';
 import { sequelize } from '../../models';
@@ -35,6 +36,7 @@ interface UpdateIncidentBody {
     street?: string;
     house?: string;
     building?: string;
+    apartment?: string;
   }>;
   persons?: Array<{
     last_name?: string;
@@ -43,7 +45,6 @@ interface UpdateIncidentBody {
     employee_number?: string;
   }>;
   additionally: Array<{
-    incident_date?: Date; // Дата происшествия
     addition_date?: Date; // Дата внесения дополнения к инциденту
     text_field?: string; // Текстовое поле
     detected_damage?: number; // Выявленный ущерб
@@ -76,6 +77,13 @@ interface UpdateIncidentBody {
       reprimand?: number;
       dismissed_count?: number;
     };
+    persons?: Array<{
+      last_name?: string;
+      first_name?: string;
+      middle_name?: string;
+      birth_date?: Date;
+      employee_number?: string;
+    }>;
   }>
 }
 
@@ -161,13 +169,29 @@ export const updateIncident = asyncErrorHandler(
       
       if (data.additionally.length) {
         for (const additionallyData of data.additionally) {
-          const { criminal_case, punishment, ...additionallyDataWithout} = additionallyData;
+          const { criminal_case, punishment, persons, ...additionallyDataWithout} = additionallyData;
           
-          // Создаем дополнение
+          // Создаем дополнение (addition_date проставляется автоматически)
+          const { addition_date, ...additionallyDataWithoutDate } = additionallyDataWithout;
           const additionally = await additionallyService.createAdditionally(
-            { ...additionallyDataWithout, incident_id: Number(id) },
+            { 
+              ...additionallyDataWithoutDate, 
+              incident_id: Number(id),
+              addition_date: new Date() // Всегда проставляем текущую дату автоматически
+            },
             { transaction }
           );
+
+          // Создаем фигурантов дополнения
+          if (persons && persons.length > 0) {
+            await additionallyPersonService.createPersons(
+              persons.map((person) => ({
+                ...person,
+                additionally_id: additionally.id,
+              })),
+              { transaction }
+            );
+          }
 
           // Создаем уголовное дело (только одно)
           if (criminal_case) {

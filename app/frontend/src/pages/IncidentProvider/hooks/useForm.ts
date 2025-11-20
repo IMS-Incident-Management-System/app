@@ -56,8 +56,14 @@ export const useForm = ({
         const { id, ...additionallyWithoutId } = additionally;
         return {
           ...additionallyWithoutId,
-          incident_date: additionally.incident_date ? dayjs(additionally.incident_date).toDate() : undefined,
           addition_date: additionally.addition_date ? dayjs(additionally.addition_date).toDate() : undefined,
+          persons: additionally.persons?.map((person) => {
+            const { id, ...personWithoutId } = person;
+            return {
+              ...personWithoutId,
+              birth_date: person.birth_date ? dayjs(person.birth_date).toDate() : undefined,
+            };
+          }) ?? [],
           criminal_case: additionally.criminal_case ? {
             ...additionally.criminal_case,
             transfer_date: additionally.criminal_case.transfer_date ? dayjs(additionally.criminal_case.transfer_date).toDate() : undefined,
@@ -110,8 +116,11 @@ export const useForm = ({
         })) ?? [],
         additionally: incident.additionally?.map((additionally) => ({
           ...additionally,
-          incident_date: additionally.incident_date ? dayjs(additionally.incident_date) : undefined,
           addition_date: additionally.addition_date ? dayjs(additionally.addition_date) : undefined,
+          persons: additionally.persons?.map((person) => ({
+            ...person,
+            birth_date: person.birth_date ? dayjs(person.birth_date) : undefined,
+          })) ?? [],
           criminal_case: additionally.criminal_case ? {
             ...additionally.criminal_case,
             transfer_date: additionally.criminal_case.transfer_date ? dayjs(additionally.criminal_case.transfer_date) : undefined,

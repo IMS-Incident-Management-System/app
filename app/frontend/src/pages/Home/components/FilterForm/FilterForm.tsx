@@ -56,11 +56,11 @@ export const FilterForm = ({
     <Card title="Фильтр" className={styles.filterForm}>
       <Form form={form} layout="vertical">
         <div className={styles.filterFormGroup}>
-          <Form.Item label="Департамент" name="department_id">
+          <Form.Item label="Подразделение" name="department_id">
             <TreeSelect
               showSearch
               dropdownStyle={{ maxHeight: 400, overflow: "auto" }}
-              placeholder="Выберите департамент"
+              placeholder="Выберите подразделение"
               allowClear
               treeDefaultExpandAll
               treeData={departments?.treeData}

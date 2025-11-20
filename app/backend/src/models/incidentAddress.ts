@@ -8,6 +8,7 @@ export interface IncidentAddressAttributes {
   street?: string;
   house?: string;
   building?: string;
+  apartment?: string;
 }
 
 export interface IncidentAddressCreationAttributes extends Optional<IncidentAddressAttributes, 'id'> {}
@@ -50,6 +51,11 @@ const IncidentAddress = sequelize.define<IncidentAddressInstance>('incident_addr
     type: DataTypes.STRING,
     allowNull: true,
     comment: 'Корпус'
+  },
+  apartment: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'Квартира'
   },
 }, {
   tableName: 'incident_addresses',

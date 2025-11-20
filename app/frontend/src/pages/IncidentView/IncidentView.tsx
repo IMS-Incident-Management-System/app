@@ -32,6 +32,12 @@ export const IncidentView = () => {
         return "ЭБ";
       case EIncidentDirection.SECURITY:
         return "БПиО";
+      case EIncidentDirection.CYBER:
+        return "КБ";
+      case EIncidentDirection.ANTIFRAUD:
+        return "Антифрод";
+      case EIncidentDirection.SORM:
+        return "СОРМ";
       default:
         return direction;
     }
@@ -161,6 +167,11 @@ export const IncidentView = () => {
                         <Text strong>Корпус:</Text> {address.building}
                       </Col>
                     )}
+                    {address.apartment && (
+                      <Col xs={24} sm={12} lg={6}>
+                        <Text strong>Квартира:</Text> {address.apartment}
+                      </Col>
+                    )}
                   </Row>
                   {index < (incident.addresses?.length || 0) - 1 ? <Divider /> : null}
                 </div>
@@ -168,9 +179,9 @@ export const IncidentView = () => {
             </Card>
           )}
 
-          {/* Персональные данные */}
+          {/* ФИО */}
           {incident.persons && incident.persons?.length > 0 && (
-            <Card title="Персональные данные" className={styles.sectionCard}>
+            <Card title="ФИО" className={styles.sectionCard}>
               {incident.persons?.map((person, index) => (
                 <div key={person.id || index} className={styles.itemBlock}>
                   <Title level={5}>Персона {index + 1}</Title>
@@ -250,11 +261,6 @@ export const IncidentView = () => {
                   <div className={styles.subSection}>
                     <Title level={5}>Основные данные</Title>
                     <Descriptions column={2} size="middle">
-                      {addition.incident_date && (
-                        <Descriptions.Item label="Дата происшествия">
-                          {dayjs(addition.incident_date).format("DD.MM.YYYY")}
-                        </Descriptions.Item>
-                      )}
                       {addition.addition_date && (
                         <Descriptions.Item label="Дата внесения дополнения">
                           {dayjs(addition.addition_date).format("DD.MM.YYYY")}
@@ -262,6 +268,46 @@ export const IncidentView = () => {
                       )}
                     </Descriptions>
                   </div>
+
+                  {/* ФИО фигуранта */}
+                  {addition.persons && addition.persons.length > 0 && (
+                    <div className={styles.subSection}>
+                      <Title level={5}>ФИО фигуранта</Title>
+                      {addition.persons.map((person, personIndex) => (
+                        <div key={person.id || personIndex} className={styles.itemBlock}>
+                          <Title level={5}>Фигурант {personIndex + 1}</Title>
+                          <Descriptions column={2} size="middle">
+                            {person.last_name && (
+                              <Descriptions.Item label="Фамилия">
+                                {person.last_name}
+                              </Descriptions.Item>
+                            )}
+                            {person.first_name && (
+                              <Descriptions.Item label="Имя">
+                                {person.first_name}
+                              </Descriptions.Item>
+                            )}
+                            {person.middle_name && (
+                              <Descriptions.Item label="Отчество">
+                                {person.middle_name}
+                              </Descriptions.Item>
+                            )}
+                            {person.birth_date && (
+                              <Descriptions.Item label="Дата рождения">
+                                {dayjs(person.birth_date).format("DD.MM.YYYY")}
+                              </Descriptions.Item>
+                            )}
+                            {person.employee_number && (
+                              <Descriptions.Item label="Табельный номер">
+                                {person.employee_number}
+                              </Descriptions.Item>
+                            )}
+                          </Descriptions>
+                          {personIndex < (addition.persons?.length || 0) - 1 && <Divider />}
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
                   {/* Описание */}
                   {addition.text_field && (

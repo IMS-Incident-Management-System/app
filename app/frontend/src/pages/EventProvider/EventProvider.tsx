@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { Form, Card, Spin, Space, Typography } from "antd";
+import { Form, Card, Spin, Typography } from "antd";
 import { EyeOutlined, SaveOutlined } from "@ant-design/icons";
 import { MainInfo } from "./components/MainInfo/MainInfo";
 import { CategoryFields } from "./components/CategoryFields/CategoryFields";
@@ -56,30 +56,24 @@ export const EventProvider = () => {
     <div className={styles.container}>
       <Card className={styles.card}>
         <div className={styles.header}>
-          <Space direction="vertical" size="small" style={{ width: "100%" }}>
-            <Title level={2} className={styles.title}>
-              {id ? `Событие #${id}` : "Создание события"}
-            </Title>
-            <div className={styles.headerActions}>
-              <Space>
-                {id && (
-                  <PrimaryButton
-                    variant="secondary"
-                    icon={<EyeOutlined />}
-                    onClick={handleViewEvent}
-                    className={styles.viewButton}
-                  >
-                    Просмотр события
-                  </PrimaryButton>
-                )}
-              </Space>
-            </div>
-          </Space>
+          <Title level={2} className={styles.title}>
+            {id ? `Событие #${id}` : "Создание события"}
+          </Title>
+          <div className={styles.headerActions}>
+            {id && (
+              <PrimaryButton
+                variant="secondary"
+                icon={<EyeOutlined />}
+                onClick={handleViewEvent}
+                className={styles.viewButton}
+              >
+                Просмотр события
+              </PrimaryButton>
+            )}
+          </div>
         </div>
         
         <div className={styles.content}>
-          <Space direction="vertical" size="large" style={{ width: "100%" }}>
-
           <Form
             form={form}
             layout="vertical"
@@ -104,7 +98,6 @@ export const EventProvider = () => {
               </PrimaryButton>
             </div>
           </Form>
-          </Space>
         </div>
       </Card>
     </div>

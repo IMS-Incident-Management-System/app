@@ -3,6 +3,7 @@ import { sequelize } from './sequelize';
 import { IncidentAttributes } from './incident';
 import { CriminalCaseAttributes } from './criminalCase';
 import { PunishmentAttributes } from './punishment';
+import { AdditionallyPersonAttributes } from './additionallyPerson';
 
 export interface AdditionallyAttributes {
   id: number;
@@ -19,6 +20,7 @@ export interface AdditionallyWithRelations extends AdditionallyAttributes {
   incident?: IncidentAttributes;
   criminal_case?: CriminalCaseAttributes;
   punishment?: PunishmentAttributes;
+  persons?: AdditionallyPersonAttributes[];
 }
 
 export interface AdditionallyCreationAttributes extends Optional<AdditionallyAttributes, 'id'> {}
