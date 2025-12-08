@@ -3,7 +3,7 @@ import { TOperationalActivityFilter } from "../../../../interfaces/requests/oper
 import { Button, Card, Form, DatePicker, Select, TreeSelect } from "antd";
 import styles from "./FilterForm.module.scss";
 import dayjs from "dayjs";
-import { EOperationalActivityDirection, OperationalActivityDirectionLabels, getCategoriesByDirection, getCategoryLabel } from "../../../../enums/operationalActivity";
+import { EOperationalActivityDirection, OperationalActivityDirectionLabels } from "../../../../enums/operationalActivity";
 import { useGetDepartments } from "../../../../services/requests/departments/getDepartments";
 
 export const FilterForm = ({
@@ -16,9 +16,6 @@ export const FilterForm = ({
   const [form] = Form.useForm();
   const { data: departments, isLoading: isDepartmentsLoading } =
     useGetDepartments();
-  
-  const selectedDirection = Form.useWatch('direction', form);
-  const categories = selectedDirection ? getCategoriesByDirection(selectedDirection) : [];
 
   useEffect(() => {
     const formattedFilter = {
@@ -48,10 +45,6 @@ export const FilterForm = ({
     form.resetFields();
   };
 
-  const handleDirectionChange = () => {
-    form.setFieldValue('category', undefined);
-  };
-
   return (
     <Card title="Фильтр" className={styles.filterForm}>
       <Form form={form} layout="vertical">
@@ -79,22 +72,6 @@ export const FilterForm = ({
               )}
               placeholder="Выберите направление"
               allowClear
-              onChange={handleDirectionChange}
-              className={styles.formInput}
-            />
-          </Form.Item>
-        </div>
-
-        <div className={styles.filterFormGroup}>
-          <Form.Item label="Категория" name="category">
-            <Select
-              options={categories.map((category) => ({
-                label: getCategoryLabel(category),
-                value: category,
-              }))}
-              placeholder={categories.length === 0 && selectedDirection ? "Для этого направления нет категорий" : "Выберите категорию"}
-              allowClear
-              disabled={!selectedDirection || categories.length === 0}
               className={styles.formInput}
             />
           </Form.Item>

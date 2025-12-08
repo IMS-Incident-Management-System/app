@@ -13,7 +13,6 @@ export const getOperationalActivities = asyncErrorHandler(
     const filters =
       req.query.department_id ||
       req.query.direction ||
-      req.query.category ||
       req.query.period_from ||
       req.query.period_to ||
       req.query.created_by
@@ -22,7 +21,6 @@ export const getOperationalActivities = asyncErrorHandler(
               ? Number(req.query.department_id)
               : undefined,
             direction: req.query.direction as OperationalActivityDirectionEnum,
-            category: req.query.category as string,
             period_from: req.query.period_from
               ? new Date(req.query.period_from as string)
               : undefined,
@@ -58,11 +56,6 @@ export const getOperationalActivities = asyncErrorHandler(
         title: 'Направление',
         dataIndex: 'direction',
         key: 'direction',
-      },
-      {
-        title: 'Категория',
-        dataIndex: 'category',
-        key: 'category',
       },
       {
         title: 'Подразделение',

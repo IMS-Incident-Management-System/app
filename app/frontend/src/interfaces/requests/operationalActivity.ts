@@ -1,13 +1,11 @@
 import {
   EOperationalActivityDirection,
-  EOperationalActivityCategory,
 } from "../../enums/operationalActivity";
 
 // Фильтры для списка операционной деятельности
 export type TOperationalActivityFilter = Partial<{
   department_id: number;
   direction: EOperationalActivityDirection;
-  category: EOperationalActivityCategory;
   period_from: string;
   period_to: string;
   created_by: string;
@@ -21,7 +19,6 @@ export interface OperationalActivityAttributes {
   period_from: string; // DATEONLY формат - период с
   period_to: string; // DATEONLY формат - период по
   direction: EOperationalActivityDirection;
-  category: EOperationalActivityCategory;
   description?: string; // Описание операционной деятельности
 
   // ====== ЭБ - DEBT_RECOVERY ======

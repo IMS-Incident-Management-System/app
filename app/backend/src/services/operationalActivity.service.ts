@@ -11,7 +11,6 @@ interface UpdateOperationalActivityData extends Partial<Omit<OperationalActivity
 interface GetOperationalActivitiesFilters {
   department_id?: number;
   direction?: OperationalActivityDirectionEnum;
-  category?: string;
   period_from?: Date;
   period_to?: Date;
   created_by?: string;
@@ -29,9 +28,6 @@ export const operationalActivityService = {
     }
     if (filters?.direction) {
       where.direction = filters.direction;
-    }
-    if (filters?.category) {
-      where.category = filters.category;
     }
     if (filters?.created_by) {
       where.created_by = filters.created_by;

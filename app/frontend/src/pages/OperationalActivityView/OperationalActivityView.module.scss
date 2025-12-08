@@ -133,6 +133,14 @@
       font-weight: 600;
       background-color: #fafafa;
     }
+    
+    .ant-divider {
+      margin: 20px 0;
+      
+      &.ant-divider-with-text {
+        margin: 24px 0;
+      }
+    }
   }
 }
 
@@ -147,6 +155,82 @@
 
   .value {
     color: #595959;
+  }
+}
+
+.textFieldContainer {
+  margin-bottom: 20px;
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  border: none;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.textFieldLabel {
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.85);
+  margin-bottom: 8px;
+  font-size: 13px;
+  line-height: 1.4;
+  background-color: #fafafa;
+  padding: 8px 12px;
+  border-radius: 4px 4px 0 0;
+  border: 1px solid #f0f0f0;
+  border-bottom: none;
+}
+
+.textFieldValue {
+  color: rgba(0, 0, 0, 0.85);
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  word-break: break-word;
+  padding: 8px 12px;
+  background: #ffffff;
+  border-radius: 0 0 4px 4px;
+  border: 1px solid #f0f0f0;
+  border-top: none;
+  min-height: 50px;
+}
+
+.numberFieldsTable {
+  margin-bottom: 0;
+  
+  :global {
+    .ant-descriptions-item {
+      padding: 8px 12px;
+    }
+    
+    .ant-descriptions-item-label {
+      width: 75%;
+      min-width: 200px;
+      font-weight: 600;
+      background-color: #fafafa;
+      vertical-align: middle;
+      padding: 8px 12px;
+      font-size: 13px;
+      color: rgba(0, 0, 0, 0.85);
+    }
+    
+    .ant-descriptions-item-content {
+      width: 25%;
+      padding: 8px 12px;
+      font-size: 13px;
+      text-align: right;
+    }
+    
+    .ant-descriptions-row {
+      &:last-child {
+        .ant-descriptions-item {
+          border-bottom: 1px solid #f0f0f0;
+        }
+      }
+    }
   }
 }
 

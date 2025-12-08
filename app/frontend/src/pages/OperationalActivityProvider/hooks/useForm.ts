@@ -56,7 +56,6 @@ export const useForm = ({
             ? [dayjs(operationalActivity.period_from), dayjs(operationalActivity.period_to)]
             : undefined,
         direction: operationalActivity.direction,
-        category: operationalActivity.category,
         // Все остальные поля берем как есть
         ...Object.keys(operationalActivity).reduce((acc: any, key) => {
           if (

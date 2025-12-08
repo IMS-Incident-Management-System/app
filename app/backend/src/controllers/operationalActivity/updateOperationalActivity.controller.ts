@@ -6,14 +6,12 @@ import {
 import { CustomResponse } from '../../middlewares/responseHandler.middleware';
 import { operationalActivityService } from '../../services/operationalActivity.service';
 import { OperationalActivityDirectionEnum } from '../../enums/operationalActivity';
-import { OperationalActivityCategoryType } from '../../models/operationalActivity';
 
 interface UpdateOperationalActivityBody {
   department_id?: number;
   period_from?: Date;
   period_to?: Date;
   direction?: OperationalActivityDirectionEnum;
-  category?: OperationalActivityCategoryType;
   // Все остальные поля опциональны
   [key: string]: any;
 }

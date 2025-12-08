@@ -7,7 +7,7 @@ import { DeleteOutlined, EditOutlined, EyeOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { ERoutes } from "../../../enums/routes";
 import { useDeleteOperationalActivity } from "../../../services/requests/operationalActivities/deleteOperationalActivity";
-import { OperationalActivityDirectionLabels, getCategoryLabel } from "../../../enums/operationalActivity";
+import { OperationalActivityDirectionLabels } from "../../../enums/operationalActivity";
 import { IconButton } from "../../../components/IconButton";
 
 export const usePrepareTableData = (data: ITable<OperationalActivityWithRelations>) => {
@@ -76,34 +76,6 @@ export const usePrepareTableData = (data: ITable<OperationalActivityWithRelation
       };
     }
 
-    if (column.dataIndex === "category") {
-      return {
-        ...column,
-        render: (value: any, record: any) => {
-          try {
-            const categoryLabel = getCategoryLabel(record?.category || '');
-            return (
-              <Tag
-                color="purple"
-                className={classes.tag}
-                style={{
-                  borderRadius: '6px',
-                  fontWeight: '500',
-                  border: 'none',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-                }}
-              >
-                {categoryLabel}
-              </Tag>
-            );
-          } catch (error) {
-            console.error('Error rendering category:', error, record);
-            return <Tag color="default">Не указано</Tag>;
-          }
-        },
-      };
-    }
-
     if (column.dataIndex === "department") {
       return {
         ...column,
@@ -157,7 +129,7 @@ export const usePrepareTableData = (data: ITable<OperationalActivityWithRelation
     }
 
     return column;
-  }).filter(column => column.dataIndex !== 'created_by'); // Убираем столбец "Создал"
+  }).filter(column => column.dataIndex !== 'created_by' && column.dataIndex !== 'category'); // Убираем столбцы "Создал" и "Категория"
 
   const columnActions = [
     {

@@ -6,15 +6,13 @@ import {
 import { CustomResponse } from '../../middlewares/responseHandler.middleware';
 import { operationalActivityService } from '../../services/operationalActivity.service';
 import { OperationalActivityDirectionEnum } from '../../enums/operationalActivity';
-import { OperationalActivityCategoryType } from '../../models/operationalActivity';
 
 interface CreateOperationalActivityBody {
   department_id: number;
   period_from: Date;
   period_to: Date;
   direction: OperationalActivityDirectionEnum;
-  category: OperationalActivityCategoryType;
-  // Все остальные поля опциональны и зависят от категории
+  // Все остальные поля опциональны и зависят от направления
   [key: string]: any;
 }
 
@@ -23,8 +21,8 @@ export const createOperationalActivity = asyncErrorHandler(
     const data = req.body as CreateOperationalActivityBody;
     const user = (req as any).user; // Данные пользователя из middleware
 
-    if (!data.department_id || !data.period_from || !data.period_to || !data.direction || !data.category) {
-      throw ApiError.badRequest('Missing required fields: department_id, period_from, period_to, direction, category');
+    if (!data.department_id || !data.period_from || !data.period_to || !data.direction) {
+      throw ApiError.badRequest('Missing required fields: department_id, period_from, period_to, direction');
     }
 
     // Проверяем существование подразделения

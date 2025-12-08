@@ -3,8 +3,6 @@ import { useGetDepartments } from "../../../../services/requests/departments/get
 import {
   EOperationalActivityDirection,
   OperationalActivityDirectionLabels,
-  getCategoriesByDirection,
-  getCategoryLabel,
 } from "../../../../enums/operationalActivity";
 import styles from "./MainInfo.module.scss";
 import { CreateOperationalActivityBody } from "../../../../interfaces/requests/operationalActivity";
@@ -15,17 +13,6 @@ export const MainInfo = () => {
   const form = Form.useFormInstance();
   const { data: departments, isLoading: isDepartmentsLoading } =
     useGetDepartments();
-
-  const selectedDirection = Form.useWatch("direction", form);
-  const selectedCategory = Form.useWatch("category", form);
-  const categories = selectedDirection
-    ? getCategoriesByDirection(selectedDirection)
-    : [];
-
-  const handleDirectionChange = () => {
-    // Сбрасываем категорию при изменении направления
-    form.setFieldValue("category", undefined);
-  };
 
   return (
     <div className={styles.container}>
@@ -82,55 +69,11 @@ export const MainInfo = () => {
                   }))}
                   placeholder="Выберите направление"
                   allowClear
-                  onChange={handleDirectionChange}
-                  className={styles.formInput}
-                />
-              </Form.Item>
-            </Col>
-
-            <Col xs={24} sm={12} lg={6}>
-              <Form.Item<CreateOperationalActivityBody>
-                label="Категория"
-                name="category"
-                rules={[
-                  { 
-                    required: categories.length > 0, 
-                    message: categories.length === 0 && selectedDirection 
-                      ? "Для этого направления пока нет категорий" 
-                      : "Пожалуйста, выберите категорию" 
-                  },
-                ]}
-              >
-                <Select
-                  options={categories.map((category) => ({
-                    label: getCategoryLabel(category),
-                    value: category,
-                  }))}
-                  placeholder={categories.length === 0 && selectedDirection ? "Для этого направления нет категорий" : "Выберите категорию"}
-                  allowClear
-                  disabled={!selectedDirection || categories.length === 0}
                   className={styles.formInput}
                 />
               </Form.Item>
             </Col>
           </Row>
-          
-          {selectedCategory && (
-            <Row gutter={[24, 16]}>
-              <Col xs={24}>
-                <Form.Item<CreateOperationalActivityBody>
-                  label="Описание"
-                  name="description"
-                >
-                  <Input.TextArea
-                    rows={4}
-                    placeholder="Введите описание операционной деятельности"
-                    className={styles.formInput}
-                  />
-                </Form.Item>
-              </Col>
-            </Row>
-          )}
         </div>
       </Card>
     </div>

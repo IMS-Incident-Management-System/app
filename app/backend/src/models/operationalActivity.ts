@@ -3,17 +3,7 @@ import { sequelize } from './sequelize';
 import { DepartmentModelType } from './department';
 import {
   OperationalActivityDirectionEnum,
-  OperationalActivityCategoryEconomicEnum,
-  OperationalActivityCategoryInformationEnum,
-  OperationalActivityCategorySecurityEnum,
-  OperationalActivityCategoryCyberEnum,
 } from '../enums/operationalActivity';
-
-export type OperationalActivityCategoryType =
-  | OperationalActivityCategoryEconomicEnum
-  | OperationalActivityCategoryInformationEnum
-  | OperationalActivityCategorySecurityEnum
-  | OperationalActivityCategoryCyberEnum;
 
 export interface OperationalActivityAttributes {
   id: number;
@@ -22,7 +12,6 @@ export interface OperationalActivityAttributes {
   period_from: Date; // Период с
   period_to: Date; // Период по
   direction: OperationalActivityDirectionEnum; // Тип (ЭБ, ИБ, БПиО)
-  category: OperationalActivityCategoryType; // Категория
   description?: string; // Описание операционной деятельности
 
   // ====== ЭБ - DEBT_RECOVERY (Работа по возмещению ДЗ и НДС) ======
@@ -268,11 +257,6 @@ const OperationalActivity = sequelize.define<OperationalActivityInstance>(
         isIn: [Object.values(OperationalActivityDirectionEnum)],
       },
       comment: 'Направление безопасности (ЭБ/ИБ/БПиО)',
-    },
-    category: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      comment: 'Категория операционной деятельности',
     },
     description: {
       type: DataTypes.TEXT,
