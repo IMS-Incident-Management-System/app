@@ -1,7 +1,7 @@
 import { DataTypes, Model, Optional } from 'sequelize';
 import { sequelize } from './sequelize';
 import { DepartmentModelType } from './department';
-import { EventHistoryWithRelations } from './eventHistory';
+import { IncidentEventWithRelations } from './incidentEvent';
 import { AdditionallyAttributes } from './additionally';
 import { IncidentAddressAttributes } from './incidentAddress';
 import { IncidentPersonAttributes } from './incidentPerson';
@@ -33,7 +33,7 @@ export interface IncidentWithRelations extends IncidentAttributes {
   department?: DepartmentModelType;
   object_type?: any; // ObjectType (для обратной совместимости)
   object_types?: any[]; // ObjectType[] (массив типов объектов)
-  events?: EventHistoryWithRelations[];
+  events?: IncidentEventWithRelations[];
   additionally?: AdditionallyAttributes[];
   addresses?: IncidentAddressAttributes[];
   persons?: IncidentPersonAttributes[];

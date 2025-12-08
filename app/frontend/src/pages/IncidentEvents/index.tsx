@@ -3,15 +3,15 @@ import {
   TreeConfig,
 } from "../../components/TreeStructure/types";
 import {
-  useCreateEventType,
-  useUpdateEventType,
-  useDeleteEventType,
-} from "../../services/requests/eventTypes/mutations";
+  useCreateIncidentEventType,
+  useUpdateIncidentEventType,
+  useDeleteIncidentEventType,
+} from "../../services/requests/incidentEventTypes/mutations";
 
 export const EventTypes = () => {
-  const createMutation = useCreateEventType();
-  const updateMutation = useUpdateEventType();
-  const deleteMutation = useDeleteEventType();
+  const createMutation = useCreateIncidentEventType();
+  const updateMutation = useUpdateIncidentEventType();
+  const deleteMutation = useDeleteIncidentEventType();
 
   const treeConfig: TreeConfig = {
     title: 'Типы инцидентов',

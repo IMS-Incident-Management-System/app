@@ -2,7 +2,7 @@ import { Form, Select, TreeSelect, DatePicker, Input, Row, Col, Card, Divider, B
 import { PlusOutlined, MinusCircleOutlined } from "@ant-design/icons";
 import { useGetDepartments } from "../../../../services/requests/departments/getDepartments";
 import { useGetObjectTypes } from "../../../../services/requests/objectTypes/getObjectTypes";
-import { useGetEventTypes } from "../../../../services/requests/eventTypes/getEventTypes";
+import { useGetIncidentEventTypes } from "../../../../services/requests/incidentEventTypes/getIncidentEventTypes";
 import { SecurityDirectionEnum } from "../../../../enums/direction";
 import styles from "./MainInfo.module.scss";
 import { CreateIncidentBody } from "../../../../interfaces/requests/incident";
@@ -15,7 +15,7 @@ export const MainInfo = () => {
   const { data: objectTypes, isLoading: isObjectTypesLoading } =
     useGetObjectTypes();
   const { data: eventTypes, isLoading: isEventTypesLoading } =
-    useGetEventTypes();
+    useGetIncidentEventTypes();
 
   return (
     <div className={styles.container}>

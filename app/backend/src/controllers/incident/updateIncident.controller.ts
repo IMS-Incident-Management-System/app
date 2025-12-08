@@ -5,7 +5,7 @@ import {
 } from '../../middlewares/errorHandler.middleware';
 import { CustomResponse } from '../../middlewares/responseHandler.middleware';
 import { incidentService } from '../../services/incident.service';
-import { eventHistoryService } from '../../services/eventHistory.service';
+import { incidentEventService } from '../../services/incidentEvent.service';
 import { additionallyService } from '../../services/additionally.service';
 import { incidentAddressService } from '../../services/incidentAddress.service';
 import { incidentPersonService } from '../../services/incidentPerson.service';
@@ -157,13 +157,13 @@ export const updateIncident = asyncErrorHandler(
 
       // 2. Удаляем старые события и создаем новое
       // Удаляем все события для этого инцидента
-      const deletedEventsCount = await eventHistoryService.deleteEventsByIncidentId(Number(id), { transaction });
+      const deletedEventsCount = await incidentEventService.deleteIncidentEventsByIncidentId(Number(id), { transaction });
       console.log(`Deleted ${deletedEventsCount} old events for incident ${id}`);
       
       // Создаем события для каждого типа события
       const events = await Promise.all(
         data.event.event_type_ids.map((event_type_id) =>
-          eventHistoryService.createEvent(
+          incidentEventService.createIncidentEvent(
             {
               incident_id: Number(id),
               event_type_id: event_type_id,

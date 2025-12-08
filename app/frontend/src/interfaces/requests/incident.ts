@@ -1,5 +1,5 @@
 import { EIncidentDirection, EIncidentStatus } from "../../enums/incident";
-import { EventHistoryWithRelations } from "./eventHistory";
+import { IncidentEventWithRelations } from "./incidentEvent";
 import { ObjectAttributes } from "./object";
 import { AdditionallyAttributes } from "./additionally";
 import { AdditionallyPersonAttributes } from "./additionallyPerson";
@@ -38,7 +38,7 @@ export interface IncidentWithRelations extends IncidentAttributes {
   object?: ObjectAttributes;
   object_type?: { title: string; object_type_id: number }; // Для обратной совместимости
   object_types?: Array<{ title: string; object_type_id: number }>; // Массив типов объектов
-  events?: EventHistoryWithRelations[];
+  events?: IncidentEventWithRelations[];
   additionally?: AdditionallyAttributes[];
   addresses?: IncidentAddressAttributes[];
   persons?: IncidentPersonAttributes[];
@@ -136,6 +136,6 @@ export interface CreateIncidentBody {
 
 export interface CreateIncidentResponse {
   incident: IncidentAttributes;
-  events: EventHistoryWithRelations[];
+  events: IncidentEventWithRelations[];
   additionally: AdditionallyAttributes[];
 }

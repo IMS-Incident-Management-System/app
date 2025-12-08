@@ -3,8 +3,8 @@ import {
   Incident, 
   Department, 
   ObjectType,
-  EventHistory,
-  EventType,
+  IncidentEvent,
+  IncidentEventType,
   Additionally,
   AdditionallyPerson,
   CriminalCase,
@@ -80,7 +80,7 @@ export const incidentService = {
         eventWhere.event_type_id = filters.event_type_id;
       }
 
-      const events = await EventHistory.findAll({
+      const events = await IncidentEvent.findAll({
         where: eventWhere,
         attributes: ['incident_id'],
         group: ['incident_id']
@@ -114,11 +114,11 @@ export const incidentService = {
           as: 'object_types'
         },
         {
-          model: EventHistory,
+          model: IncidentEvent,
           as: 'events',
           required: false,
           include: [
-            { model: EventType, as: 'event_type' },
+            { model: IncidentEventType, as: 'event_type' },
           ]
         }
       ],
@@ -148,7 +148,7 @@ export const incidentService = {
           as: 'object_types'
         },
         {
-          model: EventHistory,
+          model: IncidentEvent,
           as: 'events',
           include: ['event_type']
         },
@@ -221,7 +221,7 @@ export const incidentService = {
           as: 'object_types'
         },
         {
-          model: EventHistory,
+          model: IncidentEvent,
           as: 'events',
           include: ['event_type']
         },
@@ -287,7 +287,7 @@ export const incidentService = {
       where,
       include: [
         {
-          model: EventHistory,
+          model: IncidentEvent,
           as: 'events',
           include: ['event_type']
         },

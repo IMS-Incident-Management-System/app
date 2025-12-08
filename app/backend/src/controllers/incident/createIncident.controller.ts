@@ -6,7 +6,7 @@ import {
 import { CustomResponse } from '../../middlewares/responseHandler.middleware';
 import { incidentService } from '../../services/incident.service';
 import { SecurityDirectionEnum } from '../../models/incident';
-import { eventHistoryService } from '../../services/eventHistory.service';
+import { incidentEventService } from '../../services/incidentEvent.service';
 import { additionallyService } from '../../services/additionally.service';
 import { incidentAddressService } from '../../services/incidentAddress.service';
 import { incidentPersonService } from '../../services/incidentPerson.service';
@@ -147,7 +147,7 @@ export const createIncident = asyncErrorHandler(
       // 2. Создаем события для каждого типа события
       const events = await Promise.all(
         data.event.event_type_ids.map((event_type_id) =>
-          eventHistoryService.createEvent(
+          incidentEventService.createIncidentEvent(
             {
               incident_id: incident.id,
               event_type_id: event_type_id,
