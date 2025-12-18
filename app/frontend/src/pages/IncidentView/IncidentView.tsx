@@ -258,6 +258,54 @@ export const IncidentView = () => {
             </Card>
           )}
 
+          {/* Финансовый ущерб инцидента */}
+          {(incident.detected_damage !== undefined || incident.recovered_damage !== undefined || incident.prevented_damage !== undefined || incident.additional_income !== undefined || incident.reduced_cost !== undefined) && (
+            <Card title="Финансовый ущерб" className={styles.sectionCard}>
+              <Row gutter={[16, 16]}>
+                {incident.detected_damage !== undefined && (
+                  <Col xs={24} sm={12} lg={8}>
+                    <div className={styles.field}>
+                      <div className={styles.fieldLabel}>Выявлен ущерб (руб.)</div>
+                      <div className={`${styles.fieldValue} ${styles.amountValue}`}>{incident.detected_damage ? `${incident.detected_damage.toLocaleString()} ₽` : "0 ₽"}</div>
+                    </div>
+                  </Col>
+                )}
+                {incident.recovered_damage !== undefined && (
+                  <Col xs={24} sm={12} lg={8}>
+                    <div className={styles.field}>
+                      <div className={styles.fieldLabel}>Возмещен ущерб (руб.)</div>
+                      <div className={`${styles.fieldValue} ${styles.amountValue}`}>{incident.recovered_damage ? `${incident.recovered_damage.toLocaleString()} ₽` : "0 ₽"}</div>
+                    </div>
+                  </Col>
+                )}
+                {incident.prevented_damage !== undefined && (
+                  <Col xs={24} sm={12} lg={8}>
+                    <div className={styles.field}>
+                      <div className={styles.fieldLabel}>Предотвращен ущерб (руб.)</div>
+                      <div className={`${styles.fieldValue} ${styles.amountValue}`}>{incident.prevented_damage ? `${incident.prevented_damage.toLocaleString()} ₽` : "0 ₽"}</div>
+                    </div>
+                  </Col>
+                )}
+                {incident.additional_income !== undefined && (
+                  <Col xs={24} sm={12} lg={8}>
+                    <div className={styles.field}>
+                      <div className={styles.fieldLabel}>Получен дополнительный доход (руб.)</div>
+                      <div className={`${styles.fieldValue} ${styles.amountValue}`}>{incident.additional_income ? `${incident.additional_income.toLocaleString()} ₽` : "0 ₽"}</div>
+                    </div>
+                  </Col>
+                )}
+                {incident.reduced_cost !== undefined && (
+                  <Col xs={24} sm={12} lg={8}>
+                    <div className={styles.field}>
+                      <div className={styles.fieldLabel}>Снижена стоимость товаров, работ и услуг на сумму (руб.)</div>
+                      <div className={`${styles.fieldValue} ${styles.amountValue}`}>{incident.reduced_cost ? `${incident.reduced_cost.toLocaleString()} ₽` : "0 ₽"}</div>
+                    </div>
+                  </Col>
+                )}
+              </Row>
+            </Card>
+          )}
+
           {/* Дополнительная информация */}
           {incident.additionally && incident.additionally?.length > 0 && (
             <Card title="Дополнительная информация" className={styles.sectionCard}>
@@ -571,31 +619,47 @@ export const IncidentView = () => {
                   )}
 
                   {/* Финансовый ущерб */}
-                  {(addition.detected_damage !== undefined || addition.prevented_damage !== undefined || addition.recovered_damage !== undefined) && (
+                  {(addition.detected_damage !== undefined || addition.recovered_damage !== undefined || addition.prevented_damage !== undefined || addition.additional_income !== undefined || addition.reduced_cost !== undefined) && (
                     <div className={styles.subSection}>
                       <Title level={5} className={styles.subSectionTitle}>Финансовый ущерб</Title>
                       <Row gutter={[16, 16]}>
                         {addition.detected_damage !== undefined && (
                           <Col xs={24} sm={12} lg={8}>
                             <div className={styles.field}>
-                              <div className={styles.fieldLabel}>Выявленный ущерб</div>
+                              <div className={styles.fieldLabel}>Выявлен ущерб (руб.)</div>
                               <div className={`${styles.fieldValue} ${styles.amountValue}`}>{addition.detected_damage ? `${addition.detected_damage.toLocaleString()} ₽` : "0 ₽"}</div>
-                            </div>
-                          </Col>
-                        )}
-                        {addition.prevented_damage !== undefined && (
-                          <Col xs={24} sm={12} lg={8}>
-                            <div className={styles.field}>
-                              <div className={styles.fieldLabel}>Предотвращенный ущерб</div>
-                              <div className={`${styles.fieldValue} ${styles.amountValue}`}>{addition.prevented_damage ? `${addition.prevented_damage.toLocaleString()} ₽` : "0 ₽"}</div>
                             </div>
                           </Col>
                         )}
                         {addition.recovered_damage !== undefined && (
                           <Col xs={24} sm={12} lg={8}>
                             <div className={styles.field}>
-                              <div className={styles.fieldLabel}>Возмещенный ущерб</div>
+                              <div className={styles.fieldLabel}>Возмещен ущерб (руб.)</div>
                               <div className={`${styles.fieldValue} ${styles.amountValue}`}>{addition.recovered_damage ? `${addition.recovered_damage.toLocaleString()} ₽` : "0 ₽"}</div>
+                            </div>
+                          </Col>
+                        )}
+                        {addition.prevented_damage !== undefined && (
+                          <Col xs={24} sm={12} lg={8}>
+                            <div className={styles.field}>
+                              <div className={styles.fieldLabel}>Предотвращен ущерб (руб.)</div>
+                              <div className={`${styles.fieldValue} ${styles.amountValue}`}>{addition.prevented_damage ? `${addition.prevented_damage.toLocaleString()} ₽` : "0 ₽"}</div>
+                            </div>
+                          </Col>
+                        )}
+                        {addition.additional_income !== undefined && (
+                          <Col xs={24} sm={12} lg={8}>
+                            <div className={styles.field}>
+                              <div className={styles.fieldLabel}>Получен дополнительный доход (руб.)</div>
+                              <div className={`${styles.fieldValue} ${styles.amountValue}`}>{addition.additional_income ? `${addition.additional_income.toLocaleString()} ₽` : "0 ₽"}</div>
+                            </div>
+                          </Col>
+                        )}
+                        {addition.reduced_cost !== undefined && (
+                          <Col xs={24} sm={12} lg={8}>
+                            <div className={styles.field}>
+                              <div className={styles.fieldLabel}>Снижена стоимость товаров, работ и услуг на сумму (руб.)</div>
+                              <div className={`${styles.fieldValue} ${styles.amountValue}`}>{addition.reduced_cost ? `${addition.reduced_cost.toLocaleString()} ₽` : "0 ₽"}</div>
                             </div>
                           </Col>
                         )}

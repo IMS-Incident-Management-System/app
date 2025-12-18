@@ -12,6 +12,7 @@ import CriminalCase from './criminalCase';
 import Punishment from './punishment';
 import OperationalActivity from './operationalActivity';
 import IncidentObjectType from './incidentObjectType';
+import IncidentAttachment from './incidentAttachment';
 
 // IncidentEvent связи
 IncidentEvent.belongsTo(IncidentEventType, { 
@@ -80,6 +81,17 @@ Incident.hasMany(IncidentPerson, {
   foreignKey: 'incident_id',
   as: 'persons',
   onDelete: 'CASCADE'
+});
+
+Incident.hasMany(IncidentAttachment, {
+  foreignKey: 'incident_id',
+  as: 'attachments',
+  onDelete: 'CASCADE'
+});
+
+IncidentAttachment.belongsTo(Incident, {
+  foreignKey: 'incident_id',
+  as: 'incident'
 });
 
 IncidentPerson.belongsTo(Incident, {
@@ -161,5 +173,6 @@ export {
   Punishment,
   OperationalActivity,
   IncidentObjectType,
+  IncidentAttachment,
   sequelize
 }; 

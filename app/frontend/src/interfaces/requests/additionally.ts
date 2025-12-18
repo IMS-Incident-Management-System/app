@@ -9,6 +9,8 @@ export interface AdditionallyAttributes {
   detected_damage?: number; // Выявленный ущерб
   prevented_damage?: number; // Предотвращенный ущерб
   recovered_damage?: number; // Возмещенный ущерб
+  additional_income?: number; // Получен дополнительный доход (руб.)
+  reduced_cost?: number; // Снижена стоимость товаров, работ и услуг на сумму (руб.)
   criminal_case?: CriminalCaseAttributes;
   punishment?: PunishmentAttributes;
   persons?: AdditionallyPersonAttributes[]; // ФИО фигурантов

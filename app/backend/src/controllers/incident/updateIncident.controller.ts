@@ -27,6 +27,11 @@ interface UpdateIncidentBody {
   source_first_name?: string;
   source_middle_name?: string;
   source_position?: string;
+  detected_damage?: number; // Выявлен ущерб (руб.)
+  recovered_damage?: number; // Возмещен ущерб (руб.)
+  prevented_damage?: number; // Предотвращен ущерб (руб.)
+  additional_income?: number; // Получен дополнительный доход (руб.)
+  reduced_cost?: number; // Снижена стоимость товаров, работ и услуг на сумму (руб.)
   event: {
     event_type_ids: number[];
     sub_type_id?: number;
@@ -52,6 +57,8 @@ interface UpdateIncidentBody {
     detected_damage?: number; // Выявленный ущерб
     prevented_damage?: number; // Предотвращенный ущерб
     recovered_damage?: number; // Возмещенный ущерб
+    additional_income?: number; // Получен дополнительный доход (руб.)
+    reduced_cost?: number; // Снижена стоимость товаров, работ и услуг на сумму (руб.)
     criminal_case?: {
       transfer_date?: Date;
       document_number?: string;
@@ -118,6 +125,11 @@ export const updateIncident = asyncErrorHandler(
           source_first_name: data.source_first_name,
           source_middle_name: data.source_middle_name,
           source_position: data.source_position,
+          detected_damage: data.detected_damage,
+          recovered_damage: data.recovered_damage,
+          prevented_damage: data.prevented_damage,
+          additional_income: data.additional_income,
+          reduced_cost: data.reduced_cost,
         },
         { transaction }
       );
