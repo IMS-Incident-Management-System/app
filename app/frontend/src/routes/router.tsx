@@ -14,6 +14,9 @@ import { OperationalActivitiesList } from "../pages/OperationalActivitiesList";
 import { OperationalActivityProvider } from "../pages/OperationalActivityProvider";
 import { OperationalActivityView } from "../pages/OperationalActivityView/OperationalActivityView";
 import { Dashboard } from "../pages/Dashboard/Dashboard";
+import { EventsList } from "../pages/EventsList/EventsList";
+import { EventProvider } from "../pages/EventProvider/EventProvider";
+import { EventView } from "../pages/EventView/EventView";
 
 export const router = createBrowserRouter([
   {
@@ -75,6 +78,22 @@ export const router = createBrowserRouter([
       {
         path: ERoutes.REFERENCES,
         element: <References />,
+      },
+      {
+        path: ERoutes.EVENTS_LIST,
+        element: <EventsList />,
+      },
+      {
+        path: ERoutes.EVENT_CREATE,
+        element: <EventProvider />,
+      },
+      {
+        path: ERoutes.EVENT_EDIT,
+        element: <EventProvider />,
+      },
+      {
+        path: ERoutes.EVENT_VIEW_ID,
+        element: <EventView />,
       },
     ],
   },

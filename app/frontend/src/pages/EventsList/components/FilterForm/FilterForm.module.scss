@@ -1,0 +1,29 @@
+.filterForm {
+  margin-top: 16px;
+}
+
+.filterFormGroup {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.formInput {
+  width: 100%;
+}
+
+.filterFormItem {
+  width: 100%;
+}
+
+.button {
+  margin-top: 16px;
+}
+
+.buttonGroup {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+

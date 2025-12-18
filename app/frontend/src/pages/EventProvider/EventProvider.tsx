@@ -1,0 +1,133 @@
+import { useParams, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import {
+  Form,
+  Card,
+  Tabs,
+  message,
+  Spin,
+  Typography,
+} from "antd";
+import { InfoCircleOutlined, EyeOutlined } from "@ant-design/icons";
+import { useGetEvent } from "../../services/requests/events/getEvent";
+import { useCreateEvent } from "../../services/requests/events/createEvent";
+import { CreateEventBody } from "../../interfaces/requests/event";
+import { useForm } from "./hooks/useForm";
+import styles from "./EventProvider.module.scss";
+import { useUpdateEvent } from "../../services/requests/events/updateEvent";
+import { ERoutes } from "../../enums/routes";
+import { PrimaryButton } from "../../components/PrimaryButton";
+import { MainInfo } from "./components/MainInfo/MainInfo";
+import { EventCriminalCase } from "./components/EventCriminalCase/EventCriminalCase";
+import { EventPunishment } from "./components/EventPunishment/EventPunishment";
+
+const { Title } = Typography;
+
+export const EventProvider = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("main");
+
+  const { data: event, isLoading: isEventLoading } = useGetEvent(id);
+  const { mutate: createEvent, isLoading: isCreatingEvent } =
+    useCreateEvent();
+  const { mutate: updateEvent, isLoading: isUpdatingEvent } =
+    useUpdateEvent();
+
+  const { form, onFinish } = useForm({
+    event,
+    createEvent,
+    updateEvent,
+  });
+
+  const handleSubmit = async () => {
+    try {
+      await form.validateFields();
+      form.submit();
+    } catch (error) {
+      message.error("Пожалуйста, заполните все обязательные поля");
+    }
+  };
+
+  const handleViewEvent = () => {
+    if (id) {
+      navigate(`${ERoutes.EVENT_VIEW}/${id}`);
+    }
+  };
+
+  const tabItems = [
+    {
+      key: "main",
+      label: (
+        <span className={styles.tabLabel}>
+          <InfoCircleOutlined />
+          Основная информация
+        </span>
+      ),
+      children: (
+        <div className={styles.tabContent}>
+          <MainInfo />
+          <EventCriminalCase />
+          <EventPunishment />
+          <div className={styles.tabActions}>
+            <PrimaryButton
+              size="large"
+              onClick={handleSubmit}
+              loading={isCreatingEvent || isUpdatingEvent}
+            >
+              {id ? "Сохранить изменения" : "Создать событие"}
+            </PrimaryButton>
+          </div>
+        </div>
+      ),
+    },
+  ];
+
+  return (
+    <div className={styles.container}>
+      <Card className={styles.mainCard}>
+        <div className={styles.header}>
+          {isEventLoading ? (
+            <Spin size="large" />
+          ) : (
+            <>
+              <div className={styles.headerTop}>
+                <Title level={2} className={styles.title}>
+                  {id ? `Событие #${event?.id}` : "Создание события"}
+                </Title>
+                {id && (
+                  <PrimaryButton
+                    variant="secondary"
+                    icon={<EyeOutlined />}
+                    onClick={handleViewEvent}
+                    className={styles.viewButton}
+                  >
+                    Просмотр события
+                  </PrimaryButton>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+        
+        <Form<CreateEventBody>
+          form={form}
+          layout="vertical"
+          onFinish={onFinish}
+          className={styles.form}
+        >
+          <div className={styles.tabsContainer}>
+            <Tabs
+              activeKey={activeTab}
+              onChange={setActiveTab}
+              items={tabItems}
+              className={styles.tabs}
+              size="large"
+            />
+          </div>
+        </Form>
+      </Card>
+    </div>
+  );
+};
+

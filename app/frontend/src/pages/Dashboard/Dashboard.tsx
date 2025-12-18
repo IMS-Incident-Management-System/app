@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   NotificationOutlined, 
   CalendarOutlined,
+  FileTextOutlined,
   RightOutlined
 } from '@ant-design/icons';
 import { ERoutes } from '../../enums/routes';
@@ -36,6 +37,14 @@ const dashboardData: DashboardItem[] = [
     icon: <CalendarOutlined />,
     route: ERoutes.OPERATIONAL_ACTIVITIES_LIST,
     color: '#52c41a'
+  },
+  {
+    id: 'events',
+    title: 'События',
+    description: 'Управление событиями. Регистрация служебных расследований, проверок, проверочных мероприятий. Учет ущерба и результатов работы.',
+    icon: <FileTextOutlined />,
+    route: ERoutes.EVENTS_LIST,
+    color: '#722ed1'
   }
 ];
 
