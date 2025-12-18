@@ -89,7 +89,7 @@ const Incident = sequelize.define<IncidentInstance>(
       type: DataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: false,
-      comment: 'Флаг "Дело безопасности" (ДБ). Указывает на особый статус инцидента, требующий специальной обработки'
+      comment: 'Флаг "Особо важно" (1ДБ). Указывает на особый статус инцидента, требующий специальной обработки'
     },
     description: {
       type: DataTypes.TEXT,

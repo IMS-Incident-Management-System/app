@@ -16,8 +16,9 @@ interface CreateEventData {
   is_service_check: boolean;
   is_service_check_ib: boolean;
   is_verification_activity: boolean;
-  quantity?: string;
+  is_db: boolean;
   description?: string;
+  entry_date?: Date;
   detected_damage?: number;
   recovered_damage?: number;
   prevented_damage?: number;
@@ -34,8 +35,9 @@ interface UpdateEventData {
   is_service_check: boolean;
   is_service_check_ib: boolean;
   is_verification_activity: boolean;
-  quantity?: string;
+  is_db: boolean;
   description?: string;
+  entry_date?: Date;
   detected_damage?: number;
   recovered_damage?: number;
   prevented_damage?: number;
@@ -138,8 +140,9 @@ export const eventService = {
       is_service_check: data.is_service_check,
       is_service_check_ib: data.is_service_check_ib,
       is_verification_activity: data.is_verification_activity,
-      quantity: data.quantity,
+      is_db: data.is_db,
       description: data.description,
+      entry_date: data.entry_date,
       detected_damage: data.detected_damage,
       recovered_damage: data.recovered_damage,
       prevented_damage: data.prevented_damage,

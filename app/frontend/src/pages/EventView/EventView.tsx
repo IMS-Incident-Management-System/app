@@ -84,31 +84,33 @@ export const EventView = () => {
               <Descriptions.Item label="Дата события">
                 {event.date ? dayjs(event.date).format("DD.MM.YYYY") : "-"}
               </Descriptions.Item>
-              <Descriptions.Item label="Служебные расследования">
-                <Tag color={event.is_service_investigation ? "green" : "default"}>
-                  {event.is_service_investigation ? "Да" : "Нет"}
-                </Tag>
-              </Descriptions.Item>
-              <Descriptions.Item label="Служебные проверки">
-                <Tag color={event.is_service_check ? "green" : "default"}>
-                  {event.is_service_check ? "Да" : "Нет"}
-                </Tag>
-              </Descriptions.Item>
-              <Descriptions.Item label="Служебные проверки по линии ИБ">
-                <Tag color={event.is_service_check_ib ? "green" : "default"}>
-                  {event.is_service_check_ib ? "Да" : "Нет"}
-                </Tag>
-              </Descriptions.Item>
-              <Descriptions.Item label="Проверочные мероприятия">
-                <Tag color={event.is_verification_activity ? "green" : "default"}>
-                  {event.is_verification_activity ? "Да" : "Нет"}
-                </Tag>
-              </Descriptions.Item>
-              {event.quantity && (
-                <Descriptions.Item label="Количество">
-                  {event.quantity}
+              {event.entry_date && (
+                <Descriptions.Item label="Дата внесения">
+                  {dayjs(event.entry_date).format("DD.MM.YYYY")}
                 </Descriptions.Item>
               )}
+              <Descriptions.Item label="Тип события">
+                {event.is_service_investigation && (
+                  <Tag color="green">Служебные расследования</Tag>
+                )}
+                {event.is_service_check && (
+                  <Tag color="green">Служебные проверки</Tag>
+                )}
+                {event.is_service_check_ib && (
+                  <Tag color="green">Служебные проверки по линии ИБ</Tag>
+                )}
+                {event.is_verification_activity && (
+                  <Tag color="green">Проверочные мероприятия</Tag>
+                )}
+                {!event.is_service_investigation && !event.is_service_check && !event.is_service_check_ib && !event.is_verification_activity && (
+                  <Tag color="default">Не указан</Tag>
+                )}
+              </Descriptions.Item>
+              <Descriptions.Item label="Особо важно">
+                <Tag color={event.is_db ? "red" : "default"}>
+                  {event.is_db ? "Да (1ДБ)" : "Нет"}
+                </Tag>
+              </Descriptions.Item>
             </Descriptions>
           </Card>
 

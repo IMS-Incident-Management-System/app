@@ -1,4 +1,4 @@
-import { Form, TreeSelect, DatePicker, Input, InputNumber, Checkbox, Row, Col, Card } from "antd";
+import { Form, TreeSelect, DatePicker, Input, InputNumber, Radio, Row, Col, Card } from "antd";
 import { useGetDepartments } from "../../../../services/requests/departments/getDepartments";
 import { CreateEventBody } from "../../../../interfaces/requests/event";
 import dayjs from "dayjs";
@@ -9,6 +9,22 @@ const { TextArea } = Input;
 export const MainInfo = () => {
   const { data: departments, isLoading: isDepartmentsLoading } =
     useGetDepartments();
+  const form = Form.useFormInstance();
+
+  const handleEventTypeChange = (e: any) => {
+    const value = e.target.value;
+    // Сбрасываем все boolean поля
+    form.setFieldsValue({
+      is_service_investigation: false,
+      is_service_check: false,
+      is_service_check_ib: false,
+      is_verification_activity: false,
+    });
+    // Устанавливаем выбранное поле в true
+    if (value) {
+      form.setFieldsValue({ [value]: true });
+    }
+  };
 
   return (
     <div className={styles.container}>
@@ -38,8 +54,8 @@ export const MainInfo = () => {
           <Col xs={24} sm={12} lg={8}>
             <Form.Item<CreateEventBody>
               name="date"
-              label="Дата"
-              rules={[{ required: true, message: "Выберите дату" }]}
+              label="Дата события"
+              rules={[{ required: true, message: "Выберите дату события" }]}
             >
               <DatePicker 
                 style={{ width: "100%" }} 
@@ -48,50 +64,35 @@ export const MainInfo = () => {
               />
             </Form.Item>
           </Col>
-        </Row>
-
-        <Row gutter={[24, 16]}>
-          <Col xs={24} sm={12} lg={6}>
-            <Form.Item<CreateEventBody>
-              name="is_service_investigation"
-              valuePropName="checked"
-            >
-              <Checkbox>Служебные расследования</Checkbox>
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12} lg={6}>
-            <Form.Item<CreateEventBody>
-              name="is_service_check"
-              valuePropName="checked"
-            >
-              <Checkbox>Служебные проверки</Checkbox>
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12} lg={6}>
-            <Form.Item<CreateEventBody>
-              name="is_service_check_ib"
-              valuePropName="checked"
-            >
-              <Checkbox>Служебные проверки по линии ИБ</Checkbox>
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12} lg={6}>
-            <Form.Item<CreateEventBody>
-              name="is_verification_activity"
-              valuePropName="checked"
-            >
-              <Checkbox>Проверочные мероприятия</Checkbox>
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Row gutter={[24, 16]}>
           <Col xs={24} sm={12} lg={8}>
             <Form.Item<CreateEventBody>
-              name="quantity"
-              label="Количество"
+              name="entry_date"
+              label="Дата внесения"
+              initialValue={dayjs()}
             >
-              <Input placeholder="Введите количество" className={styles.formInput} />
+              <DatePicker 
+                style={{ width: "100%" }} 
+                format="DD.MM.YYYY" 
+                disabled
+                className={styles.formInput}
+              />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={[24, 16]}>
+          <Col xs={24}>
+            <Form.Item<CreateEventBody>
+              name="event_type"
+              label="Тип события"
+              rules={[{ required: true, message: "Выберите тип события" }]}
+            >
+              <Radio.Group onChange={handleEventTypeChange}>
+                <Radio value="is_service_investigation">Служебные расследования</Radio>
+                <Radio value="is_service_check">Служебные проверки</Radio>
+                <Radio value="is_service_check_ib">Служебные проверки по линии ИБ</Radio>
+                <Radio value="is_verification_activity">Проверочные мероприятия</Radio>
+              </Radio.Group>
             </Form.Item>
           </Col>
         </Row>

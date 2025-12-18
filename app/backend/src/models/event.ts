@@ -12,9 +12,10 @@ export interface EventAttributes {
   is_service_check: boolean; // Служебные проверки
   is_service_check_ib: boolean; // Служебные проверки по линии ИБ
   is_verification_activity: boolean; // Проверочные мероприятия
+  is_db: boolean; // Особо важно (1ДБ)
   // Текстовые поля
-  quantity?: string; // Количество – текстовое поле
   description?: string; // Текстовое поле для описания События
+  entry_date?: Date; // Дата внесения события
   // Финансовые поля
   detected_damage?: number; // Выявлен ущерб (руб.)
   recovered_damage?: number; // Возмещен ущерб (руб.)
@@ -85,10 +86,16 @@ const Event = sequelize.define<EventInstance>(
       defaultValue: false,
       comment: 'Проверочные мероприятия',
     },
-    quantity: {
-      type: DataTypes.STRING,
+    is_db: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      comment: 'Флаг "Особо важно" (1ДБ). Указывает на особый статус события, требующий специальной обработки'
+    },
+    entry_date: {
+      type: DataTypes.DATE,
       allowNull: true,
-      comment: 'Количество – текстовое поле',
+      comment: 'Дата внесения события',
     },
     description: {
       type: DataTypes.TEXT,

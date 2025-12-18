@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Checkbox,
   Form,
@@ -40,6 +40,17 @@ export const IncidentProvider = () => {
     createIncident,
     updateIncident,
   });
+
+  const [isDbChecked, setIsDbChecked] = useState(false);
+
+  // Синхронизируем локальное состояние с формой
+  useEffect(() => {
+    const value = form.getFieldValue('is_db');
+    setIsDbChecked(value ?? false);
+  }, [form, incident]);
+
+  // Слушаем изменения в форме
+  Form.useWatch('is_db', form);
 
   const handleSubmit = async () => {
     try {
@@ -132,10 +143,17 @@ export const IncidentProvider = () => {
               <div className={styles.headerBottom}>
                 <Checkbox 
                   className={styles.dbCheckbox}
-                  checked={form.getFieldValue('is_db')}
-                  onChange={(e) => form.setFieldValue('is_db', e.target.checked)}
+                  checked={isDbChecked}
+                  disabled={!!id}
+                  onChange={(e) => {
+                    if (!id) {
+                      const newValue = e.target.checked;
+                      setIsDbChecked(newValue);
+                      form.setFieldValue('is_db', newValue);
+                    }
+                  }}
                 >
-                  <span className={styles.dbLabel}>Дело безопасности (1-ДБ)</span>
+                  <span className={styles.dbLabel}>Особо важно (1ДБ)</span>
                 </Checkbox>
               </div>
             </>
@@ -155,7 +173,6 @@ export const IncidentProvider = () => {
           >
             <input type="checkbox" />
           </Form.Item>
-          
           <div className={styles.tabsContainer}>
             <Tabs
               activeKey={activeTab}

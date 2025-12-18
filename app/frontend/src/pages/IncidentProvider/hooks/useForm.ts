@@ -156,8 +156,13 @@ export const useForm = ({
       };
 
       form.setFieldsValue(formValues);
+    } else {
+      // При создании нового инцидента устанавливаем значения по умолчанию
+      form.setFieldsValue({
+        is_db: false,
+      });
     }
-  }, [incident]);
+  }, [incident, form]);
 
   return { form, onFinish };
 };

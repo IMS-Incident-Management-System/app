@@ -26,6 +26,8 @@
   padding: 24px;
   margin-bottom: 0;
   border-radius: 16px 16px 0 0;
+  position: relative;
+  z-index: 1;
 }
 
 .headerTop {
@@ -47,6 +49,13 @@
 .headerBottom {
   display: flex;
   justify-content: flex-start;
+  position: relative;
+  z-index: 10;
+  pointer-events: auto;
+  
+  * {
+    pointer-events: auto !important;
+  }
 }
 
 .formItem {
@@ -54,10 +63,18 @@
 }
 
 .dbCheckbox {
+  cursor: pointer;
+  user-select: none;
+  
+  :global(.ant-checkbox) {
+    pointer-events: auto !important;
+  }
+  
   :global(.ant-checkbox-inner) {
     background: rgba(255, 255, 255, 0.2);
     border-color: rgba(255, 255, 255, 0.5);
     border-radius: 4px;
+    pointer-events: auto !important;
   }
 
   :global(.ant-checkbox-checked .ant-checkbox-inner) {
@@ -65,8 +82,13 @@
     border-color: #52c41a;
   }
 
-  :global(.ant-checkbox:hover .ant-checkbox-inner) {
+  :global(.ant-checkbox:hover:not(.ant-checkbox-disabled) .ant-checkbox-inner) {
     border-color: rgba(255, 255, 255, 0.8);
+  }
+  
+  :global(.ant-checkbox-disabled) {
+    cursor: not-allowed;
+    opacity: 0.6;
   }
 }
 

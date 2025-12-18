@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Form,
   Card,
@@ -7,6 +7,7 @@ import {
   message,
   Spin,
   Typography,
+  Checkbox,
 } from "antd";
 import { InfoCircleOutlined, EyeOutlined } from "@ant-design/icons";
 import { useGetEvent } from "../../services/requests/events/getEvent";
@@ -39,6 +40,17 @@ export const EventProvider = () => {
     createEvent,
     updateEvent,
   });
+
+  const [isDbChecked, setIsDbChecked] = useState(false);
+
+  // Синхронизируем локальное состояние с формой
+  useEffect(() => {
+    const value = form.getFieldValue('is_db');
+    setIsDbChecked(value ?? false);
+  }, [form, event]);
+
+  // Слушаем изменения в форме
+  Form.useWatch('is_db', form);
 
   const handleSubmit = async () => {
     try {
@@ -106,6 +118,22 @@ export const EventProvider = () => {
                   </PrimaryButton>
                 )}
               </div>
+              <div className={styles.headerBottom}>
+                <Checkbox 
+                  className={styles.dbCheckbox}
+                  checked={isDbChecked}
+                  disabled={!!id}
+                  onChange={(e) => {
+                    if (!id) {
+                      const newValue = e.target.checked;
+                      setIsDbChecked(newValue);
+                      form.setFieldValue('is_db', newValue);
+                    }
+                  }}
+                >
+                  <span className={styles.dbLabel}>Особо важно (1ДБ)</span>
+                </Checkbox>
+              </div>
             </>
           )}
         </div>
@@ -116,6 +144,13 @@ export const EventProvider = () => {
           onFinish={onFinish}
           className={styles.form}
         >
+          <Form.Item<CreateEventBody>
+            name="is_db"
+            valuePropName="checked"
+            style={{ display: 'none' }}
+          >
+            <input type="checkbox" />
+          </Form.Item>
           <div className={styles.tabsContainer}>
             <Tabs
               activeKey={activeTab}

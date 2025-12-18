@@ -25,14 +25,23 @@ export const useForm = ({
 
   useEffect(() => {
     if (event) {
+      // Определяем выбранный тип события для радиокнопок
+      let eventType = '';
+      if (event.is_service_investigation) eventType = 'is_service_investigation';
+      else if (event.is_service_check) eventType = 'is_service_check';
+      else if (event.is_service_check_ib) eventType = 'is_service_check_ib';
+      else if (event.is_verification_activity) eventType = 'is_verification_activity';
+
       form.setFieldsValue({
         department_id: event.department_id,
         date: event.date ? dayjs(event.date) : undefined,
+        entry_date: event.entry_date ? dayjs(event.entry_date) : dayjs(),
+        event_type: eventType,
         is_service_investigation: event.is_service_investigation,
         is_service_check: event.is_service_check,
         is_service_check_ib: event.is_service_check_ib,
         is_verification_activity: event.is_verification_activity,
-        quantity: event.quantity,
+        is_db: event.is_db,
         description: event.description,
         detected_damage: event.detected_damage,
         recovered_damage: event.recovered_damage,
@@ -57,6 +66,8 @@ export const useForm = ({
         is_service_check: false,
         is_service_check_ib: false,
         is_verification_activity: false,
+        is_db: false,
+        entry_date: dayjs(),
       });
     }
   }, [event, form]);
@@ -64,14 +75,22 @@ export const useForm = ({
   const onFinish = () => {
     const formValues: CreateEventBody = form.getFieldsValue(true);
 
+    // Преобразуем event_type из радиокнопок в boolean поля
+    const eventType = formValues.event_type || '';
+    const is_service_investigation = eventType === 'is_service_investigation';
+    const is_service_check = eventType === 'is_service_check';
+    const is_service_check_ib = eventType === 'is_service_check_ib';
+    const is_verification_activity = eventType === 'is_verification_activity';
+
     const processedData: CreateEventBody = {
       department_id: formValues.department_id,
       date: formValues.date ? dayjs(formValues.date).toDate() : new Date(),
-      is_service_investigation: Boolean(formValues.is_service_investigation),
-      is_service_check: Boolean(formValues.is_service_check),
-      is_service_check_ib: Boolean(formValues.is_service_check_ib),
-      is_verification_activity: Boolean(formValues.is_verification_activity),
-      quantity: formValues.quantity,
+      entry_date: formValues.entry_date ? dayjs(formValues.entry_date).toDate() : new Date(),
+      is_service_investigation,
+      is_service_check,
+      is_service_check_ib,
+      is_verification_activity,
+      is_db: Boolean(formValues.is_db),
       description: formValues.description,
       detected_damage: formValues.detected_damage,
       recovered_damage: formValues.recovered_damage,

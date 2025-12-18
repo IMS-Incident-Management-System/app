@@ -13,8 +13,9 @@ export interface EventAttributes {
   is_service_check: boolean;
   is_service_check_ib: boolean;
   is_verification_activity: boolean;
-  quantity?: string;
+  is_db: boolean;
   description?: string;
+  entry_date?: Date;
   detected_damage?: number;
   recovered_damage?: number;
   prevented_damage?: number;
@@ -71,11 +72,13 @@ export interface EventPunishmentAttributes {
 export interface CreateEventBody {
   department_id: number;
   date: Date;
+  entry_date?: Date;
+  event_type?: string; // Временное поле для радиокнопок, преобразуется в boolean поля
   is_service_investigation: boolean;
   is_service_check: boolean;
   is_service_check_ib: boolean;
   is_verification_activity: boolean;
-  quantity?: string;
+  is_db: boolean;
   description?: string;
   detected_damage?: number;
   recovered_damage?: number;
