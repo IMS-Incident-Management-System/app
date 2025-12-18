@@ -3,14 +3,13 @@ import {
   Incident, 
   Department, 
   ObjectType,
-  IncidentEvent,
-  IncidentEventType,
+  EventHistory,
+  EventType,
   Additionally,
   AdditionallyPerson,
   CriminalCase,
   Punishment,
   IncidentObjectType,
-  IncidentAttachment,
   sequelize
 } from '../models';
 import { SecurityDirectionEnum, IncidentCreationAttributes } from '../models/incident';
@@ -26,11 +25,6 @@ interface CreateIncidentData {
   source_first_name?: string;
   source_middle_name?: string;
   source_position?: string;
-  detected_damage?: number;
-  recovered_damage?: number;
-  prevented_damage?: number;
-  additional_income?: number;
-  reduced_cost?: number;
 }
 
 interface UpdateIncidentData {
@@ -43,11 +37,6 @@ interface UpdateIncidentData {
   source_first_name?: string;
   source_middle_name?: string;
   source_position?: string;
-  detected_damage?: number;
-  recovered_damage?: number;
-  prevented_damage?: number;
-  additional_income?: number;
-  reduced_cost?: number;
 }
 
 interface GetIncidentsFilters {
@@ -91,7 +80,7 @@ export const incidentService = {
         eventWhere.event_type_id = filters.event_type_id;
       }
 
-      const events = await IncidentEvent.findAll({
+      const events = await EventHistory.findAll({
         where: eventWhere,
         attributes: ['incident_id'],
         group: ['incident_id']
@@ -125,11 +114,11 @@ export const incidentService = {
           as: 'object_types'
         },
         {
-          model: IncidentEvent,
+          model: EventHistory,
           as: 'events',
           required: false,
           include: [
-            { model: IncidentEventType, as: 'event_type' },
+            { model: EventType, as: 'event_type' },
           ]
         }
       ],
@@ -159,7 +148,7 @@ export const incidentService = {
           as: 'object_types'
         },
         {
-          model: IncidentEvent,
+          model: EventHistory,
           as: 'events',
           include: ['event_type']
         },
@@ -180,10 +169,6 @@ export const incidentService = {
               as: 'persons'
             }
           ]
-        },
-        {
-          model: IncidentAttachment,
-          as: 'attachments'
         },
         'addresses',
         'persons'
@@ -217,11 +202,6 @@ export const incidentService = {
       source_first_name: data.source_first_name,
       source_middle_name: data.source_middle_name,
       source_position: data.source_position,
-      detected_damage: data.detected_damage,
-      recovered_damage: data.recovered_damage,
-      prevented_damage: data.prevented_damage,
-      additional_income: data.additional_income,
-      reduced_cost: data.reduced_cost,
     }, options);
 
 
@@ -241,7 +221,7 @@ export const incidentService = {
           as: 'object_types'
         },
         {
-          model: IncidentEvent,
+          model: EventHistory,
           as: 'events',
           include: ['event_type']
         },
@@ -258,10 +238,6 @@ export const incidentService = {
               as: 'punishment'
             }
           ]
-        },
-        {
-          model: IncidentAttachment,
-          as: 'attachments'
         },
         'addresses',
         'persons'
@@ -311,7 +287,7 @@ export const incidentService = {
       where,
       include: [
         {
-          model: IncidentEvent,
+          model: EventHistory,
           as: 'events',
           include: ['event_type']
         },

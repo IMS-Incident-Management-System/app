@@ -1,3 +1,0 @@
-export { OperationalActivityView } from "./OperationalActivityView";
-
-

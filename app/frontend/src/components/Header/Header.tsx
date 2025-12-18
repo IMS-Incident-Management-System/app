@@ -26,8 +26,8 @@ const items = (user: UserResponse) => {
       icon: <NotificationOutlined />,
     },
     {
-      label: "Операционная деятельность",
-      key: ERoutes.OPERATIONAL_ACTIVITIES_LIST,
+      label: "События",
+      key: ERoutes.EVENTS_LIST,
       icon: <CalendarOutlined />,
     },
     {

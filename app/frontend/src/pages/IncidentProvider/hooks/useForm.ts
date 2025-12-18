@@ -41,11 +41,6 @@ export const useForm = ({
       source_first_name: formValues.source_first_name,
       source_middle_name: formValues.source_middle_name,
       source_position: formValues.source_position,
-      detected_damage: formValues.detected_damage,
-      recovered_damage: formValues.recovered_damage,
-      prevented_damage: formValues.prevented_damage,
-      additional_income: formValues.additional_income,
-      reduced_cost: formValues.reduced_cost,
       event: {
         ...formValues.event,
         event_type_ids: formValues.event?.event_type_ids || [],
@@ -118,11 +113,6 @@ export const useForm = ({
         source_first_name: incident.source_first_name,
         source_middle_name: incident.source_middle_name,
         source_position: incident.source_position,
-        detected_damage: incident.detected_damage,
-        recovered_damage: incident.recovered_damage,
-        prevented_damage: incident.prevented_damage,
-        additional_income: incident.additional_income,
-        reduced_cost: incident.reduced_cost,
         event: incident.events && incident.events.length > 0 ? {
           event_type_ids: incident.events.map(event => event.event_type_id),
           date: incident.events[0].date ? dayjs(incident.events[0].date) : undefined,

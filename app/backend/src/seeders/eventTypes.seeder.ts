@@ -1,14 +1,14 @@
-import IncidentEventType, { IncidentEventTypeCreationAttributes } from '../models/incidentEventType';
+import EventType, { EventTypeCreationAttributes } from '../models/eventType';
 import { transliterate } from '../utils/strings';
 
 export const seedEventTypes = async () => {
-  const count = await IncidentEventType.count();
+  const count = await EventType.count();
   if (count > 0) {
-    console.log('Incident event types table already seeded');
+    console.log('Event types table already seeded');
     return;
   }
 
-  // Создаем корневые типы событий инцидентов
+  // Создаем корневые типы событий
   const rootTypes = [
     { title: 'Кражи', value: transliterate('Кражи').toLowerCase() },
     { title: 'Пожары/возгорания', value: transliterate('Пожары/возгорания').toLowerCase() },
@@ -17,7 +17,7 @@ export const seedEventTypes = async () => {
     { title: 'Поджоги', value: transliterate('Поджоги').toLowerCase() },
   ];
 
-  const createdRootTypes = await IncidentEventType.bulkCreate(rootTypes);
+  const createdRootTypes = await EventType.bulkCreate(rootTypes);
 
   // Создаем подтипы для каждого корневого типа
   const subtypes = {
@@ -40,9 +40,9 @@ export const seedEventTypes = async () => {
           title
         )}`.toLowerCase(),
       }));
-      await IncidentEventType.bulkCreate(subtypeData);
+      await EventType.bulkCreate(subtypeData);
     }
   }
 
-  console.log('Incident event types seeded successfully');
+  console.log('Event types seeded successfully');
 };

@@ -1,0 +1,30 @@
+.filterForm {
+  margin-bottom: 20px;
+
+  .filterFormGroup {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 0;
+
+    .filterFormItem {
+      margin-bottom: 0;
+    }
+
+    .formInput {
+      width: 100%;
+    }
+  }
+
+  .button {
+    margin-bottom: 0;
+    margin-top: 16px;
+
+    .buttonGroup {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+  }
+}
+

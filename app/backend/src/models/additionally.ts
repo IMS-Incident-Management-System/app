@@ -14,8 +14,6 @@ export interface AdditionallyAttributes {
   detected_damage?: number; // Выявленный ущерб
   prevented_damage?: number; // Предотвращенный ущерб
   recovered_damage?: number; // Возмещенный ущерб
-  additional_income?: number; // Получен дополнительный доход (руб.)
-  reduced_cost?: number; // Снижена стоимость товаров, работ и услуг на сумму (руб.)
 }
 
 export interface AdditionallyWithRelations extends AdditionallyAttributes {
@@ -73,24 +71,12 @@ const Additionally = sequelize.define<AdditionallyInstance>('additionally', {
     defaultValue: 0,
     comment: 'Предотвращенный ущерб'
   },
-    recovered_damage: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      defaultValue: 0,
-      comment: 'Возмещенный ущерб'
-    },
-    additional_income: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      defaultValue: 0,
-      comment: 'Получен дополнительный доход (руб.)'
-    },
-    reduced_cost: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      defaultValue: 0,
-      comment: 'Снижена стоимость товаров, работ и услуг на сумму (руб.)'
-    },
+  recovered_damage: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    defaultValue: 0,
+    comment: 'Возмещенный ущерб'
+  },
 }, {
   timestamps: true,
   tableName: 'additionally'

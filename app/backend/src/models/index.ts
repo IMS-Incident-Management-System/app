@@ -1,27 +1,26 @@
 import { sequelize } from './sequelize';
 import Department from './department';
 import ObjectType from './objectType';
-import IncidentEventType from './incidentEventType';
+import EventType from './eventType';
 import Incident from './incident';
-import IncidentEvent from './incidentEvent';
+import EventHistory from './eventHistory';
 import Additionally from './additionally';
 import IncidentAddress from './incidentAddress';
 import IncidentPerson from './incidentPerson';
 import AdditionallyPerson from './additionallyPerson';
 import CriminalCase from './criminalCase';
 import Punishment from './punishment';
-import OperationalActivity from './operationalActivity';
+import Event from './event';
 import IncidentObjectType from './incidentObjectType';
-import IncidentAttachment from './incidentAttachment';
 
-// IncidentEvent связи
-IncidentEvent.belongsTo(IncidentEventType, { 
+// EventHistory связи
+EventHistory.belongsTo(EventType, { 
   foreignKey: 'event_type_id', 
   as: 'event_type',
   onDelete: 'SET NULL'
 });
 
-IncidentEvent.belongsTo(Incident, { 
+EventHistory.belongsTo(Incident, { 
   foreignKey: 'incident_id', 
   as: 'incident',
   onDelete: 'CASCADE'
@@ -54,7 +53,7 @@ ObjectType.belongsToMany(Incident, {
 });
 
 
-Incident.hasMany(IncidentEvent, { 
+Incident.hasMany(EventHistory, { 
   foreignKey: 'incident_id', 
   as: 'events',
   onDelete: 'CASCADE'
@@ -83,24 +82,13 @@ Incident.hasMany(IncidentPerson, {
   onDelete: 'CASCADE'
 });
 
-Incident.hasMany(IncidentAttachment, {
-  foreignKey: 'incident_id',
-  as: 'attachments',
-  onDelete: 'CASCADE'
-});
-
-IncidentAttachment.belongsTo(Incident, {
-  foreignKey: 'incident_id',
-  as: 'incident'
-});
-
 IncidentPerson.belongsTo(Incident, {
   foreignKey: 'incident_id',
   as: 'incident'
 });
 
 // Обратные связи
-IncidentEventType.hasMany(IncidentEvent, {
+EventType.hasMany(EventHistory, {
   foreignKey: 'event_type_id',
   as: 'events',
   onDelete: 'SET NULL'
@@ -145,16 +133,16 @@ AdditionallyPerson.belongsTo(Additionally, {
   as: 'additionally'
 });
 
-// OperationalActivity связи
-OperationalActivity.belongsTo(Department, { 
+// Event связи
+Event.belongsTo(Department, { 
   foreignKey: 'department_id', 
   as: 'department'
 });
 
-// Обратная связь Department -> OperationalActivities
-Department.hasMany(OperationalActivity, {
+// Обратная связь Department -> Events
+Department.hasMany(Event, {
   foreignKey: 'department_id',
-  as: 'operationalActivities',
+  as: 'events',
   onDelete: 'CASCADE'
 });
 
@@ -162,17 +150,16 @@ Department.hasMany(OperationalActivity, {
 export {
   Department,
   ObjectType,
-  IncidentEventType,
+  EventType,
   Incident,
-  IncidentEvent,
+  EventHistory,
   Additionally,
   IncidentAddress,
   IncidentPerson,
   AdditionallyPerson,
   CriminalCase,
   Punishment,
-  OperationalActivity,
+  Event,
   IncidentObjectType,
-  IncidentAttachment,
   sequelize
 }; 

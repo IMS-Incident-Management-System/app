@@ -1,0 +1,107 @@
+
+.table {
+  margin-top: 0;
+  overflow-x: auto;
+  border-radius: 12px;
+  background-color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  
+  :global(.ant-table-wrapper) {
+    overflow-x: auto;
+    border-radius: 12px;
+  }
+  
+  :global(.ant-table) {
+    min-width: 100%;
+    border-radius: 12px;
+  }
+  
+  :global(.ant-table-thead > tr > th) {
+    white-space: nowrap;
+    
+    &:first-child {
+      border-top-left-radius: 12px;
+    }
+    
+    &:last-child {
+      border-top-right-radius: 12px;
+    }
+  }
+  
+  :global(.ant-table-tbody > tr:last-child > td) {
+    &:first-child {
+      border-bottom-left-radius: 12px;
+    }
+    
+    &:last-child {
+      border-bottom-right-radius: 12px;
+    }
+  }
+  
+  :global(.ant-table-tbody > tr > td) {
+    white-space: nowrap;
+  }
+}
+
+.tag {
+  border-radius: 6px;
+  font-weight: 500;
+  padding: 2px 8px;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+// Адаптивные стили
+@media (max-width: 768px) {
+
+  .table {
+    :global(.ant-table-pagination) {
+      flex-wrap: wrap;
+      justify-content: center;
+      
+      :global(.ant-pagination-item),
+      :global(.ant-pagination-prev),
+      :global(.ant-pagination-next) {
+        margin: 4px;
+      }
+    }
+  }
+}
+
+@media (max-width: 580px) {
+
+  .actions {
+    gap: 4px;
+    
+    :global(.ant-btn) {
+      width: 32px;
+      height: 32px;
+      min-width: 32px;
+      padding: 0;
+      
+      :global(.anticon) {
+        font-size: 14px;
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+
+  .table {
+    margin-top: 0;
+    
+    :global(.ant-table-pagination) {
+      :global(.ant-pagination-options) {
+        display: none;
+      }
+    }
+  }
+}
+

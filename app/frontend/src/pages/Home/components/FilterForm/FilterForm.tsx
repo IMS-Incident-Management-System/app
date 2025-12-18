@@ -7,7 +7,7 @@ import { directionDict } from "../../../../constants/incidentDict";
 import { SecurityDirectionEnum } from "../../../../enums/direction";
 import { useGetDepartments } from "../../../../services/requests/departments/getDepartments";
 import { useGetObjectTypes } from "../../../../services/requests/objectTypes/getObjectTypes";
-import { useGetIncidentEventTypes } from "../../../../services/requests/incidentEventTypes/getIncidentEventTypes";
+import { useGetEventTypes } from "../../../../services/requests/eventTypes/getEventTypes";
 
 export const FilterForm = ({
   filter,
@@ -22,7 +22,7 @@ export const FilterForm = ({
   const { data: objectTypes, isLoading: isObjectTypesLoading } =
     useGetObjectTypes();
   const { data: eventTypes, isLoading: isEventTypesLoading } =
-    useGetIncidentEventTypes();
+    useGetEventTypes();
 
   useEffect(() => {
     const formattedFilter = {

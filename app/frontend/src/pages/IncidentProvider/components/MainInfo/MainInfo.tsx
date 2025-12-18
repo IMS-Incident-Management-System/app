@@ -1,8 +1,8 @@
-import { Form, Select, TreeSelect, DatePicker, Input, InputNumber, Row, Col, Card, Divider, Button, Space } from "antd";
+import { Form, Select, TreeSelect, DatePicker, Input, Row, Col, Card, Divider, Button, Space } from "antd";
 import { PlusOutlined, MinusCircleOutlined } from "@ant-design/icons";
 import { useGetDepartments } from "../../../../services/requests/departments/getDepartments";
 import { useGetObjectTypes } from "../../../../services/requests/objectTypes/getObjectTypes";
-import { useGetIncidentEventTypes } from "../../../../services/requests/incidentEventTypes/getIncidentEventTypes";
+import { useGetEventTypes } from "../../../../services/requests/eventTypes/getEventTypes";
 import { SecurityDirectionEnum } from "../../../../enums/direction";
 import styles from "./MainInfo.module.scss";
 import { CreateIncidentBody } from "../../../../interfaces/requests/incident";
@@ -15,7 +15,7 @@ export const MainInfo = () => {
   const { data: objectTypes, isLoading: isObjectTypesLoading } =
     useGetObjectTypes();
   const { data: eventTypes, isLoading: isEventTypesLoading } =
-    useGetIncidentEventTypes();
+    useGetEventTypes();
 
   return (
     <div className={styles.container}>
@@ -353,102 +353,6 @@ export const MainInfo = () => {
               name="source_position"
             >
               <Input placeholder="Введите должность источника" />
-            </Form.Item>
-          </Col>
-        </Row>
-      </Card>
-
-      {/* Финансовый ущерб */}
-      <Card className={styles.sectionCard} title="Финансовый ущерб">
-        <Row gutter={[24, 16]}>
-          <Col xs={24} sm={12} lg={8}>
-            <Form.Item<CreateIncidentBody>
-              label="Выявлен ущерб (руб.)"
-              name="detected_damage"
-            >
-              <InputNumber
-                style={{ width: "100%" }}
-                formatter={(value) =>
-                  `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, " ")
-                }
-                parser={(value) => value!.replace(/\s?|(,*)/g, "")}
-                placeholder="0"
-                className={styles.formInput}
-                addonAfter="₽"
-                min={0}
-              />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12} lg={8}>
-            <Form.Item<CreateIncidentBody>
-              label="Возмещен ущерб (руб.)"
-              name="recovered_damage"
-            >
-              <InputNumber
-                style={{ width: "100%" }}
-                formatter={(value) =>
-                  `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, " ")
-                }
-                parser={(value) => value!.replace(/\s?|(,*)/g, "")}
-                placeholder="0"
-                className={styles.formInput}
-                addonAfter="₽"
-                min={0}
-              />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12} lg={8}>
-            <Form.Item<CreateIncidentBody>
-              label="Предотвращен ущерб (руб.)"
-              name="prevented_damage"
-            >
-              <InputNumber
-                style={{ width: "100%" }}
-                formatter={(value) =>
-                  `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, " ")
-                }
-                parser={(value) => value!.replace(/\s?|(,*)/g, "")}
-                placeholder="0"
-                className={styles.formInput}
-                addonAfter="₽"
-                min={0}
-              />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12} lg={8}>
-            <Form.Item<CreateIncidentBody>
-              label="Получен дополнительный доход (руб.)"
-              name="additional_income"
-            >
-              <InputNumber
-                style={{ width: "100%" }}
-                formatter={(value) =>
-                  `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, " ")
-                }
-                parser={(value) => value!.replace(/\s?|(,*)/g, "")}
-                placeholder="0"
-                className={styles.formInput}
-                addonAfter="₽"
-                min={0}
-              />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12} lg={8}>
-            <Form.Item<CreateIncidentBody>
-              label="Снижена стоимость товаров, работ и услуг на сумму (руб.)"
-              name="reduced_cost"
-            >
-              <InputNumber
-                style={{ width: "100%" }}
-                formatter={(value) =>
-                  `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, " ")
-                }
-                parser={(value) => value!.replace(/\s?|(,*)/g, "")}
-                placeholder="0"
-                className={styles.formInput}
-                addonAfter="₽"
-                min={0}
-              />
             </Form.Item>
           </Col>
         </Row>

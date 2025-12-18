@@ -447,7 +447,7 @@ export const IncidentAdditionally = () => {
                       <Row gutter={[24, 16]}>
                         <Col xs={24} sm={12} lg={8}>
                           <Form.Item
-                            label="Выявлен ущерб (руб.)"
+                            label="Выявленный ущерб"
                             name={[field.name, "detected_damage"]}
                           >
                             <InputNumber
@@ -459,33 +459,13 @@ export const IncidentAdditionally = () => {
                               placeholder="0"
                               className={styles.formInput}
                               addonAfter="₽"
-                              min={0}
                             />
                           </Form.Item>
                         </Col>
                         
                         <Col xs={24} sm={12} lg={8}>
                           <Form.Item
-                            label="Возмещен ущерб (руб.)"
-                            name={[field.name, "recovered_damage"]}
-                          >
-                            <InputNumber
-                              style={{ width: "100%" }}
-                              formatter={(value) =>
-                                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, " ")
-                              }
-                              parser={(value) => value!.replace(/\s?|(,*)/g, "")}
-                              placeholder="0"
-                              className={styles.formInput}
-                              addonAfter="₽"
-                              min={0}
-                            />
-                          </Form.Item>
-                        </Col>
-                        
-                        <Col xs={24} sm={12} lg={8}>
-                          <Form.Item
-                            label="Предотвращен ущерб (руб.)"
+                            label="Предотвращенный ущерб"
                             name={[field.name, "prevented_damage"]}
                           >
                             <InputNumber
@@ -497,15 +477,14 @@ export const IncidentAdditionally = () => {
                               placeholder="0"
                               className={styles.formInput}
                               addonAfter="₽"
-                              min={0}
                             />
                           </Form.Item>
                         </Col>
                         
                         <Col xs={24} sm={12} lg={8}>
                           <Form.Item
-                            label="Получен дополнительный доход (руб.)"
-                            name={[field.name, "additional_income"]}
+                            label="Возмещенный ущерб"
+                            name={[field.name, "recovered_damage"]}
                           >
                             <InputNumber
                               style={{ width: "100%" }}
@@ -516,26 +495,6 @@ export const IncidentAdditionally = () => {
                               placeholder="0"
                               className={styles.formInput}
                               addonAfter="₽"
-                              min={0}
-                            />
-                          </Form.Item>
-                        </Col>
-                        
-                        <Col xs={24} sm={12} lg={8}>
-                          <Form.Item
-                            label="Снижена стоимость товаров, работ и услуг на сумму (руб.)"
-                            name={[field.name, "reduced_cost"]}
-                          >
-                            <InputNumber
-                              style={{ width: "100%" }}
-                              formatter={(value) =>
-                                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, " ")
-                              }
-                              parser={(value) => value!.replace(/\s?|(,*)/g, "")}
-                              placeholder="0"
-                              className={styles.formInput}
-                              addonAfter="₽"
-                              min={0}
                             />
                           </Form.Item>
                         </Col>

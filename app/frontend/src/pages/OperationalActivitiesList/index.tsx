@@ -1,3 +1,0 @@
-export { OperationalActivitiesList } from "./OperationalActivitiesList";
-
-

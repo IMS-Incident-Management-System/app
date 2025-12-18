@@ -63,13 +63,6 @@ const testDbConnection = async () => {
 
 const startServer = async () => {
   try {
-    // Создаем директорию для загрузки файлов, если её нет
-    const uploadDir = process.env.UPLOAD_DIR || path.join(process.cwd(), 'uploads', 'incidents');
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-      console.log(`📁 Создана директория для загрузки файлов: ${uploadDir}`);
-    }
-
     // Инициализируем приложение
     const application = createApp();
 

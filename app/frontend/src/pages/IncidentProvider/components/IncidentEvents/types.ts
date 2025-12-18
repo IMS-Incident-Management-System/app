@@ -1,7 +1,7 @@
-import { IncidentEventType } from "../../../../interfaces/requests/incidentEventType";
+import { EventType } from "../../../../interfaces/requests/eventType";
 
 export interface EventFormProps {
   name: string | number;
-  eventTypes: IncidentEventType | undefined;
+  eventTypes: EventType | undefined;
   isEventTypesLoading: boolean;
 }

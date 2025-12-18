@@ -1,5 +1,5 @@
 import { EIncidentDirection, EIncidentStatus } from "../../enums/incident";
-import { IncidentEventWithRelations } from "./incidentEvent";
+import { EventHistoryWithRelations } from "./eventHistory";
 import { ObjectAttributes } from "./object";
 import { AdditionallyAttributes } from "./additionally";
 import { AdditionallyPersonAttributes } from "./additionallyPerson";
@@ -24,11 +24,6 @@ export interface IncidentAttributes {
   source_first_name?: string;
   source_middle_name?: string;
   source_position?: string;
-  detected_damage?: number; // Выявлен ущерб (руб.)
-  recovered_damage?: number; // Возмещен ущерб (руб.)
-  prevented_damage?: number; // Предотвращен ущерб (руб.)
-  additional_income?: number; // Получен дополнительный доход (руб.)
-  reduced_cost?: number; // Снижена стоимость товаров, работ и услуг на сумму (руб.)
   createdAt: Date;
 }
 
@@ -43,7 +38,7 @@ export interface IncidentWithRelations extends IncidentAttributes {
   object?: ObjectAttributes;
   object_type?: { title: string; object_type_id: number }; // Для обратной совместимости
   object_types?: Array<{ title: string; object_type_id: number }>; // Массив типов объектов
-  events?: IncidentEventWithRelations[];
+  events?: EventHistoryWithRelations[];
   additionally?: AdditionallyAttributes[];
   addresses?: IncidentAddressAttributes[];
   persons?: IncidentPersonAttributes[];
@@ -118,11 +113,6 @@ export interface CreateIncidentBody {
   source_first_name?: string;
   source_middle_name?: string;
   source_position?: string;
-  detected_damage?: number; // Выявлен ущерб (руб.)
-  recovered_damage?: number; // Возмещен ущерб (руб.)
-  prevented_damage?: number; // Предотвращен ущерб (руб.)
-  additional_income?: number; // Получен дополнительный доход (руб.)
-  reduced_cost?: number; // Снижена стоимость товаров, работ и услуг на сумму (руб.)
   event: {
     event_type_ids: number[];
     sub_type_id?: number;
@@ -138,8 +128,6 @@ export interface CreateIncidentBody {
     detected_damage?: number; // Выявленный ущерб
     prevented_damage?: number; // Предотвращенный ущерб
     recovered_damage?: number; // Возмещенный ущерб
-    additional_income?: number; // Получен дополнительный доход (руб.)
-    reduced_cost?: number; // Снижена стоимость товаров, работ и услуг на сумму (руб.)
     criminal_case?: CriminalCaseAttributes;
     punishment?: PunishmentAttributes;
     persons?: AdditionallyPersonAttributes[]; // ФИО фигурантов
@@ -148,6 +136,6 @@ export interface CreateIncidentBody {
 
 export interface CreateIncidentResponse {
   incident: IncidentAttributes;
-  events: IncidentEventWithRelations[];
+  events: EventHistoryWithRelations[];
   additionally: AdditionallyAttributes[];
 }
