@@ -71,6 +71,15 @@ docker exec -it ims-backend npm run migrate:up
 - `criminal_cases`: добавлены поля `rejection_date`, `rejection_reason`, `appeal_date`, `case_date`, `initiator`, `subject`, `detained_count`, `case_result`, `court_decision`, `convicted_count` + комментарии
 - `punishments`: удалены устаревшие `punishment_type_id`, `description`, `date`, `fired_count`; добавлены агрегированные поля `guilty_persons_count`, `measures_taken_count`, `warning_letter_rp398`, `remark`, `reprimand`, `dismissed_count` + комментарии
 
+### 011_rename_events_to_operational_activities.sql
+Переименовывает таблицу `events` в `operational_activities` для соответствия новой терминологии.
+
+### 012_rename_event_tables_to_incident_events.sql
+Переименовывает таблицы событий инцидентов для избежания путаницы с будущей сущностью "события":
+- `event_types` → `incident_event_types` (типы событий инцидентов)
+- `event_history` → `incident_events` (события инцидентов)
+- Обновляет все внешние ключи и комментарии
+
 ## 🚀 Как применить миграцию
 ## 📦 Деплой миграций на Production
 

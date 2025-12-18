@@ -1,7 +1,7 @@
 import { DataTypes, Model, Optional } from 'sequelize';
 import { sequelize } from './sequelize';
 import { DepartmentModelType } from './department';
-import { EventHistoryWithRelations } from './eventHistory';
+import { IncidentEventWithRelations } from './incidentEvent';
 import { AdditionallyAttributes } from './additionally';
 import { IncidentAddressAttributes } from './incidentAddress';
 import { IncidentPersonAttributes } from './incidentPerson';
@@ -27,13 +27,18 @@ export interface IncidentAttributes {
   source_first_name?: string;
   source_middle_name?: string;
   source_position?: string;
+  detected_damage?: number; // Выявлен ущерб (руб.)
+  recovered_damage?: number; // Возмещен ущерб (руб.)
+  prevented_damage?: number; // Предотвращен ущерб (руб.)
+  additional_income?: number; // Получен дополнительный доход (руб.)
+  reduced_cost?: number; // Снижена стоимость товаров, работ и услуг на сумму (руб.)
 }
 
 export interface IncidentWithRelations extends IncidentAttributes {
   department?: DepartmentModelType;
   object_type?: any; // ObjectType (для обратной совместимости)
   object_types?: any[]; // ObjectType[] (массив типов объектов)
-  events?: EventHistoryWithRelations[];
+  events?: IncidentEventWithRelations[];
   additionally?: AdditionallyAttributes[];
   addresses?: IncidentAddressAttributes[];
   persons?: IncidentPersonAttributes[];
@@ -110,6 +115,36 @@ const Incident = sequelize.define<IncidentInstance>(
       type: DataTypes.STRING,
       allowNull: true,
       comment: 'Должность источника информации'
+    },
+    detected_damage: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      defaultValue: 0,
+      comment: 'Выявлен ущерб (руб.)'
+    },
+    recovered_damage: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      defaultValue: 0,
+      comment: 'Возмещен ущерб (руб.)'
+    },
+    prevented_damage: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      defaultValue: 0,
+      comment: 'Предотвращен ущерб (руб.)'
+    },
+    additional_income: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      defaultValue: 0,
+      comment: 'Получен дополнительный доход (руб.)'
+    },
+    reduced_cost: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      defaultValue: 0,
+      comment: 'Снижена стоимость товаров, работ и услуг на сумму (руб.)'
     },
   },
   {

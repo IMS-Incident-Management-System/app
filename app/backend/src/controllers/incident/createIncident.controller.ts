@@ -6,7 +6,7 @@ import {
 import { CustomResponse } from '../../middlewares/responseHandler.middleware';
 import { incidentService } from '../../services/incident.service';
 import { SecurityDirectionEnum } from '../../models/incident';
-import { eventHistoryService } from '../../services/eventHistory.service';
+import { incidentEventService } from '../../services/incidentEvent.service';
 import { additionallyService } from '../../services/additionally.service';
 import { incidentAddressService } from '../../services/incidentAddress.service';
 import { incidentPersonService } from '../../services/incidentPerson.service';
@@ -27,6 +27,11 @@ interface CreateIncidentBody {
   source_first_name?: string;
   source_middle_name?: string;
   source_position?: string;
+  detected_damage?: number; // Выявлен ущерб (руб.)
+  recovered_damage?: number; // Возмещен ущерб (руб.)
+  prevented_damage?: number; // Предотвращен ущерб (руб.)
+  additional_income?: number; // Получен дополнительный доход (руб.)
+  reduced_cost?: number; // Снижена стоимость товаров, работ и услуг на сумму (руб.)
   event: {
     event_type_ids: number[];
     sub_type_id?: number;
@@ -53,6 +58,8 @@ interface CreateIncidentBody {
     detected_damage?: number; // Выявленный ущерб
     prevented_damage?: number; // Предотвращенный ущерб
     recovered_damage?: number; // Возмещенный ущерб
+    additional_income?: number; // Получен дополнительный доход (руб.)
+    reduced_cost?: number; // Снижена стоимость товаров, работ и услуг на сумму (руб.)
     criminal_case?: {
       transfer_date?: Date;
       document_number?: string;
@@ -116,6 +123,11 @@ export const createIncident = asyncErrorHandler(
           source_first_name: data.source_first_name,
           source_middle_name: data.source_middle_name,
           source_position: data.source_position,
+          detected_damage: data.detected_damage,
+          recovered_damage: data.recovered_damage,
+          prevented_damage: data.prevented_damage,
+          additional_income: data.additional_income,
+          reduced_cost: data.reduced_cost,
         },
         { transaction }
       );
@@ -147,7 +159,7 @@ export const createIncident = asyncErrorHandler(
       // 2. Создаем события для каждого типа события
       const events = await Promise.all(
         data.event.event_type_ids.map((event_type_id) =>
-          eventHistoryService.createEvent(
+          incidentEventService.createIncidentEvent(
             {
               incident_id: incident.id,
               event_type_id: event_type_id,

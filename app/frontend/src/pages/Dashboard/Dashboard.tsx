@@ -30,11 +30,11 @@ const dashboardData: DashboardItem[] = [
     color: '#1890ff'
   },
   {
-    id: 'events',
-    title: 'События',
-    description: 'Регистрация событий по направлениям безопасности. Отчетность по работе подразделений безопасности за определенный период.',
+    id: 'operational-activities',
+    title: 'Операционная деятельность',
+    description: 'Регистрация операционной деятельности по направлениям безопасности. Отчетность по работе подразделений безопасности за определенный период.',
     icon: <CalendarOutlined />,
-    route: ERoutes.EVENTS_LIST,
+    route: ERoutes.OPERATIONAL_ACTIVITIES_LIST,
     color: '#52c41a'
   }
 ];

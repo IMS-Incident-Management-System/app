@@ -10,9 +10,9 @@ import Departments from "../pages/Departments";
 import IncidentEvents from "../pages/IncidentEvents";
 import ObjectTypes from "../pages/ObjectTypes";
 import References from "../pages/References";
-import { EventsList } from "../pages/EventsList/EventsList";
-import { EventProvider } from "../pages/EventProvider/EventProvider";
-import { EventView } from "../pages/EventView/EventView";
+import { OperationalActivitiesList } from "../pages/OperationalActivitiesList";
+import { OperationalActivityProvider } from "../pages/OperationalActivityProvider";
+import { OperationalActivityView } from "../pages/OperationalActivityView/OperationalActivityView";
 import { Dashboard } from "../pages/Dashboard/Dashboard";
 
 export const router = createBrowserRouter([
@@ -41,20 +41,20 @@ export const router = createBrowserRouter([
         element: <IncidentView />,
       },
       {
-        path: ERoutes.EVENTS_LIST,
-        element: <EventsList />,
+        path: ERoutes.OPERATIONAL_ACTIVITIES_LIST,
+        element: <OperationalActivitiesList />,
       },
       {
-        path: ERoutes.EVENT_CREATE,
-        element: <EventProvider />,
+        path: ERoutes.OPERATIONAL_ACTIVITY_CREATE,
+        element: <OperationalActivityProvider />,
       },
       {
-        path: ERoutes.EVENT_EDIT,
-        element: <EventProvider />,
+        path: ERoutes.OPERATIONAL_ACTIVITY_EDIT,
+        element: <OperationalActivityProvider />,
       },
       {
-        path: ERoutes.EVENT_VIEW_ID,
-        element: <EventView />,
+        path: ERoutes.OPERATIONAL_ACTIVITY_VIEW_ID,
+        element: <OperationalActivityView />,
       },
       {
         path: ERoutes.DEPARTMENTS,

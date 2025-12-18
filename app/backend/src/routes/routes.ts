@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { departmentController } from '../controllers/department.controller';
-import { eventTypeController } from '../controllers/eventType.controller';
+import { incidentEventTypeController } from '../controllers/incidentEventType.controller';
 import { objectTypeController } from '../controllers/objectType.controller';
 import { objectsController } from '../controllers/object.controller';
 import { getIncidents } from '../controllers/incident/getIncidents.controller';
@@ -8,11 +8,11 @@ import { createIncident } from '../controllers/incident/createIncident.controlle
 import { getIncident } from '../controllers/incident/getIncident.controller';
 import { updateIncident } from '../controllers/incident/updateIncident.controller';
 import { deleteIncident } from '../controllers/incident/deleteIncident.controller';
-import { getEvents } from '../controllers/event/getEvents.controller';
-import { createEvent } from '../controllers/event/createEvent.controller';
-import { getEvent } from '../controllers/event/getEvent.controller';
-import { updateEvent } from '../controllers/event/updateEvent.controller';
-import { deleteEvent } from '../controllers/event/deleteEvent.controller';
+import { getOperationalActivities } from '../controllers/operationalActivity/getOperationalActivities.controller';
+import { createOperationalActivity } from '../controllers/operationalActivity/createOperationalActivity.controller';
+import { getOperationalActivity } from '../controllers/operationalActivity/getOperationalActivity.controller';
+import { updateOperationalActivity } from '../controllers/operationalActivity/updateOperationalActivity.controller';
+import { deleteOperationalActivity } from '../controllers/operationalActivity/deleteOperationalActivity.controller';
 
 const router = Router();
 
@@ -37,26 +37,26 @@ router
   .put(updateIncident)
   .delete(deleteIncident);
 
-// Events routes
-router.route('/events').get(getEvents).post(createEvent);
+// Operational activities routes
+router.route('/operational-activities').get(getOperationalActivities).post(createOperationalActivity);
 
 router
-  .route('/events/:id')
-  .get(getEvent)
-  .put(updateEvent)
-  .delete(deleteEvent);
+  .route('/operational-activities/:id')
+  .get(getOperationalActivity)
+  .put(updateOperationalActivity)
+  .delete(deleteOperationalActivity);
 
-// Event types routes
+// Incident event types routes
 router
   .route('/event-types')
-  .get(eventTypeController.getEventTypes)
-  .post(eventTypeController.createEventType);
+  .get(incidentEventTypeController.getIncidentEventTypes)
+  .post(incidentEventTypeController.createIncidentEventType);
 
 router
   .route('/event-types/:id')
-  .get(eventTypeController.getEventType)
-  .put(eventTypeController.updateEventType)
-  .delete(eventTypeController.deleteEventType);
+  .get(incidentEventTypeController.getIncidentEventType)
+  .put(incidentEventTypeController.updateIncidentEventType)
+  .delete(incidentEventTypeController.deleteIncidentEventType);
 
 // Object types routes
 router
