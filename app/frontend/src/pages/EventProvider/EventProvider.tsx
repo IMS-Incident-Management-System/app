@@ -1,44 +1,44 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import {
-  Checkbox,
   Form,
   Card,
   Tabs,
   message,
   Spin,
-  Space,
   Typography,
+  Checkbox,
 } from "antd";
-import { InfoCircleOutlined, FileTextOutlined, EyeOutlined } from "@ant-design/icons";
-import { MainInfo } from "./components/MainInfo/MainInfo";
-import { IncidentAdditionally } from "./components/IncidentAdditionally/IncidentAdditionally";
-import { useGetIncident } from "../../services/requests/initiators/getIncident";
-import { useCreateIncident } from "../../services/requests/initiators/createIncident";
-import { CreateIncidentBody } from "../../interfaces/requests/incident";
+import { InfoCircleOutlined, EyeOutlined } from "@ant-design/icons";
+import { useGetEvent } from "../../services/requests/events/getEvent";
+import { useCreateEvent } from "../../services/requests/events/createEvent";
+import { CreateEventBody } from "../../interfaces/requests/event";
 import { useForm } from "./hooks/useForm";
-import styles from "./incidentProvider.module.scss";
-import { useUpdateIncident } from "../../services/requests/initiators/updateIncident";
+import styles from "./EventProvider.module.scss";
+import { useUpdateEvent } from "../../services/requests/events/updateEvent";
 import { ERoutes } from "../../enums/routes";
 import { PrimaryButton } from "../../components/PrimaryButton";
+import { MainInfo } from "./components/MainInfo/MainInfo";
+import { EventCriminalCase } from "./components/EventCriminalCase/EventCriminalCase";
+import { EventPunishment } from "./components/EventPunishment/EventPunishment";
 
 const { Title } = Typography;
 
-export const IncidentProvider = () => {
+export const EventProvider = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("main");
 
-  const { data: incident, isLoading: isIncidentLoading } = useGetIncident(id);
-  const { mutate: createIncident, isLoading: isCreatingIncident } =
-    useCreateIncident();
-  const { mutate: updateIncident, isLoading: isUpdatingIncident } =
-    useUpdateIncident();
+  const { data: event, isLoading: isEventLoading } = useGetEvent(id);
+  const { mutate: createEvent, isLoading: isCreatingEvent } =
+    useCreateEvent();
+  const { mutate: updateEvent, isLoading: isUpdatingEvent } =
+    useUpdateEvent();
 
   const { form, onFinish } = useForm({
-    incident,
-    createIncident,
-    updateIncident,
+    event,
+    createEvent,
+    updateEvent,
   });
 
   const [isDbChecked, setIsDbChecked] = useState(false);
@@ -47,7 +47,7 @@ export const IncidentProvider = () => {
   useEffect(() => {
     const value = form.getFieldValue('is_db');
     setIsDbChecked(value ?? false);
-  }, [form, incident]);
+  }, [form, event]);
 
   // Слушаем изменения в форме
   Form.useWatch('is_db', form);
@@ -61,9 +61,9 @@ export const IncidentProvider = () => {
     }
   };
 
-  const handleViewIncident = () => {
+  const handleViewEvent = () => {
     if (id) {
-      navigate(`${ERoutes.INCIDENT_VIEW}/${id}`);
+      navigate(`${ERoutes.EVENT_VIEW}/${id}`);
     }
   };
 
@@ -77,42 +77,20 @@ export const IncidentProvider = () => {
         </span>
       ),
       children: (
-          <div className={styles.tabContent}>
-            <MainInfo />
-            <div className={styles.tabActions}>
-              <PrimaryButton
-                size="large"
-                onClick={handleSubmit}
-                loading={isCreatingIncident || isUpdatingIncident}
-              >
-                {id ? "Сохранить изменения" : "Создать инцидент"}
-              </PrimaryButton>
-            </div>
+        <div className={styles.tabContent}>
+          <MainInfo />
+          <EventCriminalCase />
+          <EventPunishment />
+          <div className={styles.tabActions}>
+            <PrimaryButton
+              size="large"
+              onClick={handleSubmit}
+              loading={isCreatingEvent || isUpdatingEvent}
+            >
+              {id ? "Сохранить изменения" : "Создать событие"}
+            </PrimaryButton>
           </div>
-      ),
-    },
-    {
-      key: "additions",
-      label: (
-        <span className={styles.tabLabel}>
-          <FileTextOutlined />
-          Дополнения
-        </span>
-      ),
-      disabled: !id,
-      children: (
-          <div className={styles.tabContent}>
-            <IncidentAdditionally />
-            <div className={styles.tabActions}>
-              <PrimaryButton
-                size="large"
-                onClick={handleSubmit}
-                loading={isCreatingIncident || isUpdatingIncident}
-              >
-                Сохранить
-              </PrimaryButton>
-            </div>
-          </div>
+        </div>
       ),
     },
   ];
@@ -121,24 +99,24 @@ export const IncidentProvider = () => {
     <div className={styles.container}>
       <Card className={styles.mainCard}>
         <div className={styles.header}>
-          {isIncidentLoading ? (
+          {isEventLoading ? (
             <Spin size="large" />
           ) : (
             <>
               <div className={styles.headerTop}>
-              <Title level={2} className={styles.title}>
-                {id ? `Инцидент #${incident?.id}` : "Создание инцидента"}
-              </Title>
-              {id && (
-                <PrimaryButton
-                  variant="secondary"
-                  icon={<EyeOutlined />}
-                  onClick={handleViewIncident}
-                  className={styles.viewButton}
-                >
-                  Просмотр инцидента
-                </PrimaryButton>
-              )}
+                <Title level={2} className={styles.title}>
+                  {id ? `Событие #${event?.id}` : "Создание события"}
+                </Title>
+                {id && (
+                  <PrimaryButton
+                    variant="secondary"
+                    icon={<EyeOutlined />}
+                    onClick={handleViewEvent}
+                    className={styles.viewButton}
+                  >
+                    Просмотр события
+                  </PrimaryButton>
+                )}
               </div>
               <div className={styles.headerBottom}>
                 <Checkbox 
@@ -160,13 +138,13 @@ export const IncidentProvider = () => {
           )}
         </div>
         
-        <Form<CreateIncidentBody>
+        <Form<CreateEventBody>
           form={form}
           layout="vertical"
           onFinish={onFinish}
           className={styles.form}
         >
-          <Form.Item<CreateIncidentBody>
+          <Form.Item<CreateEventBody>
             name="is_db"
             valuePropName="checked"
             style={{ display: 'none' }}
@@ -187,3 +165,4 @@ export const IncidentProvider = () => {
     </div>
   );
 };
+

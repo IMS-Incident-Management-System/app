@@ -13,6 +13,11 @@ import Punishment from './punishment';
 import OperationalActivity from './operationalActivity';
 import IncidentObjectType from './incidentObjectType';
 import IncidentAttachment from './incidentAttachment';
+import Event from './event';
+import EventAdditionally from './eventAdditionally';
+import EventCriminalCase from './eventCriminalCase';
+import EventPunishment from './eventPunishment';
+import EventAdditionallyPerson from './eventAdditionallyPerson';
 
 // IncidentEvent связи
 IncidentEvent.belongsTo(IncidentEventType, { 
@@ -158,6 +163,40 @@ Department.hasMany(OperationalActivity, {
   onDelete: 'CASCADE'
 });
 
+// Event связи
+Event.belongsTo(Department, { 
+  foreignKey: 'department_id', 
+  as: 'department'
+});
+
+Department.hasMany(Event, {
+  foreignKey: 'department_id',
+  as: 'events',
+  onDelete: 'CASCADE'
+});
+
+Event.hasOne(EventCriminalCase, {
+  foreignKey: 'event_id',
+  as: 'criminal_case',
+  onDelete: 'CASCADE'
+});
+
+EventCriminalCase.belongsTo(Event, {
+  foreignKey: 'event_id',
+  as: 'event'
+});
+
+Event.hasOne(EventPunishment, {
+  foreignKey: 'event_id',
+  as: 'punishment',
+  onDelete: 'CASCADE'
+});
+
+EventPunishment.belongsTo(Event, {
+  foreignKey: 'event_id',
+  as: 'event'
+});
+
 // Экспортируем все модели
 export {
   Department,
@@ -174,5 +213,10 @@ export {
   OperationalActivity,
   IncidentObjectType,
   IncidentAttachment,
+  Event,
+  EventAdditionally,
+  EventCriminalCase,
+  EventPunishment,
+  EventAdditionallyPerson,
   sequelize
 }; 

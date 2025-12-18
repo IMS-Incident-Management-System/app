@@ -13,6 +13,11 @@ import { createOperationalActivity } from '../controllers/operationalActivity/cr
 import { getOperationalActivity } from '../controllers/operationalActivity/getOperationalActivity.controller';
 import { updateOperationalActivity } from '../controllers/operationalActivity/updateOperationalActivity.controller';
 import { deleteOperationalActivity } from '../controllers/operationalActivity/deleteOperationalActivity.controller';
+import { getEvents } from '../controllers/event/getEvents.controller';
+import { getEvent } from '../controllers/event/getEvent.controller';
+import { createEvent } from '../controllers/event/createEvent.controller';
+import { updateEvent } from '../controllers/event/updateEvent.controller';
+import { deleteEvent } from '../controllers/event/deleteEvent.controller';
 
 const router = Router();
 
@@ -81,5 +86,14 @@ router
   .get(objectsController.getObject)
   .put(objectsController.updateObject)
   .delete(objectsController.deleteObject);
+
+// Events routes
+router.route('/events').get(getEvents).post(createEvent);
+
+router
+  .route('/events/:id')
+  .get(getEvent)
+  .put(updateEvent)
+  .delete(deleteEvent);
 
 export default router;

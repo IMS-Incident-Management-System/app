@@ -117,9 +117,9 @@ export const IncidentView = () => {
                   <Tag color="purple">{incident.object_type?.title || "Не указан"}</Tag>
                 )}
               </Descriptions.Item>
-              <Descriptions.Item label="Дело безопасности">
+              <Descriptions.Item label="Особо важно">
                 <Tag color={incident.is_db ? "red" : "default"}>
-                  {incident.is_db ? "Да (1-ДБ)" : "Нет"}
+                  {incident.is_db ? "Да (1ДБ)" : "Нет"}
                 </Tag>
               </Descriptions.Item>
             </Descriptions>

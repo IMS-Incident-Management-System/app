@@ -16,6 +16,12 @@ export enum ERoutes {
   DEPARTMENTS = "/departments",
   INCIDENT_EVENTS = "/incident-events",
   OBJECT_TYPES = "/object-types",
-  REFERENCES = "/references"
+  REFERENCES = "/references",
+  EVENTS_LIST = "/events",
+  EVENT = "/events/:id",
+  EVENT_CREATE = "/events/edit",
+  EVENT_EDIT = "/events/edit/:id",
+  EVENT_VIEW = "/events/view",
+  EVENT_VIEW_ID = "/events/view/:id",
 }
 
