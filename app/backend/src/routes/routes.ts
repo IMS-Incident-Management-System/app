@@ -18,6 +18,9 @@ import { getEvent } from '../controllers/event/getEvent.controller';
 import { createEvent } from '../controllers/event/createEvent.controller';
 import { updateEvent } from '../controllers/event/updateEvent.controller';
 import { deleteEvent } from '../controllers/event/deleteEvent.controller';
+import { getMyProfile, updateMyProfile, uploadProfilePhoto } from '../controllers/profile.controller';
+import { verifyToken } from '../middlewares/auth.middleware';
+import { upload } from '../middlewares/upload.middleware';
 
 const router = Router();
 
@@ -95,5 +98,10 @@ router
   .get(getEvent)
   .put(updateEvent)
   .delete(deleteEvent);
+
+// Profile routes (требуют аутентификации через Keycloak)
+router.get('/profile/me', verifyToken, getMyProfile);
+router.put('/profile/me', verifyToken, updateMyProfile);
+router.post('/profile/photo', verifyToken, upload.single('file'), uploadProfilePhoto);
 
 export default router;
