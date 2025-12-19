@@ -77,7 +77,7 @@ export const IncidentView = () => {
               Назад
             </PrimaryButton>
             <Title level={2} className={styles.title}>
-              Инцидент #{incident.id}
+              Инцидент {incident.code || `#${incident.id}`}
             </Title>
             <PrimaryButton 
               icon={<EditOutlined />}
@@ -93,7 +93,7 @@ export const IncidentView = () => {
           <Card title="Основная информация" className={styles.sectionCard}>
             <Descriptions column={2} size="middle">
               <Descriptions.Item label="ID инцидента">
-                <Text strong>#{incident.id}</Text>
+                <Text strong>{incident.code || `#${incident.id}`}</Text>
               </Descriptions.Item>
               <Descriptions.Item label="Дата создания">
                 {dayjs(incident.createdAt).format("DD.MM.YYYY HH:mm")}

@@ -73,6 +73,19 @@ export const MainInfo = () => {
                 />
               </Form.Item>
             </Col>
+
+            <Col xs={24} sm={12} lg={6}>
+              <Form.Item<CreateOperationalActivityBody>
+                label="Дата внесения"
+                name="entry_date"
+              >
+                <DatePicker
+                  style={{ width: "100%" }}
+                  placeholder="Выберите дату внесения"
+                  format="YYYY-MM-DD"
+                />
+              </Form.Item>
+            </Col>
           </Row>
         </div>
       </Card>

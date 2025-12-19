@@ -11,10 +11,12 @@ export type TIncidentFilter = Partial<{
   event_type_id: number;
   date_from: string;
   date_to: string;
+  code?: string;
 }>;
 
 export interface IncidentAttributes {
   id: number;
+  code?: string; // Уникальный код инцидента (формат: IN-DDMMYYYY-HHmmss)
   department_id: number;
   direction: EIncidentDirection;
   object_type_id?: number;

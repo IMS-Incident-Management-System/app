@@ -502,7 +502,7 @@ export const OperationalActivityView = () => {
               Назад
             </PrimaryButton>
             <Title level={2} className={styles.title}>
-              Операционная деятельность #{operationalActivity.id}
+              Операционная деятельность {operationalActivity.code || `#${operationalActivity.id}`}
             </Title>
             <PrimaryButton
               icon={<EditOutlined />}
@@ -519,7 +519,7 @@ export const OperationalActivityView = () => {
           <Card title="Основная информация" className={styles.sectionCard}>
             <Descriptions column={2} bordered>
               <Descriptions.Item label="ID операционной деятельности">
-                {operationalActivity.id}
+                {operationalActivity.code || `#${operationalActivity.id}`}
               </Descriptions.Item>
               <Descriptions.Item label="Подразделение">
                 {operationalActivity.department?.title || "Не указано"}
@@ -533,6 +533,11 @@ export const OperationalActivityView = () => {
                 <Tag color={getDirectionColor(operationalActivity.direction)}>
                   {OperationalActivityDirectionLabels[operationalActivity.direction] || operationalActivity.direction}
                 </Tag>
+              </Descriptions.Item>
+              <Descriptions.Item label="Дата внесения">
+                {operationalActivity.entry_date
+                  ? dayjs(operationalActivity.entry_date).format("DD.MM.YYYY")
+                  : "Не указано"}
               </Descriptions.Item>
               <Descriptions.Item label="Дата создания">
                 {operationalActivity.createdAt

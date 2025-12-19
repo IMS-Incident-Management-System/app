@@ -3,6 +3,7 @@ import { OperationalActivity, Department } from '../models';
 import { OperationalActivityCreationAttributes } from '../models/operationalActivity';
 import { paginate, PaginatedQuery } from '../utils/pagination';
 import { OperationalActivityDirectionEnum } from '../enums/operationalActivity';
+import { generateOperationalActivityCode } from '../utils/codeGenerator';
 
 interface CreateOperationalActivityData extends Omit<OperationalActivityCreationAttributes, 'id'> {}
 
@@ -14,6 +15,7 @@ interface GetOperationalActivitiesFilters {
   period_from?: Date;
   period_to?: Date;
   created_by?: string;
+  code?: string;
 }
 
 export const operationalActivityService = {
@@ -31,6 +33,13 @@ export const operationalActivityService = {
     }
     if (filters?.created_by) {
       where.created_by = filters.created_by;
+    }
+    if (filters?.code) {
+      // Экранируем специальные символы для LIKE
+      const escapedCode = filters.code.replace(/[%_\\]/g, '\\$&');
+      where.code = {
+        [Op.iLike]: `%${escapedCode}%`
+      };
     }
 
     // Фильтр по периоду
@@ -82,7 +91,8 @@ export const operationalActivityService = {
     data: CreateOperationalActivityData,
     options?: { transaction?: Transaction }
   ) {
-    return await OperationalActivity.create(data, options);
+    const code = await generateOperationalActivityCode();
+    return await OperationalActivity.create({ ...data, code }, options);
   },
 
   /**

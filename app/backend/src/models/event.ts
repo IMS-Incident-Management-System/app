@@ -5,6 +5,7 @@ import { AdditionallyAttributes } from './additionally';
 
 export interface EventAttributes {
   id: number;
+  code?: string; // Уникальный код события (формат: EV-DDMMYYYY-HHmmss)
   department_id: number;
   date: Date;
   // Чекбоксы
@@ -46,6 +47,12 @@ const Event = sequelize.define<EventInstance>(
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
+    },
+    code: {
+      type: DataTypes.STRING(20),
+      allowNull: true,
+      unique: true,
+      comment: 'Уникальный код события (формат: EV-DDMMYYYY-HHmmss)'
     },
     department_id: {
       type: DataTypes.INTEGER,

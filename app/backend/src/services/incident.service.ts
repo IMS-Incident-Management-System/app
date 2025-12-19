@@ -15,6 +15,7 @@ import {
 } from '../models';
 import { SecurityDirectionEnum, IncidentCreationAttributes } from '../models/incident';
 import { paginate, PaginatedQuery } from '../utils/pagination';
+import { generateIncidentCode } from '../utils/codeGenerator';
 
 interface CreateIncidentData {
   department_id: number;
@@ -57,6 +58,7 @@ interface GetIncidentsFilters {
   event_type_id?: number;
   date_from?: Date;
   date_to?: Date;
+  code?: string;
 }
 
 export const incidentService = {
@@ -71,6 +73,13 @@ export const incidentService = {
     }
     if (filters?.object_type_id) {
       where.object_type_id = filters.object_type_id;
+    }
+    if (filters?.code) {
+      // Экранируем специальные символы для LIKE
+      const escapedCode = filters.code.replace(/[%_\\]/g, '\\$&');
+      where.code = {
+        [Op.iLike]: `%${escapedCode}%`
+      };
     }
 
     // Если есть фильтры по событиям (даты или тип события), используем подзапрос
@@ -195,7 +204,8 @@ export const incidentService = {
     data: IncidentCreationAttributes,
     options?: { transaction?: Transaction }
   ) {
-    return await Incident.create(data, options);
+    const code = await generateIncidentCode();
+    return await Incident.create({ ...data, code }, options);
   },
 
   async updateIncident(

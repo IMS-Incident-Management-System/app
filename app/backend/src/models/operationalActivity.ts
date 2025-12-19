@@ -7,12 +7,14 @@ import {
 
 export interface OperationalActivityAttributes {
   id: number;
+  code?: string; // Уникальный код операционной деятельности (формат: OA-DDMMYYYY-HHmmss)
   department_id: number;
   created_by?: string; // ID пользователя из Keycloak
   period_from: Date; // Период с
   period_to: Date; // Период по
   direction: OperationalActivityDirectionEnum; // Тип (ЭБ, ИБ, БПиО)
   description?: string; // Описание операционной деятельности
+  entry_date?: Date; // Дата внесения операционной деятельности
 
   // ====== ЭБ - DEBT_RECOVERY (Работа по возмещению ДЗ и НДС) ======
   total_debt?: number;
@@ -226,6 +228,12 @@ const OperationalActivity = sequelize.define<OperationalActivityInstance>(
       primaryKey: true,
       autoIncrement: true,
     },
+    code: {
+      type: DataTypes.STRING(20),
+      allowNull: true,
+      unique: true,
+      comment: 'Уникальный код операционной деятельности (формат: OA-DDMMYYYY-HHmmss)'
+    },
     department_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -262,6 +270,11 @@ const OperationalActivity = sequelize.define<OperationalActivityInstance>(
       type: DataTypes.TEXT,
       allowNull: true,
       comment: 'Описание операционной деятельности',
+    },
+    entry_date: {
+      type: DataTypes.DATEONLY,
+      allowNull: true,
+      comment: 'Дата внесения операционной деятельности',
     },
 
     // ЭБ - DEBT_RECOVERY

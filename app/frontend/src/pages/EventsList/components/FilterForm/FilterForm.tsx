@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { TEventFilter } from "../../../../interfaces/requests/event";
-import { Button, Card, Form, DatePicker, TreeSelect } from "antd";
+import { Button, Card, Form, DatePicker, TreeSelect, Input } from "antd";
 import styles from "./FilterForm.module.scss";
 import dayjs from "dayjs";
 import { useGetDepartments } from "../../../../services/requests/departments/getDepartments";
@@ -49,6 +49,13 @@ export const FilterForm = ({
     <Card title="Фильтр" className={styles.filterForm}>
       <Form form={form} layout="vertical">
         <div className={styles.filterFormGroup}>
+          <Form.Item label="ID" name="code">
+            <Input
+              placeholder="Поиск по ID (например: EV-15032024-143025)"
+              className={styles.formInput}
+            />
+          </Form.Item>
+
           <Form.Item label="Подразделение" name="department_id">
             <TreeSelect
               showSearch

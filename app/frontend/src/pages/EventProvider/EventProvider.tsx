@@ -105,7 +105,7 @@ export const EventProvider = () => {
             <>
               <div className={styles.headerTop}>
                 <Title level={2} className={styles.title}>
-                  {id ? `Событие #${event?.id}` : "Создание события"}
+                  {id ? `Событие ${event?.code || `#${event?.id}`}` : "Создание события"}
                 </Title>
                 {id && (
                   <PrimaryButton

@@ -18,6 +18,7 @@ export enum SecurityDirectionEnum {
 
 export interface IncidentAttributes {
   id: number;
+  code?: string; // Уникальный код инцидента (формат: IN-DDMMYYYY-HHmmss)
   department_id: number;
   direction: SecurityDirectionEnum;
   object_type_id?: number;
@@ -57,6 +58,12 @@ const Incident = sequelize.define<IncidentInstance>(
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
+    },
+    code: {
+      type: DataTypes.STRING(20),
+      allowNull: true,
+      unique: true,
+      comment: 'Уникальный код инцидента (формат: IN-DDMMYYYY-HHmmss)'
     },
     department_id: {
       type: DataTypes.INTEGER,

@@ -12,7 +12,8 @@ export const getEvents = asyncErrorHandler(
     const filters =
       req.query.department_id ||
       req.query.date_from ||
-      req.query.date_to
+      req.query.date_to ||
+      req.query.code
         ? {
             department_id: req.query.department_id
               ? Number(req.query.department_id)
@@ -22,6 +23,9 @@ export const getEvents = asyncErrorHandler(
               : undefined,
             date_to: req.query.date_to
               ? new Date(req.query.date_to as string)
+              : undefined,
+            code: req.query.code
+              ? String(req.query.code)
               : undefined,
           }
         : undefined;
@@ -34,8 +38,8 @@ export const getEvents = asyncErrorHandler(
     const columns = [
       {
         title: 'ID',
-        dataIndex: 'id',
-        key: 'id',
+        dataIndex: 'code',
+        key: 'code',
       },
       {
         title: 'Дата создания',

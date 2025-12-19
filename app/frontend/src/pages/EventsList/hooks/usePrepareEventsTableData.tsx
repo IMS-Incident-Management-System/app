@@ -78,6 +78,20 @@ export const usePrepareEventsTableData = (data: ITable<EventWithRelations>) => {
         render: (date: string) => (date ? dayjs(date).format("DD.MM.YYYY HH:mm") : "-"),
       };
     }
+    if (column.key === "code") {
+      return {
+        ...column,
+        render: (value: any, record: EventWithRelations) => (
+          <span style={{ 
+            fontWeight: '600',
+            color: '#1890ff',
+            fontSize: '14px'
+          }}>
+            {value || `#${record.id}`}
+          </span>
+        ),
+      };
+    }
     if (column.key === "department") {
       return {
         ...column,

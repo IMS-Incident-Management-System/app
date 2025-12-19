@@ -57,7 +57,7 @@ export const OperationalActivityProvider = () => {
       <Card className={styles.card}>
         <div className={styles.header}>
           <Title level={2} className={styles.title}>
-            {id ? `Операционная деятельность #${id}` : "Создание операционной деятельности"}
+            {id ? `Операционная деятельность ${operationalActivity?.code || `#${id}`}` : "Создание операционной деятельности"}
           </Title>
           <div className={styles.headerActions}>
             {id && (
