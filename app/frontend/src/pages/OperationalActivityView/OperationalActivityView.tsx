@@ -534,6 +534,11 @@ export const OperationalActivityView = () => {
                   {OperationalActivityDirectionLabels[operationalActivity.direction] || operationalActivity.direction}
                 </Tag>
               </Descriptions.Item>
+              <Descriptions.Item label="Дата внесения">
+                {operationalActivity.entry_date
+                  ? dayjs(operationalActivity.entry_date).format("DD.MM.YYYY")
+                  : "Не указано"}
+              </Descriptions.Item>
               <Descriptions.Item label="Дата создания">
                 {operationalActivity.createdAt
                   ? dayjs(operationalActivity.createdAt).format("DD.MM.YYYY HH:mm")

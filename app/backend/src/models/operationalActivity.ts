@@ -14,6 +14,7 @@ export interface OperationalActivityAttributes {
   period_to: Date; // Период по
   direction: OperationalActivityDirectionEnum; // Тип (ЭБ, ИБ, БПиО)
   description?: string; // Описание операционной деятельности
+  entry_date?: Date; // Дата внесения операционной деятельности
 
   // ====== ЭБ - DEBT_RECOVERY (Работа по возмещению ДЗ и НДС) ======
   total_debt?: number;
@@ -269,6 +270,11 @@ const OperationalActivity = sequelize.define<OperationalActivityInstance>(
       type: DataTypes.TEXT,
       allowNull: true,
       comment: 'Описание операционной деятельности',
+    },
+    entry_date: {
+      type: DataTypes.DATEONLY,
+      allowNull: true,
+      comment: 'Дата внесения операционной деятельности',
     },
 
     // ЭБ - DEBT_RECOVERY

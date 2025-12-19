@@ -29,6 +29,9 @@ export const useForm = ({
       period_to: formValues.period?.[1]
         ? dayjs(formValues.period[1]).format("YYYY-MM-DD")
         : undefined,
+      entry_date: formValues.entry_date
+        ? dayjs(formValues.entry_date).format("YYYY-MM-DD")
+        : undefined,
     };
     
     // Убираем временное поле period
@@ -56,6 +59,9 @@ export const useForm = ({
             ? [dayjs(operationalActivity.period_from), dayjs(operationalActivity.period_to)]
             : undefined,
         direction: operationalActivity.direction,
+        entry_date: operationalActivity.entry_date
+          ? dayjs(operationalActivity.entry_date)
+          : undefined,
         // Все остальные поля берем как есть
         ...Object.keys(operationalActivity).reduce((acc: any, key) => {
           if (
@@ -65,6 +71,7 @@ export const useForm = ({
               "period_from",
               "period_to",
               "direction",
+              "entry_date",
               "category",
               "created_by",
               "createdAt",

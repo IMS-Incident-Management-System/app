@@ -22,6 +22,7 @@ export interface OperationalActivityAttributes {
   period_to: string; // DATEONLY формат - период по
   direction: EOperationalActivityDirection;
   description?: string; // Описание операционной деятельности
+  entry_date?: string; // DATEONLY формат - дата внесения операционной деятельности
 
   // ====== ЭБ - DEBT_RECOVERY ======
   total_debt?: number;
