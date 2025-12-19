@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { TIncidentFilter } from "../../../../interfaces/requests/incident";
-import { Button, Card, Form, DatePicker, Select, TreeSelect } from "antd";
+import { Button, Card, Form, DatePicker, Select, TreeSelect, Input } from "antd";
 import styles from "./FilterForm.module.scss";
 import dayjs from "dayjs";
 import { directionDict } from "../../../../constants/incidentDict";
@@ -56,6 +56,13 @@ export const FilterForm = ({
     <Card title="Фильтр" className={styles.filterForm}>
       <Form form={form} layout="vertical">
         <div className={styles.filterFormGroup}>
+          <Form.Item label="ID" name="code">
+            <Input
+              placeholder="Поиск по ID (например: IN-15032024-143025)"
+              className={styles.formInput}
+            />
+          </Form.Item>
+
           <Form.Item label="Подразделение" name="department_id">
             <TreeSelect
               showSearch

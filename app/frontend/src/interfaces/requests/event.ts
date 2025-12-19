@@ -3,10 +3,12 @@ export type TEventFilter = Partial<{
   department_id: number;
   date_from: string;
   date_to: string;
+  code?: string;
 }>;
 
 export interface EventAttributes {
   id: number;
+  code?: string; // Уникальный код события (формат: EV-DDMMYYYY-HHmmss)
   department_id: number;
   date: Date;
   is_service_investigation: boolean;

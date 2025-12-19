@@ -7,6 +7,7 @@ import {
 
 export interface OperationalActivityAttributes {
   id: number;
+  code?: string; // Уникальный код операционной деятельности (формат: OA-DDMMYYYY-HHmmss)
   department_id: number;
   created_by?: string; // ID пользователя из Keycloak
   period_from: Date; // Период с
@@ -225,6 +226,12 @@ const OperationalActivity = sequelize.define<OperationalActivityInstance>(
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
+    },
+    code: {
+      type: DataTypes.STRING(20),
+      allowNull: true,
+      unique: true,
+      comment: 'Уникальный код операционной деятельности (формат: OA-DDMMYYYY-HHmmss)'
     },
     department_id: {
       type: DataTypes.INTEGER,

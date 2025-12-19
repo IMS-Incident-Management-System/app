@@ -127,7 +127,7 @@ export const IncidentProvider = () => {
             <>
               <div className={styles.headerTop}>
               <Title level={2} className={styles.title}>
-                {id ? `Инцидент #${incident?.id}` : "Создание инцидента"}
+                {id ? `Инцидент ${incident?.code || `#${incident?.id}`}` : "Создание инцидента"}
               </Title>
               {id && (
                 <PrimaryButton

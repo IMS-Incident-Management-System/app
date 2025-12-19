@@ -9,11 +9,13 @@ export type TOperationalActivityFilter = Partial<{
   period_from: string;
   period_to: string;
   created_by: string;
+  code?: string;
 }>;
 
 // Базовые атрибуты операционной деятельности
 export interface OperationalActivityAttributes {
   id: number;
+  code?: string; // Уникальный код операционной деятельности (формат: OA-DDMMYYYY-HHmmss)
   department_id: number;
   created_by?: string;
   period_from: string; // DATEONLY формат - период с

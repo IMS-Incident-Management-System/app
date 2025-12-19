@@ -15,7 +15,8 @@ export const getOperationalActivities = asyncErrorHandler(
       req.query.direction ||
       req.query.period_from ||
       req.query.period_to ||
-      req.query.created_by
+      req.query.created_by ||
+      req.query.code
         ? {
             department_id: req.query.department_id
               ? Number(req.query.department_id)
@@ -28,6 +29,9 @@ export const getOperationalActivities = asyncErrorHandler(
               ? new Date(req.query.period_to as string)
               : undefined,
             created_by: req.query.created_by as string,
+            code: req.query.code
+              ? String(req.query.code)
+              : undefined,
           }
         : undefined;
 
@@ -39,8 +43,8 @@ export const getOperationalActivities = asyncErrorHandler(
     const columns = [
       {
         title: 'ID',
-        dataIndex: 'id',
-        key: 'id',
+        dataIndex: 'code',
+        key: 'code',
       },
       {
         title: 'Дата создания',

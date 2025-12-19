@@ -112,6 +112,23 @@ export const usePrepareTableData = (data: ITable<OperationalActivityWithRelation
       };
     }
 
+    if (column.dataIndex === "code") {
+      return {
+        ...column,
+        render: (value: any, record: any) => {
+          return (
+            <span style={{ 
+              fontWeight: '600',
+              color: '#1890ff',
+              fontSize: '14px'
+            }}>
+              {value || `#${record.id}`}
+            </span>
+          );
+        },
+      };
+    }
+
     if (column.dataIndex === "createdAt") {
       return {
         ...column,

@@ -8,6 +8,7 @@ import {
 } from '../models';
 import { EventCreationAttributes } from '../models/event';
 import { paginate, PaginatedQuery } from '../utils/pagination';
+import { generateEventCode } from '../utils/codeGenerator';
 
 interface CreateEventData {
   department_id: number;
@@ -51,6 +52,7 @@ interface GetEventsFilters {
   department_id?: number;
   date_from?: Date;
   date_to?: Date;
+  code?: string;
 }
 
 export const eventService = {
@@ -66,6 +68,13 @@ export const eventService = {
           filters.date_from || new Date(0),
           filters.date_to || new Date()
         ]
+      };
+    }
+    if (filters?.code) {
+      // Экранируем специальные символы для LIKE
+      const escapedCode = filters.code.replace(/[%_\\]/g, '\\$&');
+      where.code = {
+        [Op.iLike]: `%${escapedCode}%`
       };
     }
 
@@ -122,7 +131,8 @@ export const eventService = {
     data: EventCreationAttributes,
     options?: { transaction?: Transaction }
   ) {
-    return await Event.create(data, options);
+    const code = await generateEventCode();
+    return await Event.create({ ...data, code }, options);
   },
 
   async updateEvent(

@@ -57,7 +57,7 @@ export const EventView = () => {
               Назад
             </PrimaryButton>
             <Title level={2} className={styles.title}>
-              Событие #{event.id}
+              Событие {event.code || `#${event.id}`}
             </Title>
             <PrimaryButton 
               icon={<EditOutlined />}
@@ -73,7 +73,7 @@ export const EventView = () => {
           <Card title="Основная информация" className={styles.sectionCard}>
             <Descriptions column={2} size="middle">
               <Descriptions.Item label="ID события">
-                <Text strong>#{event.id}</Text>
+                <Text strong>{event.code || `#${event.id}`}</Text>
               </Descriptions.Item>
               <Descriptions.Item label="Дата создания">
                 {dayjs(event.createdAt).format("DD.MM.YYYY HH:mm")}
