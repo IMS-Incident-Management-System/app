@@ -9,7 +9,7 @@ DROP TABLE IF EXISTS event_additionally CASCADE;
 DROP TABLE IF EXISTS events CASCADE;
 
 -- Таблица events
-CREATE TABLE events (
+CREATE TABLE IF NOT EXISTS events (
   id SERIAL PRIMARY KEY,
   department_id INTEGER NOT NULL,
   "date" DATE NOT NULL,
@@ -27,9 +27,22 @@ CREATE TABLE events (
   prevented_unnecessary_writeoff INTEGER DEFAULT 0,
   vat_deducted INTEGER DEFAULT 0,
   "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  "updatedAt" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT fk_events_department FOREIGN KEY (department_id) REFERENCES departments(department_id) ON DELETE RESTRICT
+  "updatedAt" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Добавляем внешний ключ только если таблица departments существует
+DO $$
+BEGIN
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'departments') THEN
+    IF NOT EXISTS (
+      SELECT 1 FROM information_schema.table_constraints 
+      WHERE table_schema = 'public' AND constraint_name = 'fk_events_department'
+    ) THEN
+      ALTER TABLE events
+      ADD CONSTRAINT fk_events_department FOREIGN KEY (department_id) REFERENCES departments(department_id) ON DELETE RESTRICT;
+    END IF;
+  END IF;
+END $$;
 
 COMMENT ON TABLE events IS 'Таблица событий';
 COMMENT ON COLUMN events.department_id IS 'Подразделение';
