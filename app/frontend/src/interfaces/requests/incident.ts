@@ -68,6 +68,16 @@ export interface IncidentPersonAttributes {
   employee_number?: string;
 }
 
+export interface IncidentAttachmentAttributes {
+  id: number;
+  incident_id: number;
+  filename: string;
+  stored_filename: string;
+  file_path: string;
+  file_size: number;
+  mime_type: string;
+}
+
 export interface CriminalCaseAttributes {
   id?: number;
   

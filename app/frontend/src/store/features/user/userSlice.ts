@@ -25,7 +25,9 @@ export const userSlice = createAppSlice({
   name: "user",
   initialState,
   reducers: (create) => ({
-    signIn: create.reducer((data, action) => signInUser(action.payload as any)),
+    signIn: create.reducer<UserResponse>((state, action) => {
+      return action.payload;
+    }),
     // logout: create.asyncThunk(logoutAction, {
     //   fulfilled: (state, action) => {
     //     return initialState;

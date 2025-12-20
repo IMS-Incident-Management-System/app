@@ -562,8 +562,8 @@ export const OperationalActivityView = () => {
               >
                 {section.subsections?.map((subsection, subsectionIndex) => {
                   // Разделяем поля на текстовые и числовые
-                  const textFields = subsection.fields.filter(field => field.type === 'text');
-                  const numberFields = subsection.fields.filter(field => field.type !== 'text');
+                  const textFields = subsection.fields.filter(field => field.type === 'text') as Array<{ key: string; label: string; type?: string; value: any }>;
+                  const numberFields = subsection.fields.filter(field => field.type !== 'text') as Array<{ key: string; label: string; type?: string; value: any }>;
                   
                   return (
                     <div key={subsectionIndex}>

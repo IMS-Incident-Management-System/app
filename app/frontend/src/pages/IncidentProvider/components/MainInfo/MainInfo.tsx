@@ -366,12 +366,15 @@ export const MainInfo = () => {
               label="Выявлен ущерб (руб.)"
               name="detected_damage"
             >
-              <InputNumber
+              <InputNumber<number>
                 style={{ width: "100%" }}
                 formatter={(value) =>
                   `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, " ")
                 }
-                parser={(value) => value!.replace(/\s?|(,*)/g, "")}
+                parser={(value) => {
+                  const cleaned = value?.replace(/\s?|(,*)/g, "") || "";
+                  return parseFloat(cleaned) || 0;
+                }}
                 placeholder="0"
                 className={styles.formInput}
                 addonAfter="₽"
@@ -384,12 +387,15 @@ export const MainInfo = () => {
               label="Возмещен ущерб (руб.)"
               name="recovered_damage"
             >
-              <InputNumber
+              <InputNumber<number>
                 style={{ width: "100%" }}
                 formatter={(value) =>
                   `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, " ")
                 }
-                parser={(value) => value!.replace(/\s?|(,*)/g, "")}
+                parser={(value) => {
+                  const cleaned = value?.replace(/\s?|(,*)/g, "") || "";
+                  return parseFloat(cleaned) || 0;
+                }}
                 placeholder="0"
                 className={styles.formInput}
                 addonAfter="₽"
@@ -402,12 +408,15 @@ export const MainInfo = () => {
               label="Предотвращен ущерб (руб.)"
               name="prevented_damage"
             >
-              <InputNumber
+              <InputNumber<number>
                 style={{ width: "100%" }}
                 formatter={(value) =>
                   `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, " ")
                 }
-                parser={(value) => value!.replace(/\s?|(,*)/g, "")}
+                parser={(value) => {
+                  const cleaned = value?.replace(/\s?|(,*)/g, "") || "";
+                  return parseFloat(cleaned) || 0;
+                }}
                 placeholder="0"
                 className={styles.formInput}
                 addonAfter="₽"
@@ -420,12 +429,15 @@ export const MainInfo = () => {
               label="Получен дополнительный доход (руб.)"
               name="additional_income"
             >
-              <InputNumber
+              <InputNumber<number>
                 style={{ width: "100%" }}
                 formatter={(value) =>
                   `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, " ")
                 }
-                parser={(value) => value!.replace(/\s?|(,*)/g, "")}
+                parser={(value) => {
+                  const cleaned = value?.replace(/\s?|(,*)/g, "") || "";
+                  return parseFloat(cleaned) || 0;
+                }}
                 placeholder="0"
                 className={styles.formInput}
                 addonAfter="₽"
@@ -438,12 +450,15 @@ export const MainInfo = () => {
               label="Снижена стоимость товаров, работ и услуг на сумму (руб.)"
               name="reduced_cost"
             >
-              <InputNumber
+              <InputNumber<number>
                 style={{ width: "100%" }}
                 formatter={(value) =>
                   `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, " ")
                 }
-                parser={(value) => value!.replace(/\s?|(,*)/g, "")}
+                parser={(value) => {
+                  const cleaned = value?.replace(/\s?|(,*)/g, "") || "";
+                  return parseFloat(cleaned) || 0;
+                }}
                 placeholder="0"
                 className={styles.formInput}
                 addonAfter="₽"

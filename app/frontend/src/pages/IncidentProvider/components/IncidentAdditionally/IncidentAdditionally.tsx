@@ -450,12 +450,15 @@ export const IncidentAdditionally = () => {
                             label="Выявлен ущерб (руб.)"
                             name={[field.name, "detected_damage"]}
                           >
-                            <InputNumber
+                            <InputNumber<number>
                               style={{ width: "100%" }}
                               formatter={(value) =>
                                 `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, " ")
                               }
-                              parser={(value) => value!.replace(/\s?|(,*)/g, "")}
+                              parser={(value) => {
+                                const cleaned = value?.replace(/\s?|(,*)/g, "") || "";
+                                return parseFloat(cleaned) || 0;
+                              }}
                               placeholder="0"
                               className={styles.formInput}
                               addonAfter="₽"
@@ -469,12 +472,15 @@ export const IncidentAdditionally = () => {
                             label="Возмещен ущерб (руб.)"
                             name={[field.name, "recovered_damage"]}
                           >
-                            <InputNumber
+                            <InputNumber<number>
                               style={{ width: "100%" }}
                               formatter={(value) =>
                                 `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, " ")
                               }
-                              parser={(value) => value!.replace(/\s?|(,*)/g, "")}
+                              parser={(value) => {
+                                const cleaned = value?.replace(/\s?|(,*)/g, "") || "";
+                                return parseFloat(cleaned) || 0;
+                              }}
                               placeholder="0"
                               className={styles.formInput}
                               addonAfter="₽"
@@ -488,12 +494,15 @@ export const IncidentAdditionally = () => {
                             label="Предотвращен ущерб (руб.)"
                             name={[field.name, "prevented_damage"]}
                           >
-                            <InputNumber
+                            <InputNumber<number>
                               style={{ width: "100%" }}
                               formatter={(value) =>
                                 `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, " ")
                               }
-                              parser={(value) => value!.replace(/\s?|(,*)/g, "")}
+                              parser={(value) => {
+                                const cleaned = value?.replace(/\s?|(,*)/g, "") || "";
+                                return parseFloat(cleaned) || 0;
+                              }}
                               placeholder="0"
                               className={styles.formInput}
                               addonAfter="₽"
@@ -507,12 +516,15 @@ export const IncidentAdditionally = () => {
                             label="Получен дополнительный доход (руб.)"
                             name={[field.name, "additional_income"]}
                           >
-                            <InputNumber
+                            <InputNumber<number>
                               style={{ width: "100%" }}
                               formatter={(value) =>
                                 `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, " ")
                               }
-                              parser={(value) => value!.replace(/\s?|(,*)/g, "")}
+                              parser={(value) => {
+                                const cleaned = value?.replace(/\s?|(,*)/g, "") || "";
+                                return parseFloat(cleaned) || 0;
+                              }}
                               placeholder="0"
                               className={styles.formInput}
                               addonAfter="₽"
@@ -526,12 +538,15 @@ export const IncidentAdditionally = () => {
                             label="Снижена стоимость товаров, работ и услуг на сумму (руб.)"
                             name={[field.name, "reduced_cost"]}
                           >
-                            <InputNumber
+                            <InputNumber<number>
                               style={{ width: "100%" }}
                               formatter={(value) =>
                                 `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, " ")
                               }
-                              parser={(value) => value!.replace(/\s?|(,*)/g, "")}
+                              parser={(value) => {
+                                const cleaned = value?.replace(/\s?|(,*)/g, "") || "";
+                                return parseFloat(cleaned) || 0;
+                              }}
                               placeholder="0"
                               className={styles.formInput}
                               addonAfter="₽"

@@ -143,14 +143,6 @@ export const IncidentAttachments = () => {
     // Ограничиваем количество файлов
     newFileList = newFileList.slice(0, MAX_FILES);
 
-    // Устанавливаем статус для новых файлов
-    newFileList = newFileList.map((file) => {
-      if (file.status === "uploading") {
-        return { ...file, status: "ready" as const };
-      }
-      return file;
-    });
-
     setFileList(newFileList);
   };
 

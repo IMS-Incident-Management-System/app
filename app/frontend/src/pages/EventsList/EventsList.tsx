@@ -19,6 +19,8 @@ import { PrimaryButton } from "../../components/PrimaryButton";
 import { usePrepareEventsTableData } from "./hooks/usePrepareEventsTableData";
 import styles from "./EventsList.module.scss";
 import { FilterForm } from "./components/FilterForm/FilterForm";
+import { EventWithRelations } from "../../interfaces/requests/event";
+import { Table as AntTable } from "antd";
 
 export const EventsList = () => {
   const navigate = useNavigate();
@@ -104,7 +106,7 @@ export const EventsList = () => {
       {isFilterFormOpen && (
         <FilterForm filter={filter.filter} onFilter={handleFilter} />
       )}
-      <Table
+      <AntTable<EventWithRelations>
         dataSource={dataSource}
         columns={columns}
         className={styles.table}
