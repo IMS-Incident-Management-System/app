@@ -114,6 +114,13 @@ BEGIN
 END $$;
 
 -- Создаем индексы
-CREATE INDEX IF NOT EXISTS idx_event_criminal_cases_event_id ON event_criminal_cases(event_id);
-CREATE INDEX IF NOT EXISTS idx_event_punishments_event_id ON event_punishments(event_id);
+DO $$
+BEGIN
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'event_criminal_cases') THEN
+    CREATE INDEX IF NOT EXISTS idx_event_criminal_cases_event_id ON event_criminal_cases(event_id);
+  END IF;
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'event_punishments') THEN
+    CREATE INDEX IF NOT EXISTS idx_event_punishments_event_id ON event_punishments(event_id);
+  END IF;
+END $$;
 

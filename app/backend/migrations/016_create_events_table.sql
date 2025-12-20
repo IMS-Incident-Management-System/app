@@ -1,12 +1,29 @@
 -- Миграция для создания таблиц событий (События)
 -- Создана: 2024
+-- Примечание: Эта миграция создает начальную структуру, которая будет изменена в миграции 017
+-- (event_additionally будет удалена, criminal_cases и punishments будут связаны напрямую с events)
 
--- Удаляем таблицу events, если она существует (для чистой миграции)
-DROP TABLE IF EXISTS event_additionally_persons CASCADE;
-DROP TABLE IF EXISTS event_punishments CASCADE;
-DROP TABLE IF EXISTS event_criminal_cases CASCADE;
-DROP TABLE IF EXISTS event_additionally CASCADE;
-DROP TABLE IF EXISTS events CASCADE;
+-- Удаляем старые таблицы только если они существуют (для чистой миграции или пересоздания)
+-- ВАЖНО: В продакшене эти DROP могут удалить данные, используйте с осторожностью!
+DO $$
+BEGIN
+  -- Удаляем только если таблицы действительно существуют
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'event_additionally_persons') THEN
+    DROP TABLE event_additionally_persons CASCADE;
+  END IF;
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'event_punishments') THEN
+    DROP TABLE event_punishments CASCADE;
+  END IF;
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'event_criminal_cases') THEN
+    DROP TABLE event_criminal_cases CASCADE;
+  END IF;
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'event_additionally') THEN
+    DROP TABLE event_additionally CASCADE;
+  END IF;
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'events') THEN
+    DROP TABLE events CASCADE;
+  END IF;
+END $$;
 
 -- Таблица events
 CREATE TABLE IF NOT EXISTS events (
@@ -44,22 +61,30 @@ BEGIN
   END IF;
 END $$;
 
-COMMENT ON TABLE events IS 'Таблица событий';
-COMMENT ON COLUMN events.department_id IS 'Подразделение';
-COMMENT ON COLUMN events."date" IS 'Дата события';
-COMMENT ON COLUMN events.is_service_investigation IS 'Служебные расследования';
-COMMENT ON COLUMN events.is_service_check IS 'Служебные проверки';
-COMMENT ON COLUMN events.is_service_check_ib IS 'Служебные проверки по линии ИБ';
-COMMENT ON COLUMN events.is_verification_activity IS 'Проверочные мероприятия';
-COMMENT ON COLUMN events.quantity IS 'Количество – текстовое поле';
-COMMENT ON COLUMN events.description IS 'Текстовое поле для описания События';
-COMMENT ON COLUMN events.detected_damage IS 'Выявлен ущерб (руб.)';
-COMMENT ON COLUMN events.recovered_damage IS 'Возмещен ущерб (руб.)';
-COMMENT ON COLUMN events.prevented_damage IS 'Предотвращен ущерб (руб.)';
-COMMENT ON COLUMN events.additional_income IS 'Получен дополнительный доход (руб.)';
-COMMENT ON COLUMN events.reduced_cost IS 'Снижена стоимость товаров, работ и услуг на сумму (руб.)';
-COMMENT ON COLUMN events.prevented_unnecessary_writeoff IS 'Предотвращено необ. списание ДЗ, руб.';
-COMMENT ON COLUMN events.vat_deducted IS 'Принят к вычету НДС, руб.';
+-- Комментарии для таблицы events
+DO $$
+BEGIN
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'events') THEN
+    EXECUTE 'COMMENT ON TABLE events IS ''Таблица событий''';
+    EXECUTE 'COMMENT ON COLUMN events.department_id IS ''Подразделение''';
+    EXECUTE 'COMMENT ON COLUMN events."date" IS ''Дата события''';
+    EXECUTE 'COMMENT ON COLUMN events.is_service_investigation IS ''Служебные расследования''';
+    EXECUTE 'COMMENT ON COLUMN events.is_service_check IS ''Служебные проверки''';
+    EXECUTE 'COMMENT ON COLUMN events.is_service_check_ib IS ''Служебные проверки по линии ИБ''';
+    EXECUTE 'COMMENT ON COLUMN events.is_verification_activity IS ''Проверочные мероприятия''';
+    IF EXISTS (SELECT FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'events' AND column_name = 'quantity') THEN
+      EXECUTE 'COMMENT ON COLUMN events.quantity IS ''Количество – текстовое поле''';
+    END IF;
+    EXECUTE 'COMMENT ON COLUMN events.description IS ''Текстовое поле для описания События''';
+    EXECUTE 'COMMENT ON COLUMN events.detected_damage IS ''Выявлен ущерб (руб.)''';
+    EXECUTE 'COMMENT ON COLUMN events.recovered_damage IS ''Возмещен ущерб (руб.)''';
+    EXECUTE 'COMMENT ON COLUMN events.prevented_damage IS ''Предотвращен ущерб (руб.)''';
+    EXECUTE 'COMMENT ON COLUMN events.additional_income IS ''Получен дополнительный доход (руб.)''';
+    EXECUTE 'COMMENT ON COLUMN events.reduced_cost IS ''Снижена стоимость товаров, работ и услуг на сумму (руб.)''';
+    EXECUTE 'COMMENT ON COLUMN events.prevented_unnecessary_writeoff IS ''Предотвращено необ. списание ДЗ, руб.''';
+    EXECUTE 'COMMENT ON COLUMN events.vat_deducted IS ''Принят к вычету НДС, руб.''';
+  END IF;
+END $$;
 
 -- Таблица event_additionally
 CREATE TABLE event_additionally (
@@ -78,16 +103,22 @@ CREATE TABLE event_additionally (
   CONSTRAINT fk_event_additionally_event FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
 );
 
-COMMENT ON TABLE event_additionally IS 'Дополнения к событиям';
-COMMENT ON COLUMN event_additionally.event_id IS 'ID события';
-COMMENT ON COLUMN event_additionally.incident_date IS 'Дата происшествия';
-COMMENT ON COLUMN event_additionally.addition_date IS 'Дата внесения дополнения к событию';
-COMMENT ON COLUMN event_additionally.text_field IS 'Текстовое поле';
-COMMENT ON COLUMN event_additionally.detected_damage IS 'Выявленный ущерб';
-COMMENT ON COLUMN event_additionally.prevented_damage IS 'Предотвращенный ущерб';
-COMMENT ON COLUMN event_additionally.recovered_damage IS 'Возмещенный ущерб';
-COMMENT ON COLUMN event_additionally.additional_income IS 'Получен дополнительный доход (руб.)';
-COMMENT ON COLUMN event_additionally.reduced_cost IS 'Снижена стоимость товаров, работ и услуг на сумму (руб.)';
+-- Комментарии для event_additionally (будет удалена в миграции 017)
+DO $$
+BEGIN
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'event_additionally') THEN
+    EXECUTE 'COMMENT ON TABLE event_additionally IS ''Дополнения к событиям''';
+    EXECUTE 'COMMENT ON COLUMN event_additionally.event_id IS ''ID события''';
+    EXECUTE 'COMMENT ON COLUMN event_additionally.incident_date IS ''Дата происшествия''';
+    EXECUTE 'COMMENT ON COLUMN event_additionally.addition_date IS ''Дата внесения дополнения к событию''';
+    EXECUTE 'COMMENT ON COLUMN event_additionally.text_field IS ''Текстовое поле''';
+    EXECUTE 'COMMENT ON COLUMN event_additionally.detected_damage IS ''Выявленный ущерб''';
+    EXECUTE 'COMMENT ON COLUMN event_additionally.prevented_damage IS ''Предотвращенный ущерб''';
+    EXECUTE 'COMMENT ON COLUMN event_additionally.recovered_damage IS ''Возмещенный ущерб''';
+    EXECUTE 'COMMENT ON COLUMN event_additionally.additional_income IS ''Получен дополнительный доход (руб.)''';
+    EXECUTE 'COMMENT ON COLUMN event_additionally.reduced_cost IS ''Снижена стоимость товаров, работ и услуг на сумму (руб.)''';
+  END IF;
+END $$;
 
 -- Таблица event_criminal_cases
 CREATE TABLE event_criminal_cases (
@@ -115,25 +146,31 @@ CREATE TABLE event_criminal_cases (
   CONSTRAINT fk_event_criminal_case_additionally FOREIGN KEY (event_additionally_id) REFERENCES event_additionally(id) ON DELETE CASCADE
 );
 
-COMMENT ON TABLE event_criminal_cases IS 'Уголовные дела для событий';
-COMMENT ON COLUMN event_criminal_cases.event_additionally_id IS 'ID дополнения к событию';
-COMMENT ON COLUMN event_criminal_cases.transfer_date IS 'Дата передачи материалов в ПРоО';
-COMMENT ON COLUMN event_criminal_cases.document_number IS 'Номер вх./исх. документа или Номер КУСП';
-COMMENT ON COLUMN event_criminal_cases.department_name IS 'Наименование подразделения, куда переданы материалы';
-COMMENT ON COLUMN event_criminal_cases.review_result IS 'Результат рассмотрения материалов';
-COMMENT ON COLUMN event_criminal_cases.rejection_date IS 'Дата отказа в ВУД/ВАД';
-COMMENT ON COLUMN event_criminal_cases.rejection_reason IS 'Причина отказа в ВУД/ВАД';
-COMMENT ON COLUMN event_criminal_cases.appeal_date IS 'Дата обжалования отказа в ВУД/ВАД';
-COMMENT ON COLUMN event_criminal_cases.case_date IS 'Дата ВУД/ВАД';
-COMMENT ON COLUMN event_criminal_cases.case_number IS 'Номер УД/АД';
-COMMENT ON COLUMN event_criminal_cases.law_article IS 'Статья УКРФ/КоАПРФ';
-COMMENT ON COLUMN event_criminal_cases.initiator IS 'Инициатор возбуждения УД/АД';
-COMMENT ON COLUMN event_criminal_cases.subject IS 'Субъект преступления УД/АД';
-COMMENT ON COLUMN event_criminal_cases.detained_count IS 'Задержано, чел.';
-COMMENT ON COLUMN event_criminal_cases.person_name IS 'ФИО лица (название юр.лица), привлекаемого к УО/АО';
-COMMENT ON COLUMN event_criminal_cases.case_result IS 'Результат рассмотрения УД/АД';
-COMMENT ON COLUMN event_criminal_cases.court_decision IS 'Решение (приговор) суда';
-COMMENT ON COLUMN event_criminal_cases.convicted_count IS 'Осуждено, чел.';
+-- Комментарии для event_criminal_cases (будет пересоздана в миграции 017 с прямой связью)
+DO $$
+BEGIN
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'event_criminal_cases') THEN
+    EXECUTE 'COMMENT ON TABLE event_criminal_cases IS ''Уголовные дела для событий''';
+    EXECUTE 'COMMENT ON COLUMN event_criminal_cases.event_additionally_id IS ''ID дополнения к событию''';
+    EXECUTE 'COMMENT ON COLUMN event_criminal_cases.transfer_date IS ''Дата передачи материалов в ПРоО''';
+    EXECUTE 'COMMENT ON COLUMN event_criminal_cases.document_number IS ''Номер вх./исх. документа или Номер КУСП''';
+    EXECUTE 'COMMENT ON COLUMN event_criminal_cases.department_name IS ''Наименование подразделения, куда переданы материалы''';
+    EXECUTE 'COMMENT ON COLUMN event_criminal_cases.review_result IS ''Результат рассмотрения материалов''';
+    EXECUTE 'COMMENT ON COLUMN event_criminal_cases.rejection_date IS ''Дата отказа в ВУД/ВАД''';
+    EXECUTE 'COMMENT ON COLUMN event_criminal_cases.rejection_reason IS ''Причина отказа в ВУД/ВАД''';
+    EXECUTE 'COMMENT ON COLUMN event_criminal_cases.appeal_date IS ''Дата обжалования отказа в ВУД/ВАД''';
+    EXECUTE 'COMMENT ON COLUMN event_criminal_cases.case_date IS ''Дата ВУД/ВАД''';
+    EXECUTE 'COMMENT ON COLUMN event_criminal_cases.case_number IS ''Номер УД/АД''';
+    EXECUTE 'COMMENT ON COLUMN event_criminal_cases.law_article IS ''Статья УКРФ/КоАПРФ''';
+    EXECUTE 'COMMENT ON COLUMN event_criminal_cases.initiator IS ''Инициатор возбуждения УД/АД''';
+    EXECUTE 'COMMENT ON COLUMN event_criminal_cases.subject IS ''Субъект преступления УД/АД''';
+    EXECUTE 'COMMENT ON COLUMN event_criminal_cases.detained_count IS ''Задержано, чел.''';
+    EXECUTE 'COMMENT ON COLUMN event_criminal_cases.person_name IS ''ФИО лица (название юр.лица), привлекаемого к УО/АО''';
+    EXECUTE 'COMMENT ON COLUMN event_criminal_cases.case_result IS ''Результат рассмотрения УД/АД''';
+    EXECUTE 'COMMENT ON COLUMN event_criminal_cases.court_decision IS ''Решение (приговор) суда''';
+    EXECUTE 'COMMENT ON COLUMN event_criminal_cases.convicted_count IS ''Осуждено, чел.''';
+  END IF;
+END $$;
 
 -- Таблица event_punishments
 CREATE TABLE event_punishments (
@@ -148,14 +185,20 @@ CREATE TABLE event_punishments (
   CONSTRAINT fk_event_punishment_additionally FOREIGN KEY (event_additionally_id) REFERENCES event_additionally(id) ON DELETE CASCADE
 );
 
-COMMENT ON TABLE event_punishments IS 'Наказания для событий';
-COMMENT ON COLUMN event_punishments.event_additionally_id IS 'ID дополнения к событию';
-COMMENT ON COLUMN event_punishments.guilty_persons_count IS 'Установлено виновных лиц – кол-во';
-COMMENT ON COLUMN event_punishments.measures_taken_count IS 'Принято мер к виновным лицам – кол-во';
-COMMENT ON COLUMN event_punishments.warning_letter_rp398 IS 'Предупреждение предупредительным письмом по РП-398';
-COMMENT ON COLUMN event_punishments.remark IS 'Замечание';
-COMMENT ON COLUMN event_punishments.reprimand IS 'Выговор';
-COMMENT ON COLUMN event_punishments.dismissed_count IS 'Уволено – кол-во';
+-- Комментарии для event_punishments (будет пересоздана в миграции 017 с прямой связью)
+DO $$
+BEGIN
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'event_punishments') THEN
+    EXECUTE 'COMMENT ON TABLE event_punishments IS ''Наказания для событий''';
+    EXECUTE 'COMMENT ON COLUMN event_punishments.event_additionally_id IS ''ID дополнения к событию''';
+    EXECUTE 'COMMENT ON COLUMN event_punishments.guilty_persons_count IS ''Установлено виновных лиц – кол-во''';
+    EXECUTE 'COMMENT ON COLUMN event_punishments.measures_taken_count IS ''Принято мер к виновным лицам – кол-во''';
+    EXECUTE 'COMMENT ON COLUMN event_punishments.warning_letter_rp398 IS ''Предупреждение предупредительным письмом по РП-398''';
+    EXECUTE 'COMMENT ON COLUMN event_punishments.remark IS ''Замечание''';
+    EXECUTE 'COMMENT ON COLUMN event_punishments.reprimand IS ''Выговор''';
+    EXECUTE 'COMMENT ON COLUMN event_punishments.dismissed_count IS ''Уволено – кол-во''';
+  END IF;
+END $$;
 
 -- Таблица event_additionally_persons
 CREATE TABLE event_additionally_persons (
@@ -169,19 +212,38 @@ CREATE TABLE event_additionally_persons (
   CONSTRAINT fk_event_additionally_person_additionally FOREIGN KEY (event_additionally_id) REFERENCES event_additionally(id) ON DELETE CASCADE
 );
 
-COMMENT ON TABLE event_additionally_persons IS 'Фигуранты дополнений к событиям';
-COMMENT ON COLUMN event_additionally_persons.event_additionally_id IS 'ID дополнения к событию';
-COMMENT ON COLUMN event_additionally_persons.last_name IS 'Фамилия';
-COMMENT ON COLUMN event_additionally_persons.first_name IS 'Имя';
-COMMENT ON COLUMN event_additionally_persons.middle_name IS 'Отчество';
-COMMENT ON COLUMN event_additionally_persons.birth_date IS 'Дата рождения';
-COMMENT ON COLUMN event_additionally_persons.employee_number IS 'Табельный номер';
+-- Комментарии для event_additionally_persons (будет удалена в миграции 017)
+DO $$
+BEGIN
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'event_additionally_persons') THEN
+    EXECUTE 'COMMENT ON TABLE event_additionally_persons IS ''Фигуранты дополнений к событиям''';
+    EXECUTE 'COMMENT ON COLUMN event_additionally_persons.event_additionally_id IS ''ID дополнения к событию''';
+    EXECUTE 'COMMENT ON COLUMN event_additionally_persons.last_name IS ''Фамилия''';
+    EXECUTE 'COMMENT ON COLUMN event_additionally_persons.first_name IS ''Имя''';
+    EXECUTE 'COMMENT ON COLUMN event_additionally_persons.middle_name IS ''Отчество''';
+    EXECUTE 'COMMENT ON COLUMN event_additionally_persons.birth_date IS ''Дата рождения''';
+    EXECUTE 'COMMENT ON COLUMN event_additionally_persons.employee_number IS ''Табельный номер''';
+  END IF;
+END $$;
 
 -- Создаем индексы для оптимизации запросов
-CREATE INDEX IF NOT EXISTS idx_events_department_id ON events(department_id);
-CREATE INDEX IF NOT EXISTS idx_events_date ON events("date");
-CREATE INDEX IF NOT EXISTS idx_event_additionally_event_id ON event_additionally(event_id);
-CREATE INDEX IF NOT EXISTS idx_event_criminal_cases_additionally_id ON event_criminal_cases(event_additionally_id);
-CREATE INDEX IF NOT EXISTS idx_event_punishments_additionally_id ON event_punishments(event_additionally_id);
-CREATE INDEX IF NOT EXISTS idx_event_additionally_persons_additionally_id ON event_additionally_persons(event_additionally_id);
+DO $$
+BEGIN
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'events') THEN
+    CREATE INDEX IF NOT EXISTS idx_events_department_id ON events(department_id);
+    CREATE INDEX IF NOT EXISTS idx_events_date ON events("date");
+  END IF;
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'event_additionally') THEN
+    CREATE INDEX IF NOT EXISTS idx_event_additionally_event_id ON event_additionally(event_id);
+  END IF;
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'event_criminal_cases') THEN
+    CREATE INDEX IF NOT EXISTS idx_event_criminal_cases_additionally_id ON event_criminal_cases(event_additionally_id);
+  END IF;
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'event_punishments') THEN
+    CREATE INDEX IF NOT EXISTS idx_event_punishments_additionally_id ON event_punishments(event_additionally_id);
+  END IF;
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'event_additionally_persons') THEN
+    CREATE INDEX IF NOT EXISTS idx_event_additionally_persons_additionally_id ON event_additionally_persons(event_additionally_id);
+  END IF;
+END $$;
 
