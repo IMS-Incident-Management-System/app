@@ -18,6 +18,7 @@ import EventAdditionally from './eventAdditionally';
 import EventCriminalCase from './eventCriminalCase';
 import EventPunishment from './eventPunishment';
 import EventAdditionallyPerson from './eventAdditionallyPerson';
+import UserProfile from './userProfile';
 
 // IncidentEvent связи
 IncidentEvent.belongsTo(IncidentEventType, { 
@@ -218,5 +219,6 @@ export {
   EventCriminalCase,
   EventPunishment,
   EventAdditionallyPerson,
+  UserProfile,
   sequelize
 }; 
