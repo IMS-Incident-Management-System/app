@@ -11,6 +11,7 @@ import {
   Punishment,
   IncidentObjectType,
   IncidentAttachment,
+  IncidentEventAttachment,
   sequelize
 } from '../models';
 import { SecurityDirectionEnum, IncidentCreationAttributes } from '../models/incident';
@@ -170,11 +171,21 @@ export const incidentService = {
         {
           model: IncidentEvent,
           as: 'events',
-          include: ['event_type']
+          separate: true,
+          order: [['id', 'ASC']],
+          include: [
+            'event_type',
+            {
+              model: IncidentEventAttachment,
+              as: 'attachments'
+            }
+          ]
         },
         {
           model: Additionally,
           as: 'additionally',
+          separate: true,
+          order: [['createdAt', 'ASC']],
           include: [
             {
               model: CriminalCase,
@@ -253,7 +264,13 @@ export const incidentService = {
         {
           model: IncidentEvent,
           as: 'events',
-          include: ['event_type']
+          include: [
+            'event_type',
+            {
+              model: IncidentEventAttachment,
+              as: 'attachments'
+            }
+          ]
         },
         {
           model: Additionally,
@@ -323,7 +340,13 @@ export const incidentService = {
         {
           model: IncidentEvent,
           as: 'events',
-          include: ['event_type']
+          include: [
+            'event_type',
+            {
+              model: IncidentEventAttachment,
+              as: 'attachments'
+            }
+          ]
         },
         'additionally'
       ]

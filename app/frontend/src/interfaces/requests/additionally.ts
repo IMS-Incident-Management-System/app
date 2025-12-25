@@ -4,6 +4,7 @@ import { AdditionallyPersonAttributes } from './additionallyPerson';
 export interface AdditionallyAttributes {
   id: number;
   incident_id: number;
+  incident_event_id?: number; // ID события для прикрепления вложений
   addition_date?: Date; // Дата внесения дополнения к инциденту
   text_field?: string; // Текстовое поле
   detected_damage?: number; // Выявленный ущерб

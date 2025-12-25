@@ -22,6 +22,7 @@ services:
       - ./nginx/${NODE_ENV}/nginx.conf:/etc/nginx/nginx.conf:ro
       - certs:/etc/letsencrypt:ro
       - webroot:/var/www/certbot:ro
+      - uploads:/usr/share/nginx/uploads:ro
     networks:
       - ims-base-network
 
@@ -48,6 +49,7 @@ services:
       - certs:/app/certs:ro
       - ${BACKEND_DEV_VOLUME:-empty_volume}:/app
       - ${BACKEND_DEV_NODE_MODULES_VOLUME:-empty_volume}:/app/node_modules
+      - uploads:/app/uploads
     ports:
       - 8091:8091
     depends_on:
@@ -135,6 +137,7 @@ volumes:
     external: true
   webroot:
     external: true
+  uploads:  # Volume для хранения загруженных файлов
 
 networks:
   ims-base-network:

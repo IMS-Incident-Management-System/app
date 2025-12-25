@@ -1,45 +1,43 @@
 import { Upload, Card, Button, message, Space, Typography } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
-import React, { useState, useImperativeHandle, forwardRef } from "react";
+import { useState, useImperativeHandle, forwardRef } from "react";
 import type { UploadFile, UploadProps } from "antd/es/upload/interface";
-import { IncidentAttachmentAttributes } from "../../../../interfaces/requests/incident";
 import {
-  uploadIncidentAttachments,
-  getIncidentAttachments,
-} from "../../../../api/incidents/incidentAttachments";
-import { useParams } from "react-router-dom";
+  uploadIncidentEventAttachments,
+  getIncidentEventAttachments,
+} from "../../../../api/incidents/incidentEventAttachments";
 import { useQueryClient } from "react-query";
-import styles from "./IncidentAttachments.module.scss";
+import styles from "./IncidentEventAttachments.module.scss";
 
 const { Text } = Typography;
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 МБ
 const MAX_FILES = 10;
 
-interface IncidentAttachmentsProps {
+interface IncidentEventAttachmentsProps {
+  incidentEventId: number;
   onFilesChange?: (files: File[]) => void;
   pendingFiles?: File[];
 }
 
-export interface IncidentAttachmentsRef {
-  uploadFiles: (incidentId: number) => Promise<boolean>;
+export interface IncidentEventAttachmentsRef {
+  uploadFiles: (incidentEventId: number) => Promise<boolean>;
   getPendingFiles: () => File[];
 }
 
-export const IncidentAttachments = forwardRef<IncidentAttachmentsRef, IncidentAttachmentsProps>(({ 
+export const IncidentEventAttachments = forwardRef<IncidentEventAttachmentsRef, IncidentEventAttachmentsProps>(({
+  incidentEventId,
   onFilesChange,
   pendingFiles = []
 }, ref) => {
-  const { id } = useParams();
   const queryClient = useQueryClient();
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [uploading, setUploading] = useState(false);
 
-
   // Экспортируем функцию загрузки для использования извне
-  const uploadFiles = async (incidentId: number) => {
+  const uploadFiles = async (eventId: number) => {
     if (fileList.length === 0) {
-      return;
+      return false;
     }
 
     // Берем все новые файлы из списка, у которых есть originFileObj
@@ -48,11 +46,11 @@ export const IncidentAttachments = forwardRef<IncidentAttachmentsRef, IncidentAt
       .map((file) => file.originFileObj as File);
 
     if (filesToUpload.length === 0) {
-      return;
+      return false;
     }
 
     // Проверяем общее количество файлов - получаем текущие вложения из API
-    const currentAttachments = await getIncidentAttachments(incidentId);
+    const currentAttachments = await getIncidentEventAttachments(eventId);
     const currentCount = currentAttachments?.length || 0;
     if (currentCount + filesToUpload.length > MAX_FILES) {
       throw new Error(`Максимальное количество файлов: ${MAX_FILES}`);
@@ -61,16 +59,22 @@ export const IncidentAttachments = forwardRef<IncidentAttachmentsRef, IncidentAt
     setUploading(true);
 
     try {
-      await uploadIncidentAttachments(incidentId, filesToUpload);
-      // Инвалидируем кеш для вложений и инцидента
-      queryClient.invalidateQueries(["incidentAttachments", incidentId]);
-      queryClient.invalidateQueries(["getIncident", incidentId.toString()]);
+      await uploadIncidentEventAttachments(eventId, filesToUpload);
+      // Инвалидируем и обновляем кеш для вложений этого конкретного события
+      await queryClient.refetchQueries({
+        queryKey: ["incidentEventAttachments", eventId],
+        exact: true,
+      });
       setFileList([]);
       if (onFilesChange) {
         onFilesChange([]);
       }
       return true;
     } catch (error: any) {
+      // Если событие не найдено (например, после обновления инцидента), показываем понятную ошибку
+      if (error?.response?.status === 404 || error?.response?.data?.error?.message?.includes('не найдено')) {
+        throw new Error('Событие инцидента не найдено. Возможно, инцидент был обновлен. Пожалуйста, обновите страницу и попробуйте снова.');
+      }
       throw error;
     } finally {
       setUploading(false);
@@ -78,13 +82,13 @@ export const IncidentAttachments = forwardRef<IncidentAttachmentsRef, IncidentAt
   };
 
   const handleUpload = async () => {
-    if (!id) {
-      message.warning("Сначала сохраните инцидент");
+    if (!incidentEventId) {
+      message.warning("Сначала сохраните дополнение");
       return;
     }
 
     try {
-      await uploadFiles(Number(id));
+      await uploadFiles(incidentEventId);
       message.success("Файлы успешно загружены");
     } catch (error: any) {
       message.error(error?.message || error?.response?.data?.message || "Ошибка при загрузке файлов");
@@ -98,8 +102,6 @@ export const IncidentAttachments = forwardRef<IncidentAttachmentsRef, IncidentAt
       .filter((file) => !!file.originFileObj)
       .map((file) => file.originFileObj as File),
   }));
-
-
 
   const beforeUpload: UploadProps["beforeUpload"] = (file) => {
     // Проверка размера файла
@@ -125,7 +127,6 @@ export const IncidentAttachments = forwardRef<IncidentAttachmentsRef, IncidentAt
 
     setFileList(newFileList);
   };
-
 
   return (
     <Card className={styles.sectionCard} title="Вложения">

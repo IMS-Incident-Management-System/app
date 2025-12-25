@@ -29,12 +29,25 @@ export interface IncidentEventAttributes {
   recovered_damage: number;     // Возмещенный ущерб
 }
 
+export interface IncidentEventAttachmentAttributes {
+  id: number;
+  incident_event_id: number;
+  filename: string;
+  stored_filename: string;
+  file_path: string;
+  file_size: number;
+  mime_type: string;
+  created_at?: Date;
+  updated_at?: Date;
+}
+
 export interface IncidentEventWithRelations extends IncidentEventAttributes {
   event_type?: IncidentEventTypeTree;
   object?: ObjectAttributes;
   incident?: IncidentAttributes;
   criminal_cases?: CriminalCaseAttributes[];
   sub_type?: TheftTypeAttributes;
+  attachments?: IncidentEventAttachmentAttributes[];
   createdAt?: Date;
   updatedAt?: Date;
 }

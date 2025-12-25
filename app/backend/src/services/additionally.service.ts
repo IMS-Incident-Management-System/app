@@ -45,7 +45,7 @@ export const additionallyService = {
           as: 'punishment'
         }
       ],
-      order: [['addition_date', 'DESC']]
+      order: [['createdAt', 'ASC']]
     });
   },
 
@@ -118,7 +118,7 @@ export const additionallyService = {
           as: 'punishment'
         }
       ],
-      order: [['addition_date', 'DESC']]
+      order: [['createdAt', 'ASC']]
     });
   },
 

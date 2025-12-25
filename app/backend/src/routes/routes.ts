@@ -8,6 +8,14 @@ import { createIncident } from '../controllers/incident/createIncident.controlle
 import { getIncident } from '../controllers/incident/getIncident.controller';
 import { updateIncident } from '../controllers/incident/updateIncident.controller';
 import { deleteIncident } from '../controllers/incident/deleteIncident.controller';
+import { getIncidentAttachments } from '../controllers/incident/getIncidentAttachments.controller';
+import { uploadIncidentAttachments } from '../controllers/incident/uploadIncidentAttachments.controller';
+import { downloadIncidentAttachment } from '../controllers/incident/downloadIncidentAttachment.controller';
+import { deleteIncidentAttachment } from '../controllers/incident/deleteIncidentAttachment.controller';
+import { getIncidentEventAttachments } from '../controllers/incidentEvent/getIncidentEventAttachments.controller';
+import { uploadIncidentEventAttachments } from '../controllers/incidentEvent/uploadIncidentEventAttachments.controller';
+import { downloadIncidentEventAttachment } from '../controllers/incidentEvent/downloadIncidentEventAttachment.controller';
+import { deleteIncidentEventAttachment } from '../controllers/incidentEvent/deleteIncidentEventAttachment.controller';
 import { getOperationalActivities } from '../controllers/operationalActivity/getOperationalActivities.controller';
 import { createOperationalActivity } from '../controllers/operationalActivity/createOperationalActivity.controller';
 import { getOperationalActivity } from '../controllers/operationalActivity/getOperationalActivity.controller';
@@ -44,6 +52,34 @@ router
   .get(getIncident)
   .put(updateIncident)
   .delete(deleteIncident);
+
+// Incident attachments routes
+router
+  .route('/incidents/:id/attachments')
+  .get(getIncidentAttachments)
+  .post(upload.array('files', 10), uploadIncidentAttachments);
+
+router
+  .route('/incidents/:id/attachments/:attachmentId/download')
+  .get(downloadIncidentAttachment);
+
+router
+  .route('/incidents/:id/attachments/:attachmentId')
+  .delete(deleteIncidentAttachment);
+
+// Incident event attachments routes
+router
+  .route('/incident-events/:incidentEventId/attachments')
+  .get(getIncidentEventAttachments)
+  .post(upload.array('files', 10), uploadIncidentEventAttachments);
+
+router
+  .route('/incident-events/:incidentEventId/attachments/:attachmentId/download')
+  .get(downloadIncidentEventAttachment);
+
+router
+  .route('/incident-events/:incidentEventId/attachments/:attachmentId')
+  .delete(deleteIncidentEventAttachment);
 
 // Operational activities routes
 router.route('/operational-activities').get(getOperationalActivities).post(createOperationalActivity);
