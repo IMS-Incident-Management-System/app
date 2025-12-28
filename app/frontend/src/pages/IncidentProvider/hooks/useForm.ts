@@ -10,10 +10,12 @@ import dayjs from "dayjs";
 
 export const useForm = ({
   incident,
+  isLoading,
   createIncident,
   updateIncident,
 }: {
   incident: IncidentWithRelations | null | undefined;
+  isLoading?: boolean;
   createIncident: (data: CreateIncidentBody) => void;
   updateIncident: ({
     data,
@@ -61,8 +63,10 @@ export const useForm = ({
         return personWithoutId;
       }) ?? [],
       additionally: formValues.additionally?.map((additionally) => {
+        // Сохраняем id для связи со старыми событиями при обновлении
         const { id, ...additionallyWithoutId } = additionally;
         return {
+          id, // Сохраняем id для переиспользования событий
           ...additionallyWithoutId,
           addition_date: additionally.addition_date ? dayjs(additionally.addition_date).toDate() : undefined,
           persons: additionally.persons?.map((person) => {
@@ -99,6 +103,11 @@ export const useForm = ({
   };
 
   useEffect(() => {
+    // Не обновляем форму, если данные загружаются (избегаем сброса формы при рефетче)
+    if (isLoading) {
+      return;
+    }
+    
     if (incident) {
       // Определяем массив типов объектов: из object_types или из object_type (для обратной совместимости)
       const object_type_ids = incident.object_types && incident.object_types.length > 0
@@ -123,12 +132,44 @@ export const useForm = ({
         prevented_damage: incident.prevented_damage,
         additional_income: incident.additional_income,
         reduced_cost: incident.reduced_cost,
-        event: incident.events && incident.events.length > 0 ? {
-          event_type_ids: incident.events.map(event => event.event_type_id),
-          date: incident.events[0].date ? dayjs(incident.events[0].date) : undefined,
-          entry_date: incident.events[0].entry_date ? dayjs(incident.events[0].entry_date) : dayjs(),
-          sub_type_id: incident.events[0].sub_type_id,
-        } : undefined,
+        event: (() => {
+          if (!incident.events || incident.events.length === 0) {
+            return undefined;
+          }
+          
+          // События отсортированы по id ASC
+          // Основные события создаются первыми (Promise.all) и имеют уникальные event_type_id
+          // События для дополнений создаются после и могут повторять первый event_type_id или иметь null
+          // Стратегия: собираем уникальные event_type_id последовательно до первого повторения или null
+          const seenTypes = new Set<number>();
+          const mainEventTypeIds: number[] = [];
+          
+          for (const event of incident.events) {
+            const eventTypeId = event.event_type_id;
+            
+            // Если встретили null - это событие для дополнения, прекращаем сбор
+            if (eventTypeId === null || eventTypeId === undefined) {
+              break;
+            }
+            
+            // Если встретили повторение типа события - это начало событий для дополнений
+            // (события для дополнений используют первый event_type_id из основных)
+            if (seenTypes.has(eventTypeId)) {
+              break;
+            }
+            
+            // Добавляем в набор уникальных типов и в результат
+            seenTypes.add(eventTypeId);
+            mainEventTypeIds.push(eventTypeId);
+          }
+          
+          return {
+            event_type_ids: mainEventTypeIds.length > 0 ? mainEventTypeIds : [],
+            date: incident.events[0].date ? dayjs(incident.events[0].date) : undefined,
+            entry_date: incident.events[0].entry_date ? dayjs(incident.events[0].entry_date) : dayjs(),
+            sub_type_id: incident.events[0].sub_type_id,
+          };
+        })(),
         addresses: incident.addresses?.map((address) => ({
           ...address,
         })) ?? [],
@@ -162,7 +203,7 @@ export const useForm = ({
         is_db: false,
       });
     }
-  }, [incident, form]);
+  }, [incident, isLoading, form]);
 
   return { form, onFinish };
 };

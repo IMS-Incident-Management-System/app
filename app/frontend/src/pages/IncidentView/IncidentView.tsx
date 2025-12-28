@@ -7,6 +7,8 @@ import { ERoutes } from "../../enums/routes";
 import { EIncidentDirection } from "../../enums/incident";
 import dayjs from "dayjs";
 import styles from "./IncidentView.module.scss";
+import { IncidentEventAttachmentsView } from "../IncidentProvider/components/IncidentEvents/IncidentEventAttachmentsView";
+import { IncidentAttachmentsView } from "../IncidentProvider/components/IncidentAttachments/IncidentAttachmentsView";
 import { PrimaryButton } from "../../components/PrimaryButton";
 
 const { Title, Text } = Typography;
@@ -125,30 +127,6 @@ export const IncidentView = () => {
             </Descriptions>
           </Card>
 
-          {/* Информация о инциденте */}
-          {incident.events && incident.events.length > 0 && (
-            <Card title="Информация о инциденте" className={styles.sectionCard}>
-              <Descriptions column={2} size="middle">
-                <Descriptions.Item label="Типы инцидентов">
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                    {incident.events.map((event, index) => (
-                      <Tag key={index} color="blue">
-                        {event.event_type?.title}
-                      </Tag>
-                    ))}
-                  </div>
-                </Descriptions.Item>
-                <Descriptions.Item label="Дата инцидента">
-                  {dayjs(incident.events[0].date).format("DD.MM.YYYY")}
-                </Descriptions.Item>
-                {incident.events[0].entry_date && (
-                  <Descriptions.Item label="Дата внесения">
-                    {dayjs(incident.events[0].entry_date).format("DD.MM.YYYY")}
-                  </Descriptions.Item>
-                )}
-              </Descriptions>
-            </Card>
-          )}
 
           {/* Адреса инцидента */}
           {incident.addresses && incident.addresses?.length > 0 && (
@@ -304,6 +282,11 @@ export const IncidentView = () => {
                 )}
               </Row>
             </Card>
+          )}
+
+          {/* Вложения инцидента */}
+          {incident.attachments && incident.attachments.length > 0 && (
+            <IncidentAttachmentsView attachments={incident.attachments} />
           )}
 
           {/* Дополнительная информация */}
@@ -664,6 +647,15 @@ export const IncidentView = () => {
                           </Col>
                         )}
                       </Row>
+                    </div>
+                  )}
+
+                  {/* Вложения дополнения */}
+                  {addition.incident_event_id && (
+                    <div className={styles.subSection}>
+                      <IncidentEventAttachmentsView
+                        incidentEventId={addition.incident_event_id}
+                      />
                     </div>
                   )}
 

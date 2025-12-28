@@ -13,6 +13,7 @@ import Punishment from './punishment';
 import OperationalActivity from './operationalActivity';
 import IncidentObjectType from './incidentObjectType';
 import IncidentAttachment from './incidentAttachment';
+import IncidentEventAttachment from './incidentEventAttachment';
 import Event from './event';
 import EventAdditionally from './eventAdditionally';
 import EventCriminalCase from './eventCriminalCase';
@@ -100,6 +101,18 @@ IncidentAttachment.belongsTo(Incident, {
   as: 'incident'
 });
 
+// IncidentEventAttachment связи
+IncidentEvent.hasMany(IncidentEventAttachment, {
+  foreignKey: 'incident_event_id',
+  as: 'attachments',
+  onDelete: 'CASCADE'
+});
+
+IncidentEventAttachment.belongsTo(IncidentEvent, {
+  foreignKey: 'incident_event_id',
+  as: 'incident_event'
+});
+
 IncidentPerson.belongsTo(Incident, {
   foreignKey: 'incident_id',
   as: 'incident'
@@ -116,6 +129,11 @@ IncidentEventType.hasMany(IncidentEvent, {
 Additionally.belongsTo(Incident, { 
   foreignKey: 'incident_id', 
   as: 'incident'
+});
+
+Additionally.belongsTo(IncidentEvent, {
+  foreignKey: 'incident_event_id',
+  as: 'incident_event'
 });
 
 Additionally.hasOne(CriminalCase, {
@@ -214,6 +232,7 @@ export {
   OperationalActivity,
   IncidentObjectType,
   IncidentAttachment,
+  IncidentEventAttachment,
   Event,
   EventAdditionally,
   EventCriminalCase,

@@ -1,4 +1,4 @@
-import IncidentAttachment, { IncidentAttachmentCreationAttributes, IncidentAttachmentInstance } from '../models/incidentAttachment';
+import IncidentEventAttachment, { IncidentEventAttachmentCreationAttributes, IncidentEventAttachmentInstance } from '../models/incidentEventAttachment';
 import { Transaction } from 'sequelize';
 import fs from 'fs';
 import path from 'path';
@@ -6,20 +6,20 @@ import { MulterFile } from '../types/multer';
 
 // Директория для хранения файлов (должна совпадать с middleware)
 const BASE_UPLOAD_DIR = process.env.UPLOAD_DIR || path.join(process.cwd(), 'uploads');
-const UPLOAD_DIR = path.join(BASE_UPLOAD_DIR, 'incidents');
+const UPLOAD_DIR = path.join(BASE_UPLOAD_DIR, 'incident-events');
 
 // Создаем директорию, если её нет
 if (!fs.existsSync(UPLOAD_DIR)) {
   fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 }
 
-class IncidentAttachmentService {
+class IncidentEventAttachmentService {
   /**
    * Сохраняет файл на диск и создает запись в БД
    * Поддерживает как memoryStorage (file.buffer), так и diskStorage (file.path)
    */
   async createAttachment(
-    incidentId: number,
+    incidentEventId: number,
     file: MulterFile,
     options?: { transaction?: Transaction }
   ) {
@@ -28,8 +28,14 @@ class IncidentAttachmentService {
 
     // Если файл уже сохранен на диск (diskStorage)
     if (file.path && file.filename) {
+      // Проверяем, что файл действительно существует
+      if (!fs.existsSync(file.path)) {
+        console.error(`File not found at path: ${file.path}`);
+        throw new Error(`File not found at path: ${file.path}`);
+      }
       filePath = file.path;
       storedFilename = file.filename;
+      console.log(`Using file from diskStorage: ${filePath}`);
     } else if (file.buffer) {
       // Если файл в памяти (memoryStorage) - сохраняем на диск
       const fileExtension = path.extname(file.originalname);
@@ -37,16 +43,23 @@ class IncidentAttachmentService {
       storedFilename = `${uniqueSuffix}${fileExtension}`;
       filePath = path.join(UPLOAD_DIR, storedFilename);
       
+      // Убеждаемся, что директория существует
+      if (!fs.existsSync(UPLOAD_DIR)) {
+        fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+      }
+      
       // Сохраняем файл на диск
       fs.writeFileSync(filePath, file.buffer);
+      console.log(`Saved file from buffer to: ${filePath}`);
     } else {
+      console.error('File has no path, filename, or buffer:', { path: file.path, filename: (file as any).filename, hasBuffer: !!file.buffer });
       throw new Error('File buffer or path is required');
     }
 
     // Создаем запись в БД
-    const attachment = await IncidentAttachment.create(
+    const attachment = await IncidentEventAttachment.create(
       {
-        incident_id: incidentId,
+        incident_event_id: incidentEventId,
         filename: file.originalname,
         stored_filename: storedFilename,
         file_path: filePath,
@@ -60,12 +73,11 @@ class IncidentAttachmentService {
   }
 
   /**
-   * Получает все вложения для инцидента
+   * Получает все вложения для дополнения инцидента
    */
-  async getAttachmentsByIncidentId(incidentId: number) {
-    return await IncidentAttachment.findAll({
-      where: { incident_id: incidentId },
-      // Используем имя колонки в БД, т.к. миграция создает поля created_at / updated_at
+  async getAttachmentsByIncidentEventId(incidentEventId: number) {
+    return await IncidentEventAttachment.findAll({
+      where: { incident_event_id: incidentEventId },
       order: [['created_at', 'DESC']],
     });
   }
@@ -74,14 +86,14 @@ class IncidentAttachmentService {
    * Получает вложение по ID
    */
   async getAttachmentById(id: number) {
-    return await IncidentAttachment.findByPk(id);
+    return await IncidentEventAttachment.findByPk(id);
   }
 
   /**
    * Удаляет вложение (файл и запись в БД)
    */
   async deleteAttachment(id: number, options?: { transaction?: Transaction }) {
-    const attachment = await IncidentAttachment.findByPk(id);
+    const attachment = await IncidentEventAttachment.findByPk(id);
     if (!attachment) {
       return false;
     }
@@ -97,11 +109,11 @@ class IncidentAttachmentService {
   }
 
   /**
-   * Удаляет все вложения для инцидента
+   * Удаляет все вложения для дополнения инцидента
    */
-  async deleteAttachmentsByIncidentId(incidentId: number, options?: { transaction?: Transaction }) {
-    const attachments = await IncidentAttachment.findAll({
-      where: { incident_id: incidentId },
+  async deleteAttachmentsByIncidentEventId(incidentEventId: number, options?: { transaction?: Transaction }) {
+    const attachments = await IncidentEventAttachment.findAll({
+      where: { incident_event_id: incidentEventId },
     });
 
     // Удаляем все файлы
@@ -112,28 +124,28 @@ class IncidentAttachmentService {
     }
 
     // Удаляем записи из БД
-    return await IncidentAttachment.destroy({
-      where: { incident_id: incidentId },
+    return await IncidentEventAttachment.destroy({
+      where: { incident_event_id: incidentEventId },
       ...options,
     });
   }
 
   /**
-   * Получает количество вложений для инцидента
+   * Получает количество вложений для дополнения инцидента
    */
-  async getAttachmentCountByIncidentId(incidentId: number): Promise<number> {
-    return await IncidentAttachment.count({
-      where: { incident_id: incidentId },
+  async getAttachmentCountByIncidentEventId(incidentEventId: number): Promise<number> {
+    return await IncidentEventAttachment.count({
+      where: { incident_event_id: incidentEventId },
     });
   }
 
   /**
    * Получает путь к файлу для скачивания
    */
-  getFilePath(attachment: IncidentAttachmentInstance): string {
+  getFilePath(attachment: IncidentEventAttachmentInstance): string {
     return attachment.file_path;
   }
 }
 
-export const incidentAttachmentService = new IncidentAttachmentService();
+export const incidentEventAttachmentService = new IncidentEventAttachmentService();
 

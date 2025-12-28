@@ -199,12 +199,28 @@ export const createIncident = asyncErrorHandler(
           // Исключаем id и связанные данные
           const { id, criminal_case, punishment, persons, ...additionallyDataWithoutId } = additionallyData;
           
+          // Создаем событие для дополнения (для возможности прикрепления вложений)
+          // Используем первый тип события из основного event или null, если нет типов
+          const event_type_id = data.event.event_type_ids && data.event.event_type_ids.length > 0 
+            ? data.event.event_type_ids[0] 
+            : null;
+          const additionEvent = await incidentEventService.createIncidentEvent(
+            {
+              incident_id: incident.id,
+              event_type_id: event_type_id,
+              date: data.event.date,
+              entry_date: additionallyData.addition_date || new Date(),
+            },
+            { transaction }
+          );
+          
           // Создаем дополнение (addition_date проставляется автоматически)
           const { addition_date, ...additionallyDataWithoutDate } = additionallyDataWithoutId;
           const additionally = await additionallyService.createAdditionally(
             { 
               ...additionallyDataWithoutDate, 
               incident_id: incident.id,
+              incident_event_id: additionEvent.id,
               addition_date: new Date() // Всегда проставляем текущую дату автоматически
             },
             { transaction }
@@ -254,6 +270,12 @@ export const createIncident = asyncErrorHandler(
       };
     });
 
-    res.created(result, 'Incident created successfully');
+    // Загружаем полные данные инцидента с attachments после завершения транзакции
+    const fullIncident = await incidentService.getIncident(result.incident.id);
+    
+    res.created({
+      ...result,
+      incident: fullIncident,
+    }, 'Incident created successfully');
   }
 );

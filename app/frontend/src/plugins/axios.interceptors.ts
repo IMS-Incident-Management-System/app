@@ -25,6 +25,11 @@ export const onResponse = (response: any) => {
   const { method, url } = response.config;
   const { status } = response;
 
+  // Если это blob ответ, возвращаем весь response объект, а не только data
+  if (response.config.responseType === 'blob' || response.data instanceof Blob) {
+    return response;
+  }
+
   return response.data;
 };
 

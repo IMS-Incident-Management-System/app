@@ -8,7 +8,8 @@
     "build": "rm -rf dist && tsc -p .",
     "dev": "nodemon",
     "migrate:up": "ts-node src/scripts/migrate.ts up",
-    "migrate:status": "ts-node src/scripts/migrate.ts status"
+    "migrate:status": "ts-node src/scripts/migrate.ts status",
+    "seed:report": "ts-node src/scripts/seedReportData.ts"
   },
   "author": "",
   "license": "ISC",
@@ -19,6 +20,7 @@
     "cookie-parser": "1.4.7",
     "cors": "2.8.5",
     "dotenv": "16.4.7",
+    "exceljs": "4.4.0",
     "express": "4.21.2",
     "jsonwebtoken": "9.0.2",
     "jwks-rsa": "3.2.0",
@@ -27,7 +29,7 @@
     "nanoid": "5.1.5",
     "pg": "8.14.1",
     "sequelize": "6.37.6",
-    "uuid": "11.1.0"
+    "uuid": "13.0.0"
   },
   "devDependencies": {
     "@types/express": "5.0.1",

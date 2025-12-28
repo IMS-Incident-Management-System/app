@@ -167,12 +167,37 @@ export const updateIncident = asyncErrorHandler(
         );
       }
 
-      // 2. Удаляем старые события и создаем новое
-      // Удаляем все события для этого инцидента
-      const deletedEventsCount = await incidentEventService.deleteIncidentEventsByIncidentId(Number(id), { transaction });
-      console.log(`Deleted ${deletedEventsCount} old events for incident ${id}`);
+      // 2. Сохраняем информацию о существующих дополнениях и их событиях перед удалением
+      const existingAdditionallyBeforeDelete = await sequelize.models.additionally.findAll({
+        where: { incident_id: Number(id) },
+        transaction
+      });
       
-      // Создаем события для каждого типа события
+      // Создаем мапу: old_additionally_id -> incident_event_id для сохранения событий с вложениями
+      const existingEventIdMap = new Map<number, number>();
+      existingAdditionallyBeforeDelete.forEach((add: any) => {
+        if (add.id && add.incident_event_id) {
+          existingEventIdMap.set(add.id, add.incident_event_id);
+          console.log(`Mapped addition ID ${add.id} to event ID ${add.incident_event_id}`);
+        }
+      });
+      console.log(`Created event ID map with ${existingEventIdMap.size} entries`);
+      
+      // Получаем существующие события перед удалением
+      const existingEvents = await incidentEventService.getIncidentEvents({ incident_id: Number(id) });
+      
+      // Удаляем только основные события (не связанные с дополнениями через additionally)
+      const eventsToDelete = existingEvents.filter((e: any) => {
+        return !existingAdditionallyBeforeDelete.some((add: any) => add.incident_event_id === e.id);
+      });
+      
+      // Удаляем основные события
+      for (const event of eventsToDelete) {
+        await incidentEventService.deleteIncidentEvent(event.id, { transaction });
+      }
+      console.log(`Deleted ${eventsToDelete.length} main events for incident ${id}`);
+      
+      // Создаем события для каждого типа события (только основные события)
       const events = await Promise.all(
         data.event.event_type_ids.map((event_type_id) =>
           incidentEventService.createIncidentEvent(
@@ -212,12 +237,54 @@ export const updateIncident = asyncErrorHandler(
         );
       }
 
-      // 5. Удаляем старые additionally и создаем новые
+      // 5. Удаляем старые дополнения (события остаются благодаря ON DELETE SET NULL в миграции 024)
+      // (existingEventIdMap уже создана выше, содержит мапу old_additionally_id -> incident_event_id)
       await additionallyService.deleteAdditionallyByIncidentId(Number(id), { transaction });
       
       if (data.additionally.length) {
         for (const additionallyData of data.additionally) {
-          const { criminal_case, punishment, persons, ...additionallyDataWithout} = additionallyData;
+          const { id: additionallyId, criminal_case, punishment, persons, ...additionallyDataWithout} = additionallyData as any;
+          
+          // Проверяем, есть ли существующее событие для этого дополнения по старому ID
+          let additionEvent;
+          const existingEventId = additionallyId ? existingEventIdMap.get(additionallyId) : undefined;
+          
+          if (existingEventId) {
+            // Используем существующее событие (сохраняем вложения)
+            additionEvent = await incidentEventService.getIncidentEvent(existingEventId);
+            console.log(`Reusing existing event ${existingEventId} for addition ID ${additionallyId}`);
+            if (!additionEvent) {
+              console.log(`Event ${existingEventId} not found, creating new event`);
+              // Если события нет, создаем новое
+              const event_type_id = data.event.event_type_ids && data.event.event_type_ids.length > 0 
+                ? data.event.event_type_ids[0] 
+                : null;
+              additionEvent = await incidentEventService.createIncidentEvent(
+                {
+                  incident_id: Number(id),
+                  event_type_id: event_type_id,
+                  date: data.event.date,
+                  entry_date: additionallyData.addition_date || new Date(),
+                },
+                { transaction }
+              );
+            }
+          } else {
+            // Создаем новое событие для дополнения
+            console.log(`Creating new event for addition ID ${additionallyId || 'new'}`);
+            const event_type_id = data.event.event_type_ids && data.event.event_type_ids.length > 0 
+              ? data.event.event_type_ids[0] 
+              : null;
+            additionEvent = await incidentEventService.createIncidentEvent(
+              {
+                incident_id: Number(id),
+                event_type_id: event_type_id,
+                date: data.event.date,
+                entry_date: additionallyData.addition_date || new Date(),
+              },
+              { transaction }
+            );
+          }
           
           // Создаем дополнение (addition_date проставляется автоматически)
           const { addition_date, ...additionallyDataWithoutDate } = additionallyDataWithout;
@@ -225,6 +292,7 @@ export const updateIncident = asyncErrorHandler(
             { 
               ...additionallyDataWithoutDate, 
               incident_id: Number(id),
+              incident_event_id: additionEvent.id,
               addition_date: new Date() // Всегда проставляем текущую дату автоматически
             },
             { transaction }
@@ -273,6 +341,12 @@ export const updateIncident = asyncErrorHandler(
       };
     });
 
-    res.success(result, 'Incident updated successfully');
+    // Загружаем полные данные инцидента с attachments после завершения транзакции
+    const fullIncident = await incidentService.getIncident(Number(id));
+    
+    res.success({
+      ...result,
+      incident: fullIncident,
+    }, 'Incident updated successfully');
   }
 );

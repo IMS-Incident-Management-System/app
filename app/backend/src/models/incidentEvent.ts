@@ -6,7 +6,7 @@ import Incident, { IncidentAttributes } from './incident';
 export interface IncidentEventAttributes {
   id: number;
   incident_id: number;
-  event_type_id: number;
+  event_type_id: number | null;
   sub_type_id?: number;
   description?: string;
   date: Date;

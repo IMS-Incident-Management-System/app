@@ -17,6 +17,7 @@ import { Dashboard } from "../pages/Dashboard/Dashboard";
 import { EventsList } from "../pages/EventsList/EventsList";
 import { EventProvider } from "../pages/EventProvider/EventProvider";
 import { EventView } from "../pages/EventView/EventView";
+import { Reports } from "../pages/Reports/Reports";
 
 export const router = createBrowserRouter([
   {
@@ -94,6 +95,10 @@ export const router = createBrowserRouter([
       {
         path: ERoutes.EVENT_VIEW_ID,
         element: <EventView />,
+      },
+      {
+        path: ERoutes.REPORTS,
+        element: <Reports />,
       },
     ],
   },

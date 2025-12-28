@@ -8,6 +8,7 @@ import { AdditionallyPersonAttributes } from './additionallyPerson';
 export interface AdditionallyAttributes {
   id: number;
   incident_id: number;
+  incident_event_id?: number; // ID события для прикрепления вложений
   incident_date?: Date; // Дата происшествия
   addition_date?: Date; // Дата внесения дополнения к инциденту
   text_field?: string; // Текстовое поле
@@ -45,6 +46,15 @@ const Additionally = sequelize.define<AdditionallyInstance>('additionally', {
       key: 'id',
     },
     comment: 'ID инцидента'
+  },
+  incident_event_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: {
+      model: 'incident_events',
+      key: 'id',
+    },
+    comment: 'ID события для прикрепления вложений'
   },
   incident_date: {
     type: DataTypes.DATE,

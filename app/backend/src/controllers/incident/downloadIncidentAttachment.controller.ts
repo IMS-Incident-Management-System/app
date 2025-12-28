@@ -23,15 +23,34 @@ export const downloadIncidentAttachment = asyncErrorHandler(
       throw ApiError.forbidden('Вложение не принадлежит данному инциденту');
     }
 
-    const filePath = incidentAttachmentService.getFilePath(attachment);
+    let filePath = incidentAttachmentService.getFilePath(attachment);
 
-    // Проверяем существование файла
+    // Если путь начинается с /app, проверяем существование файла
+    // Если файл не найден, возможно путь относительный
     if (!fs.existsSync(filePath)) {
-      throw ApiError.notFound('Файл не найден на сервере');
+      // Пытаемся использовать путь относительно текущей директории
+      const relativePath = path.join(process.cwd(), 'uploads', 'incidents', path.basename(filePath));
+      if (fs.existsSync(relativePath)) {
+        filePath = relativePath;
+      } else {
+        console.error(`File not found at path: ${filePath}`);
+        console.error(`Tried relative path: ${relativePath}`);
+        console.error(`Current working directory: ${process.cwd()}`);
+        console.error(`Attachment data:`, JSON.stringify(attachment.toJSON(), null, 2));
+        throw ApiError.notFound(`Файл не найден на сервере: ${filePath}`);
+      }
     }
 
+    // Определяем, является ли файл изображением
+    const isImage = attachment.mime_type.startsWith('image/');
+    
+    // Для изображений используем inline, для остальных - attachment
+    const disposition = isImage 
+      ? `inline; filename="${encodeURIComponent(attachment.filename)}"`
+      : `attachment; filename="${encodeURIComponent(attachment.filename)}"`;
+    
     // Отправляем файл
-    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(attachment.filename)}"`);
+    res.setHeader('Content-Disposition', disposition);
     res.setHeader('Content-Type', attachment.mime_type);
     
     const fileStream = fs.createReadStream(filePath);

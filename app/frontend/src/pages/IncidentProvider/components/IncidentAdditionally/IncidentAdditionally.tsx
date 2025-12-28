@@ -1,14 +1,30 @@
 import { Form, Input, DatePicker, InputNumber, Button, Checkbox, Card, Row, Col, Divider, Space, Typography, Collapse } from "antd";
 import { PlusOutlined, DeleteOutlined, InfoCircleOutlined } from "@ant-design/icons";
-import React, { useState } from "react";
+import React, { useState, useRef, useImperativeHandle, forwardRef } from "react";
 import styles from "./IncidentAdditionally.module.scss";
 import dayjs from "dayjs";
 import { PrimaryButton } from "../../../../components/PrimaryButton";
+import { IncidentEventAttachments, IncidentEventAttachmentsRef } from "../IncidentEvents/IncidentEventAttachments";
+import { IncidentEventAttachmentsView } from "../IncidentEvents/IncidentEventAttachmentsView";
 
 const { Text } = Typography;
 
-export const IncidentAdditionally = () => {
+interface IncidentAdditionallyProps {
+  incident?: any;
+  isLoading?: boolean;
+}
+
+export interface IncidentAdditionallyRef {
+  uploadAllPendingFiles: (incidentId: number) => Promise<void>;
+}
+
+export const IncidentAdditionally = forwardRef<IncidentAdditionallyRef, IncidentAdditionallyProps>(
+  ({ incident, isLoading }, ref) => {
   const [expandedItems, setExpandedItems] = useState<Record<number, boolean>>({});
+  const form = Form.useFormInstance();
+  const eventAttachmentsRefs = useRef<Record<number, IncidentEventAttachmentsRef>>({});
+  // Сохраняем файлы по индексу дополнения для загрузки после обновления
+  const pendingFilesByIndex = useRef<Record<number, File[]>>({});
 
   const toggleExpanded = (index: number) => {
     setExpandedItems(prev => ({
@@ -16,6 +32,97 @@ export const IncidentAdditionally = () => {
       [index]: !prev[index]
     }));
   };
+
+  // Экспортируем функцию для загрузки всех ожидающих файлов
+  useImperativeHandle(ref, () => ({
+    uploadAllPendingFiles: async (incidentId: number) => {
+      const { queryClient } = await import("../../../../plugins/query");
+      
+      console.log('uploadAllPendingFiles called, current refs:', Object.keys(eventAttachmentsRefs.current));
+      console.log('Current incident.additionally:', incident?.additionally?.map((a: any) => ({ id: a.id, eventId: a.incident_event_id })));
+      
+      // Собираем файлы из всех существующих refs
+      const formAdditionally = form.getFieldValue('additionally') || [];
+      console.log('Form additionally:', formAdditionally.map((a: any, i: number) => ({ index: i, id: a.id })));
+      
+      const filesByIndex: Array<{ index: number; files: File[] }> = [];
+      
+      // Проходим по всем дополнениям в форме и пытаемся найти файлы в refs
+      formAdditionally.forEach((add: any, index: number) => {
+        // Пытаемся найти eventId для этого дополнения через старый incident
+        if (incident?.additionally) {
+          const oldAdditionally = incident.additionally.find((a: any) => a.id === add.id);
+          if (oldAdditionally?.incident_event_id) {
+            const oldEventId = oldAdditionally.incident_event_id;
+            console.log(`Looking for ref with eventId ${oldEventId} for addition ${add.id} at index ${index}`);
+            const attachmentRef = eventAttachmentsRefs.current[oldEventId];
+            if (attachmentRef) {
+              const pendingFiles = attachmentRef.getPendingFiles();
+              console.log(`Found ref for eventId ${oldEventId}, pending files: ${pendingFiles.length}`);
+              if (pendingFiles.length > 0) {
+                filesByIndex.push({ index, files: pendingFiles });
+                console.log(`Added ${pendingFiles.length} files for addition at index ${index}`);
+              }
+            } else {
+              console.log(`Ref not found for eventId ${oldEventId}`);
+            }
+          } else {
+            console.log(`No eventId found for addition ${add.id} at index ${index}`);
+          }
+        }
+      });
+
+      if (filesByIndex.length === 0) {
+        console.log('No files to upload for additions');
+        return;
+      }
+
+      // Получаем обновленные данные инцидента из кеша
+      const updatedIncidentResponse: any = queryClient.getQueryData(["getIncident", incidentId.toString()]);
+      const updatedIncident = updatedIncidentResponse?.data || updatedIncidentResponse;
+      
+      if (!updatedIncident?.additionally) {
+        console.warn('Incident data not found in cache after update, skipping file upload for additions');
+        return;
+      }
+
+      console.log('Updated incident.additionally:', updatedIncident.additionally.map((a: any, i: number) => ({ index: i, id: a.id, eventId: a.incident_event_id })));
+
+      // Загружаем файлы используя новые ID событий из обновленных данных
+      const uploadPromises = filesByIndex.map(async ({ index, files }) => {
+        // Находим дополнение в обновленных данных по индексу
+        const updatedAdditionally = updatedIncident.additionally[index];
+        
+        if (!updatedAdditionally?.incident_event_id) {
+          console.warn(`Event ID not found for addition at index ${index}, skipping file upload`);
+          return;
+        }
+
+        const newEventId = updatedAdditionally.incident_event_id;
+        
+        try {
+          console.log(`Uploading ${files.length} files for addition at index ${index} with new event ID ${newEventId}`);
+          // Используем API напрямую для загрузки файлов с новым eventId
+          const { uploadIncidentEventAttachments } = await import("../../../../api/incidents/incidentEventAttachments");
+          await uploadIncidentEventAttachments(newEventId, files);
+          
+          console.log(`Successfully uploaded files for event ${newEventId}`);
+          // Обновляем кеш для этого конкретного события
+          await queryClient.refetchQueries({
+            queryKey: ["incidentEventAttachments", newEventId],
+            exact: true,
+          });
+        } catch (error: any) {
+          console.error(`Error uploading files for addition at index ${index} (event ${newEventId}):`, error);
+          // Не бросаем ошибку, чтобы другие файлы могли загрузиться
+        }
+      });
+      
+      console.log(`Starting upload for ${filesByIndex.length} additions`);
+      await Promise.allSettled(uploadPromises);
+      console.log('Finished uploading files for additions');
+    },
+  }));
 
   return (
     <div className={styles.container}>
@@ -50,7 +157,27 @@ export const IncidentAdditionally = () => {
                           key: '1',
                           label: (
                             <div className={styles.additionallyTitle}>
-                              <span className={styles.titleText}>Дополнение {index + 1}</span>
+                              <Form.Item shouldUpdate noStyle>
+                                {() => {
+                                  const additionallyField = form.getFieldValue(['additionally', field.name]);
+                                  const additionallyId = additionallyField?.id;
+                                  let titleText = `Дополнение ${index + 1}`;
+                                  
+                                  if (additionallyId && incident?.additionally) {
+                                    const additionally = incident.additionally.find((a: any) => a.id === additionallyId);
+                                    if (additionally?.createdAt) {
+                                      const createdAt = dayjs(additionally.createdAt);
+                                      const dateStr = createdAt.format('DDMMYYYY');
+                                      const timeStr = createdAt.format('HHmmss');
+                                      titleText = `Дополнение-${dateStr}-${timeStr}`;
+                                    }
+                                  }
+                                  
+                                  return (
+                                    <span className={styles.titleText}>{titleText}</span>
+                                  );
+                                }}
+                              </Form.Item>
                               <Button
                                 type="text"
                                 danger
@@ -556,6 +683,69 @@ export const IncidentAdditionally = () => {
                         </Col>
                       </Row>
                     </Card>
+
+                    {/* Вложения */}
+                    <Card className={styles.subSectionCard} title="Вложения">
+                      <Form.Item shouldUpdate noStyle>
+                        {() => {
+                          // Если данные еще загружаются, не показываем форму
+                          if (isLoading) {
+                            return (
+                              <div style={{ padding: '16px', textAlign: 'center', color: '#999' }}>
+                                Сохраните дополнение, чтобы добавить вложения
+                              </div>
+                            );
+                          }
+                          
+                          // Получаем дополнение из формы
+                          const additionallyField = form.getFieldValue(['additionally', field.name]);
+                          const additionallyId = additionallyField?.id;
+                          
+                          // Если дополнение еще не сохранено (нет ID), показываем сообщение
+                          if (!additionallyId || !incident?.id) {
+                            return (
+                              <div style={{ padding: '16px', textAlign: 'center', color: '#999' }}>
+                                Сохраните дополнение, чтобы добавить вложения
+                              </div>
+                            );
+                          }
+                          
+                          // Находим дополнение в данных инцидента по ID
+                          const additionally = incident.additionally?.find(a => a.id === additionallyId);
+                          const eventId = additionally?.incident_event_id;
+                          
+                          // Если нет связанного события, показываем сообщение
+                          if (!eventId) {
+                            return (
+                              <div style={{ padding: '16px', textAlign: 'center', color: '#999' }}>
+                                Сохраните дополнение, чтобы добавить вложения
+                              </div>
+                            );
+                          }
+                          
+                          return (
+                            <>
+                              <IncidentEventAttachments 
+                                key={`attachments-${eventId}`}
+                                incidentEventId={eventId}
+                                ref={(el) => {
+                                  if (el) {
+                                    eventAttachmentsRefs.current[eventId] = el;
+                                  } else {
+                                    delete eventAttachmentsRefs.current[eventId];
+                                  }
+                                }}
+                              />
+                              <IncidentEventAttachmentsView
+                                key={`attachments-view-${eventId}`}
+                                incidentEventId={eventId}
+                                showDelete={true}
+                              />
+                            </>
+                          );
+                        }}
+                      </Form.Item>
+                    </Card>
                             </div>
                           ),
                         },
@@ -570,4 +760,4 @@ export const IncidentAdditionally = () => {
       </Card>
     </div>
   );
-};
+});

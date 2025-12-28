@@ -49,6 +49,7 @@ export interface IncidentWithRelations extends IncidentAttributes {
   additionally?: AdditionallyAttributes[];
   addresses?: IncidentAddressAttributes[];
   persons?: IncidentPersonAttributes[];
+  attachments?: IncidentAttachmentAttributes[];
 }
 
 export interface IncidentAddressAttributes {

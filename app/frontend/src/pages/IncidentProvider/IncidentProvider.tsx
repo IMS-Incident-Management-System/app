@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   Checkbox,
   Form,
@@ -10,9 +10,11 @@ import {
   Space,
   Typography,
 } from "antd";
-import { InfoCircleOutlined, FileTextOutlined, EyeOutlined } from "@ant-design/icons";
+import { InfoCircleOutlined, FileTextOutlined, EyeOutlined, PaperClipOutlined } from "@ant-design/icons";
 import { MainInfo } from "./components/MainInfo/MainInfo";
-import { IncidentAdditionally } from "./components/IncidentAdditionally/IncidentAdditionally";
+import { IncidentAdditionally, IncidentAdditionallyRef } from "./components/IncidentAdditionally/IncidentAdditionally";
+import { IncidentAttachments, IncidentAttachmentsRef } from "./components/IncidentAttachments/IncidentAttachments";
+import { IncidentAttachmentsView } from "./components/IncidentAttachments/IncidentAttachmentsView";
 import { useGetIncident } from "../../services/requests/initiators/getIncident";
 import { useCreateIncident } from "../../services/requests/initiators/createIncident";
 import { CreateIncidentBody } from "../../interfaces/requests/incident";
@@ -28,15 +30,97 @@ export const IncidentProvider = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("main");
+  const attachmentsRef = useRef<IncidentAttachmentsRef>(null);
+  const additionallyRef = useRef<IncidentAdditionallyRef>(null);
 
   const { data: incident, isLoading: isIncidentLoading } = useGetIncident(id);
-  const { mutate: createIncident, isLoading: isCreatingIncident } =
-    useCreateIncident();
-  const { mutate: updateIncident, isLoading: isUpdatingIncident } =
-    useUpdateIncident();
+  const createIncidentMutation = useCreateIncident();
+  const updateIncidentMutation = useUpdateIncident();
+
+  // Обертки для мутаций с загрузкой файлов
+  const createIncident = React.useCallback((data: CreateIncidentBody) => {
+    createIncidentMutation.mutate(data, {
+      onSuccess: async (response: any) => {
+        // Загружаем файлы после создания инцидента, но перед навигацией
+        // Стандартный onSuccess из useCreateIncident вызывается после этого
+        const incidentData = response?.data || response;
+        const incidentId = incidentData?.incident?.id;
+        
+        if (incidentId && attachmentsRef.current) {
+          const pendingFiles = attachmentsRef.current.getPendingFiles();
+          if (pendingFiles.length > 0) {
+            try {
+              await attachmentsRef.current.uploadFiles(incidentId);
+              // Инвалидируем кеш после загрузки файлов
+              const { queryClient } = await import("../../plugins/query");
+              queryClient.invalidateQueries({
+                queryKey: ["getIncident", incidentId.toString()],
+              });
+              queryClient.invalidateQueries({
+                queryKey: ["incidentAttachments", incidentId.toString()],
+              });
+            } catch (error: any) {
+              console.error('Error uploading files:', error);
+            }
+          }
+        }
+      },
+    });
+  }, [createIncidentMutation]);
+
+  const updateIncident = React.useCallback(({ data, id }: { data: CreateIncidentBody, id: number }) => {
+    updateIncidentMutation.mutate({ data, id }, {
+      onSuccess: async () => {
+        const { queryClient } = await import("../../plugins/query");
+        
+        // Сначала инвалидируем кеш
+        queryClient.invalidateQueries({
+          queryKey: ["getIncident", id.toString()],
+        });
+        
+        // Загружаем файлы для основного инцидента
+        if (attachmentsRef.current) {
+          const pendingFiles = attachmentsRef.current.getPendingFiles();
+          if (pendingFiles.length > 0) {
+            try {
+              await attachmentsRef.current.uploadFiles(id);
+              queryClient.invalidateQueries({
+                queryKey: ["getIncident", id.toString()],
+              });
+              queryClient.invalidateQueries({
+                queryKey: ["incidentAttachments", id.toString()],
+              });
+            } catch (error: any) {
+              console.error('Error uploading incident files:', error);
+            }
+          }
+        }
+        
+        // Ждем, пока данные обновятся (после загрузки файлов основного инцидента)
+        await queryClient.refetchQueries({
+          queryKey: ["getIncident", id.toString()],
+        });
+        
+        // Загружаем файлы для дополнений (теперь у нас есть обновленные данные с новыми ID событий)
+        if (additionallyRef.current) {
+          try {
+            await additionallyRef.current.uploadAllPendingFiles(id);
+            // Инвалидируем кеш инцидента для обновления списка вложений
+            queryClient.invalidateQueries({
+              queryKey: ["getIncident", id.toString()],
+            });
+            // Не инвалидируем все incidentEventAttachments, так как они инвалидируются индивидуально в uploadAllPendingFiles
+          } catch (error: any) {
+            console.error('Error uploading addition files:', error);
+          }
+        }
+      },
+    });
+  }, [updateIncidentMutation]);
 
   const { form, onFinish } = useForm({
     incident,
+    isLoading: isIncidentLoading,
     createIncident,
     updateIncident,
   });
@@ -79,11 +163,15 @@ export const IncidentProvider = () => {
       children: (
           <div className={styles.tabContent}>
             <MainInfo />
+            <IncidentAttachments ref={attachmentsRef} />
+            {id && (
+              <IncidentAttachmentsView showDelete={true} />
+            )}
             <div className={styles.tabActions}>
               <PrimaryButton
                 size="large"
                 onClick={handleSubmit}
-                loading={isCreatingIncident || isUpdatingIncident}
+                loading={createIncidentMutation.isLoading || updateIncidentMutation.isLoading}
               >
                 {id ? "Сохранить изменения" : "Создать инцидент"}
               </PrimaryButton>
@@ -100,14 +188,18 @@ export const IncidentProvider = () => {
         </span>
       ),
       disabled: !id,
-      children: (
-          <div className={styles.tabContent}>
-            <IncidentAdditionally />
+            children: (
+                <div className={styles.tabContent}>
+                  <IncidentAdditionally 
+                    ref={additionallyRef}
+                    incident={incident} 
+                    isLoading={isIncidentLoading} 
+                  />
             <div className={styles.tabActions}>
               <PrimaryButton
                 size="large"
                 onClick={handleSubmit}
-                loading={isCreatingIncident || isUpdatingIncident}
+                loading={createIncidentMutation.isLoading || updateIncidentMutation.isLoading}
               >
                 Сохранить
               </PrimaryButton>
