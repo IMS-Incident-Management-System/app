@@ -27,6 +27,7 @@ import { createEvent } from '../controllers/event/createEvent.controller';
 import { updateEvent } from '../controllers/event/updateEvent.controller';
 import { deleteEvent } from '../controllers/event/deleteEvent.controller';
 import { getMyProfile, updateMyProfile, uploadProfilePhoto } from '../controllers/profile.controller';
+import { reportController } from '../controllers/report.controller';
 import { verifyToken } from '../middlewares/auth.middleware';
 import { upload } from '../middlewares/upload.middleware';
 
@@ -139,5 +140,9 @@ router
 router.get('/profile/me', verifyToken, getMyProfile);
 router.put('/profile/me', verifyToken, updateMyProfile);
 router.post('/profile/photo', verifyToken, upload.single('file'), uploadProfilePhoto);
+
+// Report routes
+router.post('/reports/generate', reportController.generateReport);
+router.get('/reports/fields', reportController.getAvailableFields);
 
 export default router;

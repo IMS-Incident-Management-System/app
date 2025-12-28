@@ -23,5 +23,6 @@ export enum ERoutes {
   EVENT_EDIT = "/events/edit/:id",
   EVENT_VIEW = "/events/view",
   EVENT_VIEW_ID = "/events/view/:id",
+  REPORTS = "/reports",
 }
 

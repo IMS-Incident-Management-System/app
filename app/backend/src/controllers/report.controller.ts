@@ -1,0 +1,251 @@
+import { Request } from 'express';
+import { asyncErrorHandler } from '../middlewares/errorHandler.middleware';
+import { CustomResponse } from '../middlewares/responseHandler.middleware';
+import { reportService } from '../services/report.service';
+
+export const reportController = {
+  /**
+   * Генерация Excel отчета
+   */
+  generateReport: asyncErrorHandler(async (req: Request, res: CustomResponse) => {
+    const { dateFrom, dateTo, departmentIds, fields } = req.body;
+
+    if (!dateFrom || !dateTo || !departmentIds || !Array.isArray(departmentIds) || !fields || !Array.isArray(fields)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Необходимо указать dateFrom, dateTo, departmentIds (массив) и fields (массив)'
+      });
+    }
+
+    const buffer = await reportService.generateReport({
+      dateFrom: new Date(dateFrom),
+      dateTo: new Date(dateTo),
+      departmentIds: departmentIds.map((id: any) => Number(id)),
+      fields: fields
+    });
+
+    // Устанавливаем заголовки для скачивания файла
+    const monthNames = [
+      'январь', 'февраль', 'март', 'апрель', 'май', 'июнь',
+      'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'
+    ];
+
+    const fromDate = new Date(dateFrom);
+    const toDate = new Date(dateTo);
+    const fromMonth = monthNames[fromDate.getMonth()];
+    const fromYear = fromDate.getFullYear();
+    const toMonth = monthNames[toDate.getMonth()];
+    const toYear = toDate.getFullYear();
+
+    const fileName = fromMonth === toMonth && fromYear === toYear
+      ? `Отчет_${fromMonth}_${fromYear}.xlsx`
+      : `Отчет_${fromMonth}_${fromYear}_${toMonth}_${toYear}.xlsx`;
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(fileName)}"`);
+    res.send(buffer);
+  }),
+
+  /**
+   * Получение списка доступных полей для отчетов
+   * 
+   * ВАЖНО: Названия и группировка полей временные, на основе комментариев из моделей.
+   * После получения информации от клиента о правильных названиях и группировке, 
+   * этот список будет обновлен.
+   */
+  getAvailableFields: asyncErrorHandler(async (req: Request, res: CustomResponse) => {
+    const fields = [
+      // ========== ИНЦИДЕНТЫ (Incident) ==========
+      { entity: 'incident', field: 'is_db', label: 'Особо важно (1ДБ) - инциденты', group: '1', groupName: 'Проведение мероприятий, проверок и расследований', subgroup: '1.0', subgroupName: 'Инциденты' },
+      { entity: 'incident', field: 'detected_damage', label: 'Выявлен ущерб (руб.) - инциденты', group: '1', groupName: 'Проведение мероприятий, проверок и расследований', subgroup: '1.4', subgroupName: 'Выявлен ущерб (руб.)' },
+      { entity: 'incident', field: 'recovered_damage', label: 'Возмещен ущерб (руб.) - инциденты', group: '1', groupName: 'Проведение мероприятий, проверок и расследований', subgroup: '1.5', subgroupName: 'Возмещен ущерб (руб.)' },
+      { entity: 'incident', field: 'prevented_damage', label: 'Предотвращен ущерб (руб.) - инциденты', group: '1', groupName: 'Проведение мероприятий, проверок и расследований', subgroup: '1.6', subgroupName: 'Предотвращен ущерб (руб.)' },
+      { entity: 'incident', field: 'additional_income', label: 'Получен дополнительный доход (руб.) - инциденты', group: '1', groupName: 'Проведение мероприятий, проверок и расследований', subgroup: '1.7', subgroupName: 'Получен дополнительный доход (руб.)' },
+      { entity: 'incident', field: 'reduced_cost', label: 'Снижена стоимость товаров, работ и услуг на сумму (руб.) - инциденты', group: '1', groupName: 'Проведение мероприятий, проверок и расследований', subgroup: '1.8', subgroupName: 'Снижена стоимость товаров, работ и услуг на сумму (руб.)' },
+
+      // ========== СОБЫТИЯ (Event) ==========
+      { entity: 'event', field: 'is_service_investigation', label: 'Проведено служебных расследований (СР)', group: '1', groupName: 'Проведение мероприятий, проверок и расследований', subgroup: '1.1', subgroupName: 'Проведено служебных проверок и расследований', subsubgroup: '1.1.1' },
+      { entity: 'event', field: 'is_service_check', label: 'Проведено служебных проверок (СП)', group: '1', groupName: 'Проведение мероприятий, проверок и расследований', subgroup: '1.1', subgroupName: 'Проведено служебных проверок и расследований', subsubgroup: '1.1.2' },
+      { entity: 'event', field: 'is_service_check_ib', label: 'Проведено служебных проверок по ИБ (СП ИБ)', group: '1', groupName: 'Проведение мероприятий, проверок и расследований', subgroup: '1.1', subgroupName: 'Проведено служебных проверок и расследований', subsubgroup: '1.1.3' },
+      { entity: 'event', field: 'is_verification_activity', label: 'Проведено проверочных мероприятий (ПМ)', group: '1', groupName: 'Проведение мероприятий, проверок и расследований', subgroup: '1.3', subgroupName: 'Проведено проверочных мероприятий (ПМ) в рамках' },
+      { entity: 'event', field: 'is_db', label: 'Особо важно (1ДБ) - события', group: '1', groupName: 'Проведение мероприятий, проверок и расследований', subgroup: '1.0', subgroupName: 'События' },
+      { entity: 'event', field: 'detected_damage', label: 'Выявлен ущерб (руб.) - события', group: '1', groupName: 'Проведение мероприятий, проверок и расследований', subgroup: '1.4', subgroupName: 'Выявлен ущерб (руб.)' },
+      { entity: 'event', field: 'recovered_damage', label: 'Возмещен ущерб (руб.) - события', group: '1', groupName: 'Проведение мероприятий, проверок и расследований', subgroup: '1.5', subgroupName: 'Возмещен ущерб (руб.)' },
+      { entity: 'event', field: 'prevented_damage', label: 'Предотвращен ущерб (руб.) - события', group: '1', groupName: 'Проведение мероприятий, проверок и расследований', subgroup: '1.6', subgroupName: 'Предотвращен ущерб (руб.)' },
+      { entity: 'event', field: 'additional_income', label: 'Получен дополнительный доход (руб.) - события', group: '1', groupName: 'Проведение мероприятий, проверок и расследований', subgroup: '1.7', subgroupName: 'Получен дополнительный доход (руб.)' },
+      { entity: 'event', field: 'reduced_cost', label: 'Снижена стоимость товаров, работ и услуг на сумму (руб.) - события', group: '1', groupName: 'Проведение мероприятий, проверок и расследований', subgroup: '1.8', subgroupName: 'Снижена стоимость товаров, работ и услуг на сумму (руб.)' },
+      { entity: 'event', field: 'prevented_unnecessary_writeoff', label: 'Предотвращено необ. списание ДЗ, руб.', group: '2', groupName: 'Работа по возмещению ДЗ и НДС', subgroup: '2.7', subgroupName: 'Предотвращено фактов необоснованного списания' },
+      { entity: 'event', field: 'vat_deducted', label: 'Принят к вычету НДС, руб.', group: '2', groupName: 'Работа по возмещению ДЗ и НДС', subgroup: '2.4', subgroupName: 'Общая сумма доступного к возмещению, но не возмещенного НДС' },
+
+      // ========== ОПЕРАЦИОННАЯ ДЕЯТЕЛЬНОСТЬ (OperationalActivity) ==========
+      
+      // ЭБ - Работа по возмещению ДЗ и НДС (DEBT_RECOVERY)
+      { entity: 'operationalActivity', field: 'total_debt', label: 'Общий размер дебиторской задолженности (руб.)', group: '2', groupName: 'Работа по возмещению ДЗ и НДС', subgroup: '2.1', subgroupName: 'Общий размер дебиторской задолженности (руб.)' },
+      { entity: 'operationalActivity', field: 'overdue_debt', label: 'Общий размер просроченной дебиторской задолженности', group: '2', groupName: 'Работа по возмещению ДЗ и НДС', subgroup: '2.2', subgroupName: 'Общий размер просроченной дебиторской задолженности' },
+      { entity: 'operationalActivity', field: 'overdue_debt_sb', label: 'в том числе размер ПДЗ, переданный в работу', group: '2', groupName: 'Работа по возмещению ДЗ и НДС', subgroup: '2.2', subgroupName: 'Общий размер просроченной дебиторской задолженности', subsubgroup: '2.2.1' },
+      { entity: 'operationalActivity', field: 'recovered_debt', label: 'Взыскано ДЗ при участии подразделений', group: '2', groupName: 'Работа по возмещению ДЗ и НДС', subgroup: '2.3', subgroupName: 'Взыскано ДЗ при участии подразделений' },
+      { entity: 'operationalActivity', field: 'available_vat', label: 'Общая сумма доступного к возмещению, но не возмещенного НДС', group: '2', groupName: 'Работа по возмещению ДЗ и НДС', subgroup: '2.4', subgroupName: 'Общая сумма доступного к возмещению, но не возмещенного НДС' },
+      { entity: 'operationalActivity', field: 'vat_assistance', label: 'Содействие в получении документов для возмещения НДС', group: '2', groupName: 'Работа по возмещению ДЗ и НДС', subgroup: '2.5', subgroupName: 'Содействие в получении документов для возмещения НДС' },
+      { entity: 'operationalActivity', field: 'written_off_debt', label: 'Общий размер списанной дебиторской задолженности', group: '2', groupName: 'Работа по возмещению ДЗ и НДС', subgroup: '2.6', subgroupName: 'Общий размер списанной дебиторской задолженности' },
+      { entity: 'operationalActivity', field: 'prevented_writeoff', label: 'Предотвращено фактов необоснованного списания', group: '2', groupName: 'Работа по возмещению ДЗ и НДС', subgroup: '2.7', subgroupName: 'Предотвращено фактов необоснованного списания' },
+
+      // ЭБ - Взаимодействие с правоохранительными органами (LAW_ENFORCEMENT)
+      { entity: 'operationalActivity', field: 'incoming_requests', label: 'Поступило входящих запросов', group: '2', groupName: 'Взаимодействие с правоохранительными органами', subgroup: '2.8', subgroupName: 'Взаимодействие с правоохранительными органами' },
+      { entity: 'operationalActivity', field: 'executed_requests', label: 'Исполнено запросов', group: '2', groupName: 'Взаимодействие с правоохранительными органами', subgroup: '2.8', subgroupName: 'Взаимодействие с правоохранительными органами' },
+      { entity: 'operationalActivity', field: 'executed_tasks', label: 'Исполнено заданий', group: '2', groupName: 'Взаимодействие с правоохранительными органами', subgroup: '2.8', subgroupName: 'Взаимодействие с правоохранительными органами' },
+      { entity: 'operationalActivity', field: 'received_presentations', label: 'Поступило представлений', group: '2', groupName: 'Взаимодействие с правоохранительными органами', subgroup: '2.8', subgroupName: 'Взаимодействие с правоохранительными органами' },
+      { entity: 'operationalActivity', field: 'executed_presentations', label: 'Исполнено представлений', group: '2', groupName: 'Взаимодействие с правоохранительными органами', subgroup: '2.8', subgroupName: 'Взаимодействие с правоохранительными органами' },
+
+      // ЭБ - Контроль инвестиционной, закупочной и договорной деятельности (INVESTMENT_CONTROL)
+      { entity: 'operationalActivity', field: 'checked_entities_new', label: 'Проверено юр. и физ.лиц перед заключением новых договоров', group: '3', groupName: 'Контроль инвестиционной, закупочной и договорной деятельности', subgroup: '3.1', subgroupName: 'Проверено юр. и физ.лиц перед заключением новых договоров' },
+      { entity: 'operationalActivity', field: 'negative_conclusions_new', label: 'из них дано отрицательных заключений по новым договорам', group: '3', groupName: 'Контроль инвестиционной, закупочной и договорной деятельности', subgroup: '3.1', subgroupName: 'Проверено юр. и физ.лиц перед заключением новых договоров', subsubgroup: '3.1.1' },
+      { entity: 'operationalActivity', field: 'checked_entities_active', label: 'Проверено контрагентов с действующими договорами', group: '3', groupName: 'Контроль инвестиционной, закупочной и договорной деятельности', subgroup: '3.2', subgroupName: 'Проверено контрагентов с действующими договорами' },
+      { entity: 'operationalActivity', field: 'negative_conclusions_active', label: 'из них дано отрицательных заключений по действующим договорам', group: '3', groupName: 'Контроль инвестиционной, закупочной и договорной деятельности', subgroup: '3.2', subgroupName: 'Проверено контрагентов с действующими договорами', subsubgroup: '3.2.1' },
+      { entity: 'operationalActivity', field: 'checked_draft_contracts', label: 'Проверено проектов договоров, доп. соглашений', group: '3', groupName: 'Контроль инвестиционной, закупочной и договорной деятельности', subgroup: '3.3', subgroupName: 'Проверено проектов договоров, доп. соглашений' },
+      { entity: 'operationalActivity', field: 'not_approved_drafts', label: 'из них не согласовано', group: '3', groupName: 'Контроль инвестиционной, закупочной и договорной деятельности', subgroup: '3.3', subgroupName: 'Проверено проектов договоров, доп. соглашений', subsubgroup: '3.3.1' },
+      { entity: 'operationalActivity', field: 'checked_active_contracts', label: 'Проверено действующих договоров, доп. соглашений', group: '3', groupName: 'Контроль инвестиционной, закупочной и договорной деятельности', subgroup: '3.4', subgroupName: 'Проверено действующих договоров, доп. соглашений' },
+      { entity: 'operationalActivity', field: 'not_approved_active', label: 'из них не согласовано (действующие договоры)', group: '3', groupName: 'Контроль инвестиционной, закупочной и договорной деятельности', subgroup: '3.4', subgroupName: 'Проверено действующих договоров, доп. соглашений', subsubgroup: '3.4.1' },
+      { entity: 'operationalActivity', field: 'planned_budget', label: 'Сумма запланированного бюджета закупок (руб.)', group: '3', groupName: 'Контроль инвестиционной, закупочной и договорной деятельности', subgroup: '3.5', subgroupName: 'Бюджет и закупки' },
+      { entity: 'operationalActivity', field: 'procurement_procedures_count', label: 'Проведено закупочных процедур (кол-во)', group: '3', groupName: 'Контроль инвестиционной, закупочной и договорной деятельности', subgroup: '3.5', subgroupName: 'Бюджет и закупки' },
+      { entity: 'operationalActivity', field: 'single_source_count', label: 'использован способ "единственный источник" (кол-во)', group: '3', groupName: 'Контроль инвестиционной, закупочной и договорной деятельности', subgroup: '3.5', subgroupName: 'Бюджет и закупки' },
+      { entity: 'operationalActivity', field: 'procurement_procedures_sum', label: 'Проведено закупочных процедур на сумму (руб.)', group: '3', groupName: 'Контроль инвестиционной, закупочной и договорной деятельности', subgroup: '3.5', subgroupName: 'Бюджет и закупки' },
+      { entity: 'operationalActivity', field: 'single_source_sum', label: 'использован способ "единственный источник" на сумму (руб.)', group: '3', groupName: 'Контроль инвестиционной, закупочной и договорной деятельности', subgroup: '3.5', subgroupName: 'Бюджет и закупки' },
+      { entity: 'operationalActivity', field: 'cost_reduction', label: 'Снижена стоимость товаров, работ и услуг (руб.)', group: '3', groupName: 'Контроль инвестиционной, закупочной и договорной деятельности', subgroup: '3.5', subgroupName: 'Бюджет и закупки' },
+
+      // ЭБ - Работа по выявлению признаков аффилированности (AFFILIATION)
+      { entity: 'operationalActivity', field: 'checked_employees', label: 'Проверено сотрудников', group: '4', groupName: 'Работа по выявлению признаков аффилированности', subgroup: '4.1', subgroupName: 'Проверка сотрудников и кандидатов' },
+      { entity: 'operationalActivity', field: 'found_affiliated', label: 'Выявлено аффилированных', group: '4', groupName: 'Работа по выявлению признаков аффилированности', subgroup: '4.1', subgroupName: 'Проверка сотрудников и кандидатов' },
+      { entity: 'operationalActivity', field: 'checked_candidates', label: 'Проверено кандидатов на трудоустройство', group: '4', groupName: 'Работа по выявлению признаков аффилированности', subgroup: '4.1', subgroupName: 'Проверка сотрудников и кандидатов' },
+      { entity: 'operationalActivity', field: 'rejected_candidates', label: 'Отклонено кандидатов', group: '4', groupName: 'Работа по выявлению признаков аффилированности', subgroup: '4.1', subgroupName: 'Проверка сотрудников и кандидатов' },
+      { entity: 'operationalActivity', field: 'rejected_affiliated', label: 'Отклонено аффилированных', group: '4', groupName: 'Работа по выявлению признаков аффилированности', subgroup: '4.1', subgroupName: 'Проверка сотрудников и кандидатов' },
+
+      // ЭБ - Работа с обращениями граждан (CITIZEN_APPEALS)
+      { entity: 'operationalActivity', field: 'total_appeals', label: 'Проверено обращений граждан и юр. лиц', group: '5', groupName: 'Работа с обращениями граждан', subgroup: '5.1', subgroupName: 'Обращения граждан' },
+      { entity: 'operationalActivity', field: 'zon_applications', label: 'Заявлений абонентов о непричастности к договору', group: '5', groupName: 'Работа с обращениями граждан', subgroup: '5.1', subgroupName: 'Обращения граждан' },
+      { entity: 'operationalActivity', field: 'fictitious_contracts', label: 'Выявлено фиктивных договоров', group: '5', groupName: 'Работа с обращениями граждан', subgroup: '5.1', subgroupName: 'Обращения граждан' },
+      { entity: 'operationalActivity', field: 'termination_requests', label: 'Заявлений о расторжении договора и возврате ДС', group: '5', groupName: 'Работа с обращениями граждан', subgroup: '5.1', subgroupName: 'Обращения граждан' },
+      { entity: 'operationalActivity', field: 'beautiful_numbers', label: 'Запросов на переоформление "красивых" номеров', group: '5', groupName: 'Работа с обращениями граждан', subgroup: '5.1', subgroupName: 'Обращения граждан' },
+      { entity: 'operationalActivity', field: 'sim_replacement', label: 'Заявлений о неправомерной замене SIM-карт', group: '5', groupName: 'Работа с обращениями граждан', subgroup: '5.1', subgroupName: 'Обращения граждан' },
+      { entity: 'operationalActivity', field: 'refund_requests', label: 'Заявлений о возврате ошибочного платежа', group: '5', groupName: 'Работа с обращениями граждан', subgroup: '5.1', subgroupName: 'Обращения граждан' },
+      { entity: 'operationalActivity', field: 'other_appeals', label: 'Прочих заявлений абонентов', group: '5', groupName: 'Работа с обращениями граждан', subgroup: '5.1', subgroupName: 'Обращения граждан' },
+
+      // ИБ - Сведения об участии в проверочных мероприятиях (INSPECTIONS)
+      { entity: 'operationalActivity', field: 'ib_incident_checks', label: 'проверок по инцидентам ИБ', group: '6', groupName: 'ИБ - Сведения об участии в проверочных мероприятиях', subgroup: '6.1', subgroupName: 'Проверки ИБ' },
+      { entity: 'operationalActivity', field: 'planned_ib_checks', label: 'плановых проверок ИБ', group: '6', groupName: 'ИБ - Сведения об участии в проверочных мероприятиях', subgroup: '6.1', subgroupName: 'Проверки ИБ' },
+      { entity: 'operationalActivity', field: 'non_compliances', label: 'несоответствий нормативным документам', group: '6', groupName: 'ИБ - Сведения об участии в проверочных мероприятиях', subgroup: '6.1', subgroupName: 'Проверки ИБ' },
+
+      // ИБ - Меры, принятые к нарушителям (VIOLATORS_MEASURES)
+      { entity: 'operationalActivity', field: 'warnings', label: 'Вынесено предупреждений', group: '6', groupName: 'ИБ - Меры, принятые к нарушителям', subgroup: '6.2', subgroupName: 'Меры к нарушителям' },
+      { entity: 'operationalActivity', field: 'remarks', label: 'Вынесено замечаний', group: '6', groupName: 'ИБ - Меры, принятые к нарушителям', subgroup: '6.2', subgroupName: 'Меры к нарушителям' },
+      { entity: 'operationalActivity', field: 'reprimands', label: 'Вынесено выговоров', group: '6', groupName: 'ИБ - Меры, принятые к нарушителям', subgroup: '6.2', subgroupName: 'Меры к нарушителям' },
+      { entity: 'operationalActivity', field: 'dismissals', label: 'Уволено сотрудников', group: '6', groupName: 'ИБ - Меры, принятые к нарушителям', subgroup: '6.2', subgroupName: 'Меры к нарушителям' },
+
+      // ИБ - Количество согласованных доступов (ACCESS_APPROVALS)
+      { entity: 'operationalActivity', field: 'approved_accesses', label: 'Согласовано доступов', group: '6', groupName: 'ИБ - Количество согласованных доступов', subgroup: '6.3', subgroupName: 'Согласование доступов' },
+
+      // ИБ - Подготовлено служебных записок (MEMOS_PREPARED)
+      { entity: 'operationalActivity', field: 'memos_count', label: 'Подготовлено служебных записок', group: '6', groupName: 'ИБ - Подготовлено служебных записок', subgroup: '6.4', subgroupName: 'Служебные записки' },
+
+      // ИБ - События и мероприятия (RISK_MINIMIZATION)
+      { entity: 'operationalActivity', field: 'scanned_count', label: 'Проведено/просканировано', group: '6', groupName: 'ИБ - События и мероприятия', subgroup: '6.5', subgroupName: 'События и мероприятия' },
+      { entity: 'operationalActivity', field: 'vulnerabilities_found', label: 'Выявлено уязвимостей', group: '6', groupName: 'ИБ - События и мероприятия', subgroup: '6.5', subgroupName: 'События и мероприятия' },
+
+      // ИБ - Реализация режима защиты КТ и КИ (CT_KI_PROTECTION)
+      { entity: 'operationalActivity', field: 'confidential_docs', label: 'Зарегистрировано конфиденциальных документов', group: '6', groupName: 'ИБ - Реализация режима защиты КТ и КИ', subgroup: '6.6', subgroupName: 'Защита КТ и КИ' },
+      { entity: 'operationalActivity', field: 'compliance_checks', label: 'Проведено проверок на соответствие нормативным документам', group: '6', groupName: 'ИБ - Реализация режима защиты КТ и КИ', subgroup: '6.6', subgroupName: 'Защита КТ и КИ' },
+
+      // ИБ - Контроль доступа к ИС (ACCESS_CONTROL)
+      { entity: 'operationalActivity', field: 'access_requests', label: 'Рассмотрено заявок на предоставление доступа', group: '6', groupName: 'ИБ - Контроль доступа к ИС', subgroup: '6.7', subgroupName: 'Контроль доступа' },
+      { entity: 'operationalActivity', field: 'access_violations', label: 'Зафиксировано нарушений', group: '6', groupName: 'ИБ - Контроль доступа к ИС', subgroup: '6.7', subgroupName: 'Контроль доступа' },
+      { entity: 'operationalActivity', field: 'account_audits', label: 'Проведено аудитов учетных записей', group: '6', groupName: 'ИБ - Контроль доступа к ИС', subgroup: '6.7', subgroupName: 'Контроль доступа' },
+      { entity: 'operationalActivity', field: 'violations_found', label: 'Выявлено нарушений', group: '6', groupName: 'ИБ - Контроль доступа к ИС', subgroup: '6.7', subgroupName: 'Контроль доступа' },
+
+      // ИБ - Мониторинг инцидентов ИБ (INCIDENT_MONITORING)
+      { entity: 'operationalActivity', field: 'processed_incidents', label: 'Обработано инцидентов ИБ', group: '6', groupName: 'ИБ - Мониторинг инцидентов ИБ', subgroup: '6.8', subgroupName: 'Мониторинг инцидентов' },
+      { entity: 'operationalActivity', field: 'admin_rights_incidents', label: 'Инцидентов с правами администратора', group: '6', groupName: 'ИБ - Мониторинг инцидентов ИБ', subgroup: '6.8', subgroupName: 'Мониторинг инцидентов' },
+      { entity: 'operationalActivity', field: 'kspd_access_incidents', label: 'Инцидентов с доступом к КСПД', group: '6', groupName: 'ИБ - Мониторинг инцидентов ИБ', subgroup: '6.8', subgroupName: 'Мониторинг инцидентов' },
+      { entity: 'operationalActivity', field: 'spam_incidents', label: 'Спам-инцидентов', group: '6', groupName: 'ИБ - Мониторинг инцидентов ИБ', subgroup: '6.8', subgroupName: 'Мониторинг инцидентов' },
+      { entity: 'operationalActivity', field: 'virus_incidents', label: 'Вирусных инцидентов', group: '6', groupName: 'ИБ - Мониторинг инцидентов ИБ', subgroup: '6.8', subgroupName: 'Мониторинг инцидентов' },
+      { entity: 'operationalActivity', field: 'software_incidents', label: 'Инцидентов с ПО', group: '6', groupName: 'ИБ - Мониторинг инцидентов ИБ', subgroup: '6.8', subgroupName: 'Мониторинг инцидентов' },
+      { entity: 'operationalActivity', field: 'ki_pdn_incidents', label: 'Инцидентов с КИ/ПДн', group: '6', groupName: 'ИБ - Мониторинг инцидентов ИБ', subgroup: '6.8', subgroupName: 'Мониторинг инцидентов' },
+      { entity: 'operationalActivity', field: 'network_attacks_incidents', label: 'Сетевых атак', group: '6', groupName: 'ИБ - Мониторинг инцидентов ИБ', subgroup: '6.8', subgroupName: 'Мониторинг инцидентов' },
+      { entity: 'operationalActivity', field: 'leaks_found', label: 'Выявлено утечек', group: '6', groupName: 'ИБ - Мониторинг инцидентов ИБ', subgroup: '6.8', subgroupName: 'Мониторинг инцидентов' },
+      { entity: 'operationalActivity', field: 'blocked_threats', label: 'Заблокировано угроз', group: '6', groupName: 'ИБ - Мониторинг инцидентов ИБ', subgroup: '6.8', subgroupName: 'Мониторинг инцидентов' },
+      { entity: 'operationalActivity', field: 'other_incidents', label: 'Прочих инцидентов', group: '6', groupName: 'ИБ - Мониторинг инцидентов ИБ', subgroup: '6.8', subgroupName: 'Мониторинг инцидентов' },
+
+      // ИБ - Противодействие фроду (FRAUD_PREVENTION)
+      { entity: 'operationalActivity', field: 'fraud_incidents', label: 'Инцидентов фрода', group: '6', groupName: 'ИБ - Противодействие фроду', subgroup: '6.9', subgroupName: 'Противодействие фроду' },
+
+      // ИБ - Анализ изменений (INFRASTRUCTURE_ANALYSIS)
+      { entity: 'operationalActivity', field: 'analyzed_documents', label: 'Проанализировано документов', group: '6', groupName: 'ИБ - Анализ изменений', subgroup: '6.10', subgroupName: 'Анализ изменений' },
+
+      // БПиО - Штатное количество сотрудников (STAFF_COUNT)
+      { entity: 'operationalActivity', field: 'staff_count', label: 'Штатное количество сотрудников', group: '7', groupName: 'БПиО - Штатное количество сотрудников', subgroup: '7.1', subgroupName: 'Штат' },
+
+      // БПиО - Количество объектов (OBJECTS_COUNT)
+      { entity: 'operationalActivity', field: 'objects_physical_security', label: 'Объектов под физической охраной', group: '7', groupName: 'БПиО - Количество объектов', subgroup: '7.2', subgroupName: 'Объекты' },
+      { entity: 'operationalActivity', field: 'objects_panel_security', label: 'Объектов под пультовой охраной', group: '7', groupName: 'БПиО - Количество объектов', subgroup: '7.2', subgroupName: 'Объекты' },
+
+      // БПиО - Бюджет на усиление АТЗ (CAPEX_BUDGET)
+      { entity: 'operationalActivity', field: 'capex_allocated', label: 'Сумма выделенного бюджета на год (руб.)', group: '7', groupName: 'БПиО - Бюджет на усиление АТЗ', subgroup: '7.3', subgroupName: 'Бюджет АТЗ' },
+      { entity: 'operationalActivity', field: 'capex_spent_current', label: 'Сумма освоения бюджета в текущем месяце (руб.)', group: '7', groupName: 'БПиО - Бюджет на усиление АТЗ', subgroup: '7.3', subgroupName: 'Бюджет АТЗ' },
+
+      // БПиО - Бюджет на физ. охрану (OPEX_BUDGET)
+      { entity: 'operationalActivity', field: 'opex_allocated', label: 'Сумма выделенного бюджета (руб.)', group: '7', groupName: 'БПиО - Бюджет на физ. охрану', subgroup: '7.4', subgroupName: 'Бюджет охраны' },
+
+      // БПиО - Проверки состояния АТЗ (ATZ_INSPECTIONS)
+      { entity: 'operationalActivity', field: 'atz_checks_pb', label: 'Проверок сотрудниками ПБ ДЗК/ДЗО', group: '7', groupName: 'БПиО - Проверки состояния АТЗ', subgroup: '7.5', subgroupName: 'Проверки АТЗ' },
+      { entity: 'operationalActivity', field: 'atz_checks_law', label: 'Проверок совместно с ПОО', group: '7', groupName: 'БПиО - Проверки состояния АТЗ', subgroup: '7.5', subgroupName: 'Проверки АТЗ' },
+
+      // БПиО - АТУ и АТТ на объектах (ATU_ATT)
+      { entity: 'operationalActivity', field: 'atu_att_pb', label: 'АТУ и АТТ сотрудниками ПБ', group: '7', groupName: 'БПиО - АТУ и АТТ на объектах', subgroup: '7.6', subgroupName: 'АТУ и АТТ' },
+      { entity: 'operationalActivity', field: 'atu_att_law', label: 'АТУ и АТТ совместно с ПОО', group: '7', groupName: 'БПиО - АТУ и АТТ на объектах', subgroup: '7.6', subgroupName: 'АТУ и АТТ' },
+
+      // БПиО - Взаимодействие с ЧОП/ЧОО (SECURITY_COMPANY)
+      { entity: 'operationalActivity', field: 'chop_checks', label: 'Проведено проверок несения службы', group: '7', groupName: 'БПиО - Взаимодействие с ЧОП/ЧОО', subgroup: '7.7', subgroupName: 'Взаимодействие с ЧОП/ЧОО' },
+      { entity: 'operationalActivity', field: 'chop_claims', label: 'Подготовлено претензий', group: '7', groupName: 'БПиО - Взаимодействие с ЧОП/ЧОО', subgroup: '7.7', subgroupName: 'Взаимодействие с ЧОП/ЧОО' },
+
+      // БПиО - Проникновение на объект (INTRUSION)
+      { entity: 'operationalActivity', field: 'intrusion_total', label: 'Количество случаев (попыток) проникновения', group: '7', groupName: 'БПиО - Проникновение на объект', subgroup: '7.8', subgroupName: 'Проникновение' },
+      { entity: 'operationalActivity', field: 'intrusion_not_prevented', label: 'Не предотвращено', group: '7', groupName: 'БПиО - Проникновение на объект', subgroup: '7.8', subgroupName: 'Проникновение' },
+      { entity: 'operationalActivity', field: 'intrusion_prevented', label: 'Предотвращено', group: '7', groupName: 'БПиО - Проникновение на объект', subgroup: '7.8', subgroupName: 'Проникновение' },
+      { entity: 'operationalActivity', field: 'intrusion_detained', label: 'Задержаны лица', group: '7', groupName: 'БПиО - Проникновение на объект', subgroup: '7.8', subgroupName: 'Проникновение' },
+      { entity: 'operationalActivity', field: 'intrusion_damage', label: 'Установлена сумма причиненного ущерба (руб.)', group: '7', groupName: 'БПиО - Проникновение на объект', subgroup: '7.8', subgroupName: 'Проникновение' },
+      { entity: 'operationalActivity', field: 'intrusion_prevented_damage', label: 'Предотвращен ущерб (руб.)', group: '7', groupName: 'БПиО - Проникновение на объект', subgroup: '7.8', subgroupName: 'Проникновение' },
+      { entity: 'operationalActivity', field: 'intrusion_recovered', label: 'Возмещен ущерб (руб.)', group: '7', groupName: 'БПиО - Проникновение на объект', subgroup: '7.8', subgroupName: 'Проникновение' },
+      { entity: 'operationalActivity', field: 'intrusion_employees', label: 'Установлено сотрудников, причастных', group: '7', groupName: 'БПиО - Проникновение на объект', subgroup: '7.8', subgroupName: 'Проникновение' },
+      { entity: 'operationalActivity', field: 'intrusion_penalties', label: 'Наложено дисциплинарных взысканий', group: '7', groupName: 'БПиО - Проникновение на объект', subgroup: '7.8', subgroupName: 'Проникновение' },
+      { entity: 'operationalActivity', field: 'intrusion_dismissals', label: 'Уволено с работы', group: '7', groupName: 'БПиО - Проникновение на объект', subgroup: '7.8', subgroupName: 'Проникновение' },
+      { entity: 'operationalActivity', field: 'intrusion_materials', label: 'Передано материалов в ПОО', group: '7', groupName: 'БПиО - Проникновение на объект', subgroup: '7.8', subgroupName: 'Проникновение' },
+      { entity: 'operationalActivity', field: 'intrusion_cases_opened', label: 'Возбуждено уголовных дел', group: '7', groupName: 'БПиО - Проникновение на объект', subgroup: '7.8', subgroupName: 'Проникновение' },
+      { entity: 'operationalActivity', field: 'intrusion_cases_closed', label: 'Окончено уголовных дел', group: '7', groupName: 'БПиО - Проникновение на объект', subgroup: '7.8', subgroupName: 'Проникновение' },
+
+      // БПиО - Нападение на объект/сотрудников (ATTACK)
+      { entity: 'operationalActivity', field: 'attack_total', label: 'Количество случаев нападения', group: '7', groupName: 'БПиО - Нападение на объект/сотрудников', subgroup: '7.9', subgroupName: 'Нападение' },
+      { entity: 'operationalActivity', field: 'attack_not_prevented', label: 'Не предотвращено', group: '7', groupName: 'БПиО - Нападение на объект/сотрудников', subgroup: '7.9', subgroupName: 'Нападение' },
+      { entity: 'operationalActivity', field: 'attack_prevented', label: 'Предотвращено', group: '7', groupName: 'БПиО - Нападение на объект/сотрудников', subgroup: '7.9', subgroupName: 'Нападение' },
+      { entity: 'operationalActivity', field: 'attack_detained', label: 'Задержаны лица', group: '7', groupName: 'БПиО - Нападение на объект/сотрудников', subgroup: '7.9', subgroupName: 'Нападение' },
+      { entity: 'operationalActivity', field: 'attack_damage', label: 'Установлена сумма причиненного ущерба (руб.)', group: '7', groupName: 'БПиО - Нападение на объект/сотрудников', subgroup: '7.9', subgroupName: 'Нападение' },
+      { entity: 'operationalActivity', field: 'attack_prevented_damage', label: 'Предотвращен ущерб (руб.)', group: '7', groupName: 'БПиО - Нападение на объект/сотрудников', subgroup: '7.9', subgroupName: 'Нападение' },
+      { entity: 'operationalActivity', field: 'attack_recovered', label: 'Возмещен ущерб (руб.)', group: '7', groupName: 'БПиО - Нападение на объект/сотрудников', subgroup: '7.9', subgroupName: 'Нападение' },
+      { entity: 'operationalActivity', field: 'attack_employees', label: 'Установлено сотрудников, причастных', group: '7', groupName: 'БПиО - Нападение на объект/сотрудников', subgroup: '7.9', subgroupName: 'Нападение' },
+      { entity: 'operationalActivity', field: 'attack_penalties', label: 'Наложено дисциплинарных взысканий', group: '7', groupName: 'БПиО - Нападение на объект/сотрудников', subgroup: '7.9', subgroupName: 'Нападение' },
+      { entity: 'operationalActivity', field: 'attack_dismissals', label: 'Уволено с работы', group: '7', groupName: 'БПиО - Нападение на объект/сотрудников', subgroup: '7.9', subgroupName: 'Нападение' },
+      { entity: 'operationalActivity', field: 'attack_materials', label: 'Передано материалов в ПОО', group: '7', groupName: 'БПиО - Нападение на объект/сотрудников', subgroup: '7.9', subgroupName: 'Нападение' },
+      { entity: 'operationalActivity', field: 'attack_cases_opened', label: 'Возбуждено уголовных дел', group: '7', groupName: 'БПиО - Нападение на объект/сотрудников', subgroup: '7.9', subgroupName: 'Нападение' },
+      { entity: 'operationalActivity', field: 'attack_cases_closed', label: 'Окончено уголовных дел', group: '7', groupName: 'БПиО - Нападение на объект/сотрудников', subgroup: '7.9', subgroupName: 'Нападение' },
+
+      // БПиО - Проведено проверок и СР (INVESTIGATIONS)
+      { entity: 'operationalActivity', field: 'investigations_count', label: 'Проведено проверок и СР', group: '7', groupName: 'БПиО - Проведено проверок и СР', subgroup: '7.10', subgroupName: 'Проверки и СР' },
+
+      // КБ - Взаимодействие с правоохранительными органами (LAW_ENFORCEMENT)
+      { entity: 'operationalActivity', field: 'cyber_incoming_paper_requests', label: 'Поступило входящих бумажных запросов ПОО на предоставление информации', group: '8', groupName: 'КБ - Взаимодействие с правоохранительными органами', subgroup: '8.1', subgroupName: 'Взаимодействие с ПОО' },
+      { entity: 'operationalActivity', field: 'cyber_executed_paper_requests', label: 'Исполнено бумажных запросов ПОО на предоставление информации', group: '8', groupName: 'КБ - Взаимодействие с правоохранительными органами', subgroup: '8.1', subgroupName: 'Взаимодействие с ПОО' },
+      { entity: 'operationalActivity', field: 'cyber_executed_paper_tasks', label: 'Исполнено заданий в бумажных запросах ПОО на предоставление информации', group: '8', groupName: 'КБ - Взаимодействие с правоохранительными органами', subgroup: '8.1', subgroupName: 'Взаимодействие с ПОО' },
+      { entity: 'operationalActivity', field: 'cyber_received_presentations', label: 'Поступило представлений правоохранительных органов, прокуратуры и суда', group: '8', groupName: 'КБ - Взаимодействие с правоохранительными органами', subgroup: '8.1', subgroupName: 'Взаимодействие с ПОО' },
+      { entity: 'operationalActivity', field: 'cyber_executed_presentations', label: 'из них исполнено (подготовлен ответ)', group: '8', groupName: 'КБ - Взаимодействие с правоохранительными органами', subgroup: '8.1', subgroupName: 'Взаимодействие с ПОО' },
+    ];
+
+    res.success(fields, 'Available fields retrieved successfully');
+  })
+};

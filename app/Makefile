@@ -1,4 +1,4 @@
-.PHONY: help dev dev-no-build fe down logs restart clean
+.PHONY: help dev dev-no-build fe down logs restart clean seed-report seed-report-auto
 
 # По умолчанию показываем help
 .DEFAULT_GOAL := help
@@ -66,6 +66,11 @@ build-backend: ## Пересобрать только backend
 	docker-compose build ims-backend
 	@echo "✅ Сборка backend завершена!"
 
+build-backend-no-cache: ## Пересобрать только backend без кеша
+	@echo "🔨 Пересборка backend без кеша..."
+	docker-compose build --no-cache ims-backend
+	@echo "✅ Сборка backend завершена!"
+
 shell-backend: ## Открыть shell в контейнере backend
 	docker exec -it ims-backend sh
 
@@ -79,6 +84,16 @@ migrate-status: ## Показать статус миграций
 migrate-up: ## Применить миграции вручную
 	@echo "🔄 Применение миграций..."
 	docker exec -it ims-backend npm run migrate:up
+
+seed-report: ## Заполнить базу тестовыми данными для отчетов (интерактивно)
+	@echo "🌱 Заполнение базы тестовыми данными для отчетов..."
+	docker exec -it ims-backend npm run seed:report
+	@echo "✅ Данные успешно добавлены!"
+
+seed-report-auto: ## Заполнить базу тестовыми данными для отчетов (автоматически, без интерактивного режима)
+	@echo "🌱 Заполнение базы тестовыми данными для отчетов..."
+	docker exec ims-backend npm run seed:report
+	@echo "✅ Данные успешно добавлены!"
 
 install-backend: ## Установить зависимости backend
 	cd backend && npm install
