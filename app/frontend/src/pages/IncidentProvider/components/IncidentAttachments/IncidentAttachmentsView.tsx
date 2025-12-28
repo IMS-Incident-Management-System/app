@@ -27,12 +27,12 @@ export const IncidentAttachmentsView = ({
   const queryClient = useQueryClient();
   
   // Используем отдельный запрос для получения вложений
-  const { data: attachmentsFromQuery, isLoading: isLoadingAttachments } = useQuery(
+  const { data: attachmentsFromQuery, isLoading: isLoadingAttachments } = useQuery<IncidentAttachmentAttributes[]>(
     ["incidentAttachments", id],
     async () => {
-      if (!id) return null;
+      if (!id) return [];
       const response = await axiosGatewayBackend.get(`/incidents/${id}/attachments`);
-      return response.data?.data || response.data || [];
+      return (response.data?.data || response.data || []) as IncidentAttachmentAttributes[];
     },
     {
       enabled: !!id,

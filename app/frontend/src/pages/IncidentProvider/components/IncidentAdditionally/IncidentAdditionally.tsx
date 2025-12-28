@@ -6,6 +6,7 @@ import dayjs from "dayjs";
 import { PrimaryButton } from "../../../../components/PrimaryButton";
 import { IncidentEventAttachments, IncidentEventAttachmentsRef } from "../IncidentEvents/IncidentEventAttachments";
 import { IncidentEventAttachmentsView } from "../IncidentEvents/IncidentEventAttachmentsView";
+import { AdditionallyAttributes } from "../../../../interfaces/requests/additionally";
 
 const { Text } = Typography;
 
@@ -711,7 +712,7 @@ export const IncidentAdditionally = forwardRef<IncidentAdditionallyRef, Incident
                           }
                           
                           // Находим дополнение в данных инцидента по ID
-                          const additionally = incident.additionally?.find(a => a.id === additionallyId);
+                          const additionally = incident.additionally?.find((a: AdditionallyAttributes) => a.id === additionallyId);
                           const eventId = additionally?.incident_event_id;
                           
                           // Если нет связанного события, показываем сообщение

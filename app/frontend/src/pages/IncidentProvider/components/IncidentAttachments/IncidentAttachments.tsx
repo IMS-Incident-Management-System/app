@@ -37,9 +37,9 @@ export const IncidentAttachments = forwardRef<IncidentAttachmentsRef, IncidentAt
 
 
   // Экспортируем функцию загрузки для использования извне
-  const uploadFiles = async (incidentId: number) => {
+  const uploadFiles = async (incidentId: number): Promise<boolean> => {
     if (fileList.length === 0) {
-      return;
+      return false;
     }
 
     // Берем все новые файлы из списка, у которых есть originFileObj
@@ -48,7 +48,7 @@ export const IncidentAttachments = forwardRef<IncidentAttachmentsRef, IncidentAt
       .map((file) => file.originFileObj as File);
 
     if (filesToUpload.length === 0) {
-      return;
+      return false;
     }
 
     // Проверяем общее количество файлов - получаем текущие вложения из API
