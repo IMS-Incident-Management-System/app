@@ -28,8 +28,13 @@ export const useForm = ({
       // Определяем выбранный тип события для радиокнопок
       let eventType = '';
       if (event.is_service_investigation) eventType = 'is_service_investigation';
+      else if (event.is_service_investigation_ib) eventType = 'is_service_investigation_ib';
+      else if (event.is_service_investigation_bpio) eventType = 'is_service_investigation_bpio';
+      else if (event.is_service_investigation_bpio_hotline) eventType = 'is_service_investigation_bpio_hotline';
       else if (event.is_service_check) eventType = 'is_service_check';
       else if (event.is_service_check_ib) eventType = 'is_service_check_ib';
+      else if (event.is_service_check_bpio) eventType = 'is_service_check_bpio';
+      else if (event.is_service_check_bpio_hotline) eventType = 'is_service_check_bpio_hotline';
       else if (event.is_verification_activity) eventType = 'is_verification_activity';
 
       form.setFieldsValue({
@@ -38,8 +43,13 @@ export const useForm = ({
         entry_date: event.entry_date ? dayjs(event.entry_date) : dayjs(),
         event_type: eventType,
         is_service_investigation: event.is_service_investigation,
+        is_service_investigation_ib: event.is_service_investigation_ib,
+        is_service_investigation_bpio: event.is_service_investigation_bpio,
+        is_service_investigation_bpio_hotline: event.is_service_investigation_bpio_hotline,
         is_service_check: event.is_service_check,
         is_service_check_ib: event.is_service_check_ib,
+        is_service_check_bpio: event.is_service_check_bpio,
+        is_service_check_bpio_hotline: event.is_service_check_bpio_hotline,
         is_verification_activity: event.is_verification_activity,
         is_db: event.is_db,
         description: event.description,
@@ -63,8 +73,13 @@ export const useForm = ({
       form.resetFields();
       form.setFieldsValue({
         is_service_investigation: false,
+        is_service_investigation_ib: false,
+        is_service_investigation_bpio: false,
+        is_service_investigation_bpio_hotline: false,
         is_service_check: false,
         is_service_check_ib: false,
+        is_service_check_bpio: false,
+        is_service_check_bpio_hotline: false,
         is_verification_activity: false,
         is_db: false,
         entry_date: dayjs(),
@@ -78,8 +93,13 @@ export const useForm = ({
     // Преобразуем event_type из радиокнопок в boolean поля
     const eventType = formValues.event_type || '';
     const is_service_investigation = eventType === 'is_service_investigation';
+    const is_service_investigation_ib = eventType === 'is_service_investigation_ib';
+    const is_service_investigation_bpio = eventType === 'is_service_investigation_bpio';
+    const is_service_investigation_bpio_hotline = eventType === 'is_service_investigation_bpio_hotline';
     const is_service_check = eventType === 'is_service_check';
     const is_service_check_ib = eventType === 'is_service_check_ib';
+    const is_service_check_bpio = eventType === 'is_service_check_bpio';
+    const is_service_check_bpio_hotline = eventType === 'is_service_check_bpio_hotline';
     const is_verification_activity = eventType === 'is_verification_activity';
 
     const processedData: CreateEventBody = {
@@ -87,8 +107,13 @@ export const useForm = ({
       date: formValues.date ? dayjs(formValues.date).toDate() : new Date(),
       entry_date: formValues.entry_date ? dayjs(formValues.entry_date).toDate() : new Date(),
       is_service_investigation,
+      is_service_investigation_ib,
+      is_service_investigation_bpio,
+      is_service_investigation_bpio_hotline,
       is_service_check,
       is_service_check_ib,
+      is_service_check_bpio,
+      is_service_check_bpio_hotline,
       is_verification_activity,
       is_db: Boolean(formValues.is_db),
       description: formValues.description,

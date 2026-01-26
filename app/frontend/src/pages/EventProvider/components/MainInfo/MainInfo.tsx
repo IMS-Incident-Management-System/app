@@ -16,8 +16,13 @@ export const MainInfo = () => {
     // Сбрасываем все boolean поля
     form.setFieldsValue({
       is_service_investigation: false,
+      is_service_investigation_ib: false,
+      is_service_investigation_bpio: false,
+      is_service_investigation_bpio_hotline: false,
       is_service_check: false,
       is_service_check_ib: false,
+      is_service_check_bpio: false,
+      is_service_check_bpio_hotline: false,
       is_verification_activity: false,
     });
     // Устанавливаем выбранное поле в true
@@ -89,8 +94,13 @@ export const MainInfo = () => {
             >
               <Radio.Group onChange={handleEventTypeChange}>
                 <Radio value="is_service_investigation">Служебные расследования</Radio>
+                <Radio value="is_service_investigation_ib">Служебные расследования ИБ</Radio>
+                <Radio value="is_service_investigation_bpio">Служебные расследования БПиО</Radio>
+                <Radio value="is_service_investigation_bpio_hotline">Служебные расследования БПиО (горячая линия)</Radio>
                 <Radio value="is_service_check">Служебные проверки</Radio>
-                <Radio value="is_service_check_ib">Служебные проверки по линии ИБ</Radio>
+                <Radio value="is_service_check_ib">Служебные проверки ИБ</Radio>
+                <Radio value="is_service_check_bpio">Служебная проверка БПиО</Radio>
+                <Radio value="is_service_check_bpio_hotline">Служебная проверка БПиО (горячая линия)</Radio>
                 <Radio value="is_verification_activity">Проверочные мероприятия</Radio>
               </Radio.Group>
             </Form.Item>

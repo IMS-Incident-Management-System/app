@@ -14,8 +14,13 @@ interface CreateEventData {
   department_id: number;
   date: Date;
   is_service_investigation: boolean;
+  is_service_investigation_ib: boolean;
+  is_service_investigation_bpio: boolean;
+  is_service_investigation_bpio_hotline: boolean;
   is_service_check: boolean;
   is_service_check_ib: boolean;
+  is_service_check_bpio: boolean;
+  is_service_check_bpio_hotline: boolean;
   is_verification_activity: boolean;
   is_db: boolean;
   description?: string;
@@ -33,8 +38,13 @@ interface UpdateEventData {
   department_id: number;
   date: Date;
   is_service_investigation: boolean;
+  is_service_investigation_ib: boolean;
+  is_service_investigation_bpio: boolean;
+  is_service_investigation_bpio_hotline: boolean;
   is_service_check: boolean;
   is_service_check_ib: boolean;
+  is_service_check_bpio: boolean;
+  is_service_check_bpio_hotline: boolean;
   is_verification_activity: boolean;
   is_db: boolean;
   description?: string;
@@ -147,8 +157,13 @@ export const eventService = {
       department_id: data.department_id,
       date: data.date,
       is_service_investigation: data.is_service_investigation,
+      is_service_investigation_ib: data.is_service_investigation_ib,
+      is_service_investigation_bpio: data.is_service_investigation_bpio,
+      is_service_investigation_bpio_hotline: data.is_service_investigation_bpio_hotline,
       is_service_check: data.is_service_check,
       is_service_check_ib: data.is_service_check_ib,
+      is_service_check_bpio: data.is_service_check_bpio,
+      is_service_check_bpio_hotline: data.is_service_check_bpio_hotline,
       is_verification_activity: data.is_verification_activity,
       is_db: data.is_db,
       description: data.description,

@@ -67,6 +67,7 @@ export interface IncidentPersonAttributes {
   first_name?: string;
   middle_name?: string;
   employee_number?: string;
+  outcome_type?: 'injury' | 'fatal'; // Травма / Смертельный исход
 }
 
 export interface IncidentAttachmentAttributes {
@@ -113,6 +114,8 @@ export interface CriminalCaseAttributes {
 export interface PunishmentAttributes {
   id?: number;
   guilty_persons_count?: number; // Установлено виновных лиц – кол-во
+  employees_involved_count?: number; // Установлено сотрудников, причастных к инциденту
+  detained_persons_count?: number; // Задержаны лица при совершении правонарушения
   measures_taken_count?: number; // Принято мер к виновным лицам – кол-во
   warning_letter_rp398?: number; // Предупреждение предупредительным письмом по РП-398
   remark?: number; // Замечание

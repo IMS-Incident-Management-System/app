@@ -65,8 +65,13 @@ export const reportController = {
 
       // ========== СОБЫТИЯ (Event) ==========
       { entity: 'event', field: 'is_service_investigation', label: 'Проведено служебных расследований (СР)', group: '1', groupName: 'Проведение мероприятий, проверок и расследований', subgroup: '1.1', subgroupName: 'Проведено служебных проверок и расследований', subsubgroup: '1.1.1' },
-      { entity: 'event', field: 'is_service_check', label: 'Проведено служебных проверок (СП)', group: '1', groupName: 'Проведение мероприятий, проверок и расследований', subgroup: '1.1', subgroupName: 'Проведено служебных проверок и расследований', subsubgroup: '1.1.2' },
-      { entity: 'event', field: 'is_service_check_ib', label: 'Проведено служебных проверок по ИБ (СП ИБ)', group: '1', groupName: 'Проведение мероприятий, проверок и расследований', subgroup: '1.1', subgroupName: 'Проведено служебных проверок и расследований', subsubgroup: '1.1.3' },
+      { entity: 'event', field: 'is_service_investigation_ib', label: 'Проведено служебных расследований по ИБ (СР ИБ)', group: '1', groupName: 'Проведение мероприятий, проверок и расследований', subgroup: '1.1', subgroupName: 'Проведено служебных проверок и расследований', subsubgroup: '1.1.2' },
+      { entity: 'event', field: 'is_service_investigation_bpio', label: 'Проведено служебных расследований БПиО (СР БПиО)', group: '1', groupName: 'Проведение мероприятий, проверок и расследований', subgroup: '1.1', subgroupName: 'Проведено служебных проверок и расследований', subsubgroup: '1.1.3' },
+      { entity: 'event', field: 'is_service_investigation_bpio_hotline', label: 'Проведено служебных расследований БПиО (горячая линия)', group: '1', groupName: 'Проведение мероприятий, проверок и расследований', subgroup: '1.1', subgroupName: 'Проведено служебных проверок и расследований', subsubgroup: '1.1.4' },
+      { entity: 'event', field: 'is_service_check', label: 'Проведено служебных проверок (СП)', group: '1', groupName: 'Проведение мероприятий, проверок и расследований', subgroup: '1.1', subgroupName: 'Проведено служебных проверок и расследований', subsubgroup: '1.1.5' },
+      { entity: 'event', field: 'is_service_check_ib', label: 'Проведено служебных проверок по ИБ (СП ИБ)', group: '1', groupName: 'Проведение мероприятий, проверок и расследований', subgroup: '1.1', subgroupName: 'Проведено служебных проверок и расследований', subsubgroup: '1.1.6' },
+      { entity: 'event', field: 'is_service_check_bpio', label: 'Проведено служебных проверок БПиО (СП БПиО)', group: '1', groupName: 'Проведение мероприятий, проверок и расследований', subgroup: '1.1', subgroupName: 'Проведено служебных проверок и расследований', subsubgroup: '1.1.7' },
+      { entity: 'event', field: 'is_service_check_bpio_hotline', label: 'Проведено служебных проверок БПиО (горячая линия)', group: '1', groupName: 'Проведение мероприятий, проверок и расследований', subgroup: '1.1', subgroupName: 'Проведено служебных проверок и расследований', subsubgroup: '1.1.8' },
       { entity: 'event', field: 'is_verification_activity', label: 'Проведено проверочных мероприятий (ПМ)', group: '1', groupName: 'Проведение мероприятий, проверок и расследований', subgroup: '1.3', subgroupName: 'Проведено проверочных мероприятий (ПМ) в рамках' },
       { entity: 'event', field: 'is_db', label: 'Особо важно (1ДБ) - события', group: '1', groupName: 'Проведение мероприятий, проверок и расследований', subgroup: '1.0', subgroupName: 'События' },
       { entity: 'event', field: 'detected_damage', label: 'Выявлен ущерб (руб.) - события', group: '1', groupName: 'Проведение мероприятий, проверок и расследований', subgroup: '1.4', subgroupName: 'Выявлен ущерб (руб.)' },
@@ -87,7 +92,6 @@ export const reportController = {
       { entity: 'operationalActivity', field: 'available_vat', label: 'Общая сумма доступного к возмещению, но не возмещенного НДС', group: '2', groupName: 'Работа по возмещению ДЗ и НДС', subgroup: '2.4', subgroupName: 'Общая сумма доступного к возмещению, но не возмещенного НДС' },
       { entity: 'operationalActivity', field: 'vat_assistance', label: 'Содействие в получении документов для возмещения НДС', group: '2', groupName: 'Работа по возмещению ДЗ и НДС', subgroup: '2.5', subgroupName: 'Содействие в получении документов для возмещения НДС' },
       { entity: 'operationalActivity', field: 'written_off_debt', label: 'Общий размер списанной дебиторской задолженности', group: '2', groupName: 'Работа по возмещению ДЗ и НДС', subgroup: '2.6', subgroupName: 'Общий размер списанной дебиторской задолженности' },
-      { entity: 'operationalActivity', field: 'prevented_writeoff', label: 'Предотвращено фактов необоснованного списания', group: '2', groupName: 'Работа по возмещению ДЗ и НДС', subgroup: '2.7', subgroupName: 'Предотвращено фактов необоснованного списания' },
 
       // ЭБ - Взаимодействие с правоохранительными органами (LAW_ENFORCEMENT)
       { entity: 'operationalActivity', field: 'incoming_requests', label: 'Поступило входящих запросов', group: '2', groupName: 'Взаимодействие с правоохранительными органами', subgroup: '2.8', subgroupName: 'Взаимодействие с правоохранительными органами' },
@@ -110,7 +114,6 @@ export const reportController = {
       { entity: 'operationalActivity', field: 'single_source_count', label: 'использован способ "единственный источник" (кол-во)', group: '3', groupName: 'Контроль инвестиционной, закупочной и договорной деятельности', subgroup: '3.5', subgroupName: 'Бюджет и закупки' },
       { entity: 'operationalActivity', field: 'procurement_procedures_sum', label: 'Проведено закупочных процедур на сумму (руб.)', group: '3', groupName: 'Контроль инвестиционной, закупочной и договорной деятельности', subgroup: '3.5', subgroupName: 'Бюджет и закупки' },
       { entity: 'operationalActivity', field: 'single_source_sum', label: 'использован способ "единственный источник" на сумму (руб.)', group: '3', groupName: 'Контроль инвестиционной, закупочной и договорной деятельности', subgroup: '3.5', subgroupName: 'Бюджет и закупки' },
-      { entity: 'operationalActivity', field: 'cost_reduction', label: 'Снижена стоимость товаров, работ и услуг (руб.)', group: '3', groupName: 'Контроль инвестиционной, закупочной и договорной деятельности', subgroup: '3.5', subgroupName: 'Бюджет и закупки' },
 
       // ЭБ - Работа по выявлению признаков аффилированности (AFFILIATION)
       { entity: 'operationalActivity', field: 'checked_employees', label: 'Проверено сотрудников', group: '4', groupName: 'Работа по выявлению признаков аффилированности', subgroup: '4.1', subgroupName: 'Проверка сотрудников и кандидатов' },
@@ -183,8 +186,10 @@ export const reportController = {
       { entity: 'operationalActivity', field: 'staff_count', label: 'Штатное количество сотрудников', group: '7', groupName: 'БПиО - Штатное количество сотрудников', subgroup: '7.1', subgroupName: 'Штат' },
 
       // БПиО - Количество объектов (OBJECTS_COUNT)
+      { entity: 'operationalActivity', field: 'objects_count', label: 'Количество объектов', group: '7', groupName: 'БПиО - Количество объектов', subgroup: '7.1', subgroupName: 'Количество объектов' },
       { entity: 'operationalActivity', field: 'objects_physical_security', label: 'Объектов под физической охраной', group: '7', groupName: 'БПиО - Количество объектов', subgroup: '7.2', subgroupName: 'Объекты' },
       { entity: 'operationalActivity', field: 'objects_panel_security', label: 'Объектов под пультовой охраной', group: '7', groupName: 'БПиО - Количество объектов', subgroup: '7.2', subgroupName: 'Объекты' },
+      { entity: 'operationalActivity', field: 'categorized_rooms_count', label: 'Количество категорированных помещений', group: '7', groupName: 'БПиО - Количество объектов', subgroup: '7.2', subgroupName: 'Объекты' },
 
       // БПиО - Бюджет на усиление АТЗ (CAPEX_BUDGET)
       { entity: 'operationalActivity', field: 'capex_allocated', label: 'Сумма выделенного бюджета на год (руб.)', group: '7', groupName: 'БПиО - Бюджет на усиление АТЗ', subgroup: '7.3', subgroupName: 'Бюджет АТЗ' },
@@ -205,38 +210,6 @@ export const reportController = {
       { entity: 'operationalActivity', field: 'chop_checks', label: 'Проведено проверок несения службы', group: '7', groupName: 'БПиО - Взаимодействие с ЧОП/ЧОО', subgroup: '7.7', subgroupName: 'Взаимодействие с ЧОП/ЧОО' },
       { entity: 'operationalActivity', field: 'chop_claims', label: 'Подготовлено претензий', group: '7', groupName: 'БПиО - Взаимодействие с ЧОП/ЧОО', subgroup: '7.7', subgroupName: 'Взаимодействие с ЧОП/ЧОО' },
 
-      // БПиО - Проникновение на объект (INTRUSION)
-      { entity: 'operationalActivity', field: 'intrusion_total', label: 'Количество случаев (попыток) проникновения', group: '7', groupName: 'БПиО - Проникновение на объект', subgroup: '7.8', subgroupName: 'Проникновение' },
-      { entity: 'operationalActivity', field: 'intrusion_not_prevented', label: 'Не предотвращено', group: '7', groupName: 'БПиО - Проникновение на объект', subgroup: '7.8', subgroupName: 'Проникновение' },
-      { entity: 'operationalActivity', field: 'intrusion_prevented', label: 'Предотвращено', group: '7', groupName: 'БПиО - Проникновение на объект', subgroup: '7.8', subgroupName: 'Проникновение' },
-      { entity: 'operationalActivity', field: 'intrusion_detained', label: 'Задержаны лица', group: '7', groupName: 'БПиО - Проникновение на объект', subgroup: '7.8', subgroupName: 'Проникновение' },
-      { entity: 'operationalActivity', field: 'intrusion_damage', label: 'Установлена сумма причиненного ущерба (руб.)', group: '7', groupName: 'БПиО - Проникновение на объект', subgroup: '7.8', subgroupName: 'Проникновение' },
-      { entity: 'operationalActivity', field: 'intrusion_prevented_damage', label: 'Предотвращен ущерб (руб.)', group: '7', groupName: 'БПиО - Проникновение на объект', subgroup: '7.8', subgroupName: 'Проникновение' },
-      { entity: 'operationalActivity', field: 'intrusion_recovered', label: 'Возмещен ущерб (руб.)', group: '7', groupName: 'БПиО - Проникновение на объект', subgroup: '7.8', subgroupName: 'Проникновение' },
-      { entity: 'operationalActivity', field: 'intrusion_employees', label: 'Установлено сотрудников, причастных', group: '7', groupName: 'БПиО - Проникновение на объект', subgroup: '7.8', subgroupName: 'Проникновение' },
-      { entity: 'operationalActivity', field: 'intrusion_penalties', label: 'Наложено дисциплинарных взысканий', group: '7', groupName: 'БПиО - Проникновение на объект', subgroup: '7.8', subgroupName: 'Проникновение' },
-      { entity: 'operationalActivity', field: 'intrusion_dismissals', label: 'Уволено с работы', group: '7', groupName: 'БПиО - Проникновение на объект', subgroup: '7.8', subgroupName: 'Проникновение' },
-      { entity: 'operationalActivity', field: 'intrusion_materials', label: 'Передано материалов в ПОО', group: '7', groupName: 'БПиО - Проникновение на объект', subgroup: '7.8', subgroupName: 'Проникновение' },
-      { entity: 'operationalActivity', field: 'intrusion_cases_opened', label: 'Возбуждено уголовных дел', group: '7', groupName: 'БПиО - Проникновение на объект', subgroup: '7.8', subgroupName: 'Проникновение' },
-      { entity: 'operationalActivity', field: 'intrusion_cases_closed', label: 'Окончено уголовных дел', group: '7', groupName: 'БПиО - Проникновение на объект', subgroup: '7.8', subgroupName: 'Проникновение' },
-
-      // БПиО - Нападение на объект/сотрудников (ATTACK)
-      { entity: 'operationalActivity', field: 'attack_total', label: 'Количество случаев нападения', group: '7', groupName: 'БПиО - Нападение на объект/сотрудников', subgroup: '7.9', subgroupName: 'Нападение' },
-      { entity: 'operationalActivity', field: 'attack_not_prevented', label: 'Не предотвращено', group: '7', groupName: 'БПиО - Нападение на объект/сотрудников', subgroup: '7.9', subgroupName: 'Нападение' },
-      { entity: 'operationalActivity', field: 'attack_prevented', label: 'Предотвращено', group: '7', groupName: 'БПиО - Нападение на объект/сотрудников', subgroup: '7.9', subgroupName: 'Нападение' },
-      { entity: 'operationalActivity', field: 'attack_detained', label: 'Задержаны лица', group: '7', groupName: 'БПиО - Нападение на объект/сотрудников', subgroup: '7.9', subgroupName: 'Нападение' },
-      { entity: 'operationalActivity', field: 'attack_damage', label: 'Установлена сумма причиненного ущерба (руб.)', group: '7', groupName: 'БПиО - Нападение на объект/сотрудников', subgroup: '7.9', subgroupName: 'Нападение' },
-      { entity: 'operationalActivity', field: 'attack_prevented_damage', label: 'Предотвращен ущерб (руб.)', group: '7', groupName: 'БПиО - Нападение на объект/сотрудников', subgroup: '7.9', subgroupName: 'Нападение' },
-      { entity: 'operationalActivity', field: 'attack_recovered', label: 'Возмещен ущерб (руб.)', group: '7', groupName: 'БПиО - Нападение на объект/сотрудников', subgroup: '7.9', subgroupName: 'Нападение' },
-      { entity: 'operationalActivity', field: 'attack_employees', label: 'Установлено сотрудников, причастных', group: '7', groupName: 'БПиО - Нападение на объект/сотрудников', subgroup: '7.9', subgroupName: 'Нападение' },
-      { entity: 'operationalActivity', field: 'attack_penalties', label: 'Наложено дисциплинарных взысканий', group: '7', groupName: 'БПиО - Нападение на объект/сотрудников', subgroup: '7.9', subgroupName: 'Нападение' },
-      { entity: 'operationalActivity', field: 'attack_dismissals', label: 'Уволено с работы', group: '7', groupName: 'БПиО - Нападение на объект/сотрудников', subgroup: '7.9', subgroupName: 'Нападение' },
-      { entity: 'operationalActivity', field: 'attack_materials', label: 'Передано материалов в ПОО', group: '7', groupName: 'БПиО - Нападение на объект/сотрудников', subgroup: '7.9', subgroupName: 'Нападение' },
-      { entity: 'operationalActivity', field: 'attack_cases_opened', label: 'Возбуждено уголовных дел', group: '7', groupName: 'БПиО - Нападение на объект/сотрудников', subgroup: '7.9', subgroupName: 'Нападение' },
-      { entity: 'operationalActivity', field: 'attack_cases_closed', label: 'Окончено уголовных дел', group: '7', groupName: 'БПиО - Нападение на объект/сотрудников', subgroup: '7.9', subgroupName: 'Нападение' },
-
-      // БПиО - Проведено проверок и СР (INVESTIGATIONS)
-      { entity: 'operationalActivity', field: 'investigations_count', label: 'Проведено проверок и СР', group: '7', groupName: 'БПиО - Проведено проверок и СР', subgroup: '7.10', subgroupName: 'Проверки и СР' },
 
       // КБ - Взаимодействие с правоохранительными органами (LAW_ENFORCEMENT)
       { entity: 'operationalActivity', field: 'cyber_incoming_paper_requests', label: 'Поступило входящих бумажных запросов ПОО на предоставление информации', group: '8', groupName: 'КБ - Взаимодействие с правоохранительными органами', subgroup: '8.1', subgroupName: 'Взаимодействие с ПОО' },

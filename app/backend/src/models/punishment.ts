@@ -5,6 +5,8 @@ export interface PunishmentAttributes {
   id: number;
   additionally_id: number;
   guilty_persons_count?: number; // Установлено виновных лиц – кол-во
+  employees_involved_count?: number; // Установлено сотрудников, причастных к инциденту
+  detained_persons_count?: number; // Задержаны лица при совершении правонарушения
   measures_taken_count?: number; // Принято мер к виновным лицам – кол-во
   warning_letter_rp398?: number; // Предупреждение предупредительным письмом по РП-398
   remark?: number; // Замечание
@@ -39,6 +41,18 @@ const Punishment = sequelize.define<PunishmentInstance>('punishment', {
     allowNull: true,
     defaultValue: 0,
     comment: 'Установлено виновных лиц – кол-во'
+  },
+  employees_involved_count: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    defaultValue: 0,
+    comment: 'Установлено сотрудников, причастных к инциденту'
+  },
+  detained_persons_count: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    defaultValue: 0,
+    comment: 'Задержаны лица при совершении правонарушения'
   },
   measures_taken_count: {
     type: DataTypes.INTEGER,

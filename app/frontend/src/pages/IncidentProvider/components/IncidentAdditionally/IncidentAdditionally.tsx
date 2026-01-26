@@ -321,8 +321,8 @@ export const IncidentAdditionally = forwardRef<IncidentAdditionallyRef, Incident
                       </Row>
                     </Card>
 
-                    {/* Уголовное дело */}
-                    <Card className={styles.subSectionCard} title="Уголовное дело">
+                    {/* Уголовные / административные дела */}
+                    <Card className={styles.subSectionCard} title="Уголовные / административные дела">
                       <div className={styles.criminalSection}>
                         <Divider orientation="left" plain>Передача материалов</Divider>
                         <Row gutter={[16, 16]}>
@@ -517,6 +517,24 @@ export const IncidentAdditionally = forwardRef<IncidentAdditionallyRef, Incident
                           <Form.Item
                             label="Установлено виновных лиц"
                             name={[field.name, "punishment", "guilty_persons_count"]}
+                            initialValue={0}
+                          >
+                            <InputNumber style={{ width: "100%" }} min={0} placeholder="0" />
+                          </Form.Item>
+                        </Col>
+                        <Col xs={24} sm={12} lg={8}>
+                          <Form.Item
+                            label="Установлено сотрудников, причастных к инциденту"
+                            name={[field.name, "punishment", "employees_involved_count"]}
+                            initialValue={0}
+                          >
+                            <InputNumber style={{ width: "100%" }} min={0} placeholder="0" />
+                          </Form.Item>
+                        </Col>
+                        <Col xs={24} sm={12} lg={8}>
+                          <Form.Item
+                            label="Задержаны лица при совершении правонарушения"
+                            name={[field.name, "punishment", "detained_persons_count"]}
                             initialValue={0}
                           >
                             <InputNumber style={{ width: "100%" }} min={0} placeholder="0" />

@@ -84,7 +84,8 @@ export interface OperationalActivityAttributes {
   memos_count?: number;
 
   // ====== ИБ - RISK_MINIMIZATION (События и мероприятия) ======
-  audit_description?: string; // Описание проводимых работ
+  audit_security_control_count?: number; // Проведение аудита и контроль защищённости информационной инфраструктуры ИС (кол-во)
+  work_status_result_count?: number; // Описание статуса и/или результата проводимых работ в рамках данной задачи (кол-во)
   scanned_count?: number; // Проведено/просканировано
   vulnerabilities_found?: number; // Выявлено уязвимостей
 
@@ -92,9 +93,11 @@ export interface OperationalActivityAttributes {
   ct_ki_description?: string; // Описание проведенных работ
   confidential_docs?: number; // Зарегистрировано конфиденциальных документов
   compliance_checks?: number; // Проведено проверок на соответствие нормативным документам
+  ct_ki_protection_count?: number; // Реализация режима защиты КТ и КИ (кол-во)
 
   // ====== ИБ - AWARENESS_RAISING (Повышение осведомленности) ======
   awareness_description?: string;
+  awareness_count?: number; // Повышение осведомленности в области ИБ сотрудников компании (кол-во)
 
   // ====== ИБ - ACCESS_CONTROL (Контроль доступа к ИС) ======
   access_control_description?: string;
@@ -129,7 +132,8 @@ export interface OperationalActivityAttributes {
 
   // ====== ИБ - PROJECT_ACTIVITIES (Проектная деятельность) ======
   project_status_description?: string; // Статус и описание проведенных работ
-  normative_docs_list?: string; // Перечень и статус документов
+  normative_docs_update_description?: string; // Актуализация нормативной и справочной документации по линии ИБ (текст)
+  normative_docs_list?: string; // Перечень и статус пересмотренных и/или утвержденных нормативных документов по ИБ (текст)
 
   // ====== ИБ - SYSTEM_OPERATION (Эксплуатация систем ИБ) ======
   support_contracts?: string; // Перечень договоров на техническую поддержку
@@ -144,8 +148,10 @@ export interface OperationalActivityAttributes {
   staff_count?: number;
 
   // ====== БПиО - OBJECTS_COUNT (Количество объектов) ======
+  objects_count?: number; // Количество объектов
   objects_physical_security?: number; // под физической охраной
   objects_panel_security?: number; // под пультовой охраной
+  categorized_rooms_count?: number; // Количество категорированных помещений
 
   // ====== БПиО - CAPEX_BUDGET (Бюджет на усиление АТЗ) ======
   capex_allocated?: number; // Сумма выделенного бюджета на год
@@ -345,7 +351,8 @@ const OperationalActivity = sequelize.define<OperationalActivityInstance>(
     memos_count: { type: DataTypes.INTEGER, allowNull: true },
 
     // ИБ - RISK_MINIMIZATION
-    audit_description: { type: DataTypes.TEXT, allowNull: true },
+    audit_security_control_count: { type: DataTypes.INTEGER, allowNull: true, comment: 'Проведение аудита и контроль защищённости информационной инфраструктуры ИС (кол-во)' },
+    work_status_result_count: { type: DataTypes.INTEGER, allowNull: true, comment: 'Описание статуса и/или результата проводимых работ в рамках данной задачи (кол-во)' },
     scanned_count: { type: DataTypes.INTEGER, allowNull: true },
     vulnerabilities_found: { type: DataTypes.INTEGER, allowNull: true },
 
@@ -353,9 +360,11 @@ const OperationalActivity = sequelize.define<OperationalActivityInstance>(
     ct_ki_description: { type: DataTypes.TEXT, allowNull: true },
     confidential_docs: { type: DataTypes.INTEGER, allowNull: true },
     compliance_checks: { type: DataTypes.INTEGER, allowNull: true },
+    ct_ki_protection_count: { type: DataTypes.INTEGER, allowNull: true, comment: 'Реализация режима защиты КТ и КИ (кол-во)' },
 
     // ИБ - AWARENESS_RAISING
     awareness_description: { type: DataTypes.TEXT, allowNull: true },
+    awareness_count: { type: DataTypes.INTEGER, allowNull: true, comment: 'Повышение осведомленности в области ИБ сотрудников компании (кол-во)' },
 
     // ИБ - ACCESS_CONTROL
     access_control_description: { type: DataTypes.TEXT, allowNull: true },
@@ -390,7 +399,8 @@ const OperationalActivity = sequelize.define<OperationalActivityInstance>(
 
     // ИБ - PROJECT_ACTIVITIES
     project_status_description: { type: DataTypes.TEXT, allowNull: true },
-    normative_docs_list: { type: DataTypes.TEXT, allowNull: true },
+    normative_docs_update_description: { type: DataTypes.TEXT, allowNull: true, comment: 'Актуализация нормативной и справочной документации по линии ИБ (текст)' },
+    normative_docs_list: { type: DataTypes.TEXT, allowNull: true, comment: 'Перечень и статус пересмотренных и/или утвержденных нормативных документов по ИБ (текст)' },
 
     // ИБ - SYSTEM_OPERATION
     support_contracts: { type: DataTypes.TEXT, allowNull: true },
@@ -405,8 +415,10 @@ const OperationalActivity = sequelize.define<OperationalActivityInstance>(
     staff_count: { type: DataTypes.INTEGER, allowNull: true },
 
     // БПиО - OBJECTS_COUNT
+    objects_count: { type: DataTypes.INTEGER, allowNull: true },
     objects_physical_security: { type: DataTypes.INTEGER, allowNull: true },
     objects_panel_security: { type: DataTypes.INTEGER, allowNull: true },
+    categorized_rooms_count: { type: DataTypes.INTEGER, allowNull: true, comment: 'Количество категорированных помещений' },
 
     // БПиО - CAPEX_BUDGET
     capex_allocated: { type: DataTypes.DECIMAL(15, 2), allowNull: true },

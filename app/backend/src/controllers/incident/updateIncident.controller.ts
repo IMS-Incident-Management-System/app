@@ -50,6 +50,7 @@ interface UpdateIncidentBody {
     first_name?: string;
     middle_name?: string;
     employee_number?: string;
+    outcome_type?: 'injury' | 'fatal';
   }>;
   additionally: Array<{
     addition_date?: Date; // Дата внесения дополнения к инциденту
@@ -80,6 +81,8 @@ interface UpdateIncidentBody {
     };
     punishment?: {
       guilty_persons_count?: number;
+      employees_involved_count?: number;
+      detained_persons_count?: number;
       measures_taken_count?: number;
       warning_letter_rp398?: number;
       remark?: number;

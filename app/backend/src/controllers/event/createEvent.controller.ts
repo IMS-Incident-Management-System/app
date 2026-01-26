@@ -13,8 +13,13 @@ interface CreateEventBody {
   department_id: number;
   date: Date;
   is_service_investigation: boolean;
+  is_service_investigation_ib: boolean;
+  is_service_investigation_bpio: boolean;
+  is_service_investigation_bpio_hotline: boolean;
   is_service_check: boolean;
   is_service_check_ib: boolean;
+  is_service_check_bpio: boolean;
+  is_service_check_bpio_hotline: boolean;
   is_verification_activity: boolean;
   is_db: boolean;
   description?: string;
@@ -47,6 +52,8 @@ interface CreateEventBody {
   };
   punishment?: {
     guilty_persons_count?: number;
+    employees_involved_count?: number;
+    detained_persons_count?: number;
     measures_taken_count?: number;
     warning_letter_rp398?: number;
     remark?: number;
@@ -70,8 +77,13 @@ export const createEvent = asyncErrorHandler(
           department_id: data.department_id,
           date: data.date,
           is_service_investigation: Boolean(data.is_service_investigation),
+          is_service_investigation_ib: Boolean(data.is_service_investigation_ib),
+          is_service_investigation_bpio: Boolean(data.is_service_investigation_bpio),
+          is_service_investigation_bpio_hotline: Boolean(data.is_service_investigation_bpio_hotline),
           is_service_check: Boolean(data.is_service_check),
           is_service_check_ib: Boolean(data.is_service_check_ib),
+          is_service_check_bpio: Boolean(data.is_service_check_bpio),
+          is_service_check_bpio_hotline: Boolean(data.is_service_check_bpio_hotline),
           is_verification_activity: Boolean(data.is_verification_activity),
           is_db: Boolean(data.is_db),
           description: data.description,

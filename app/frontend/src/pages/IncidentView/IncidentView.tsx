@@ -195,6 +195,13 @@ export const IncidentView = () => {
                       </Col>
                     )}
                   </Row>
+                  {person.outcome_type && (
+                    <Row gutter={[16, 8]}>
+                      <Col xs={24} sm={12} lg={12}>
+                        <Text strong>Травма / Смертельный исход:</Text> {person.outcome_type === 'injury' ? 'Травма' : person.outcome_type === 'fatal' ? 'Смертельный исход' : person.outcome_type}
+                      </Col>
+                    </Row>
+                  )}
                   {index < (incident.persons?.length || 0) - 1 ? <Divider /> : null}
                 </div>
               ))}
@@ -358,10 +365,10 @@ export const IncidentView = () => {
                     </div>
                   )}
 
-                  {/* Уголовное дело */}
+                  {/* Уголовные / административные дела */}
                   {addition.criminal_case && (
                     <div className={styles.subSection}>
-                      <Title level={5} className={styles.subSectionTitle}>Уголовное дело</Title>
+                      <Title level={5} className={styles.subSectionTitle}>Уголовные / административные дела</Title>
                       
                       {/* Передача материалов */}
                       {(addition.criminal_case.transfer_date || addition.criminal_case.document_number || addition.criminal_case.department_name) && (
@@ -554,6 +561,22 @@ export const IncidentView = () => {
                             <div className={styles.field}>
                               <div className={styles.fieldLabel}>Установлено виновных лиц</div>
                               <div className={styles.fieldValue}>{addition.punishment.guilty_persons_count}</div>
+                            </div>
+                          </Col>
+                        )}
+                        {addition.punishment.employees_involved_count !== undefined && (
+                          <Col xs={24} sm={12} lg={8}>
+                            <div className={styles.field}>
+                              <div className={styles.fieldLabel}>Установлено сотрудников, причастных к инциденту</div>
+                              <div className={styles.fieldValue}>{addition.punishment.employees_involved_count}</div>
+                            </div>
+                          </Col>
+                        )}
+                        {addition.punishment.detained_persons_count !== undefined && (
+                          <Col xs={24} sm={12} lg={8}>
+                            <div className={styles.field}>
+                              <div className={styles.fieldLabel}>Задержаны лица при совершении правонарушения</div>
+                              <div className={styles.fieldValue}>{addition.punishment.detained_persons_count}</div>
                             </div>
                           </Col>
                         )}

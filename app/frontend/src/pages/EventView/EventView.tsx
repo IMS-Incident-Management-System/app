@@ -93,16 +93,31 @@ export const EventView = () => {
                 {event.is_service_investigation && (
                   <Tag color="green">Служебные расследования</Tag>
                 )}
+                {event.is_service_investigation_ib && (
+                  <Tag color="green">Служебные расследования ИБ</Tag>
+                )}
+                {event.is_service_investigation_bpio && (
+                  <Tag color="green">Служебные расследования БПиО</Tag>
+                )}
+                {event.is_service_investigation_bpio_hotline && (
+                  <Tag color="green">Служебные расследования БПиО (горячая линия)</Tag>
+                )}
                 {event.is_service_check && (
                   <Tag color="green">Служебные проверки</Tag>
                 )}
                 {event.is_service_check_ib && (
-                  <Tag color="green">Служебные проверки по линии ИБ</Tag>
+                  <Tag color="green">Служебные проверки ИБ</Tag>
+                )}
+                {event.is_service_check_bpio && (
+                  <Tag color="green">Служебная проверка БПиО</Tag>
+                )}
+                {event.is_service_check_bpio_hotline && (
+                  <Tag color="green">Служебная проверка БПиО (горячая линия)</Tag>
                 )}
                 {event.is_verification_activity && (
                   <Tag color="green">Проверочные мероприятия</Tag>
                 )}
-                {!event.is_service_investigation && !event.is_service_check && !event.is_service_check_ib && !event.is_verification_activity && (
+                {!event.is_service_investigation && !event.is_service_investigation_ib && !event.is_service_investigation_bpio && !event.is_service_investigation_bpio_hotline && !event.is_service_check && !event.is_service_check_ib && !event.is_service_check_bpio && !event.is_service_check_bpio_hotline && !event.is_verification_activity && (
                   <Tag color="default">Не указан</Tag>
                 )}
               </Descriptions.Item>
@@ -378,6 +393,22 @@ export const EventView = () => {
                     <div className={styles.field}>
                       <div className={styles.fieldLabel}>Установлено виновных лиц</div>
                       <div className={styles.fieldValue}>{event.punishment.guilty_persons_count}</div>
+                    </div>
+                  </Col>
+                )}
+                {event.punishment.employees_involved_count !== undefined && (
+                  <Col xs={24} sm={12} lg={8}>
+                    <div className={styles.field}>
+                      <div className={styles.fieldLabel}>Установлено сотрудников, причастных к инциденту</div>
+                      <div className={styles.fieldValue}>{event.punishment.employees_involved_count}</div>
+                    </div>
+                  </Col>
+                )}
+                {event.punishment.detained_persons_count !== undefined && (
+                  <Col xs={24} sm={12} lg={8}>
+                    <div className={styles.field}>
+                      <div className={styles.fieldLabel}>Задержаны лица при совершении правонарушения</div>
+                      <div className={styles.fieldValue}>{event.punishment.detained_persons_count}</div>
                     </div>
                   </Col>
                 )}

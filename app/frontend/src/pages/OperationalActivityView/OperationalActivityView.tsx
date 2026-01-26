@@ -112,7 +112,6 @@ export const OperationalActivityView = () => {
               { key: 'available_vat', label: 'Общая сумма доступного к возмещению, но не возмещенного НДС (руб.)', type: 'money' },
               { key: 'vat_assistance', label: 'Содействие в получении документов для возмещения НДС (руб.)', type: 'money' },
               { key: 'written_off_debt', label: 'Общий размер списанной дебиторской задолженности (руб.)', type: 'money' },
-              { key: 'prevented_writeoff', label: 'Предотвращено фактов необоснованного списания ДЗ на сумму (руб.)', type: 'money' },
             ]
           }]
         },
@@ -133,7 +132,6 @@ export const OperationalActivityView = () => {
               { key: 'single_source_count', label: 'Из них использован способ закупки "единственный источник" (кол-во)', type: 'number' },
               { key: 'procurement_procedures_sum', label: 'Проведено закупочных процедур на сумму (руб.)', type: 'money' },
               { key: 'single_source_sum', label: 'Из них использован способ закупки "единственный источник" на сумму (руб.)', type: 'money' },
-              { key: 'cost_reduction', label: 'Снижена стоимость товаров, работ и услуг на сумму (руб.)', type: 'money' },
             ]
           }]
         },
@@ -153,7 +151,7 @@ export const OperationalActivityView = () => {
           sectionTitle: 'Работа с обращениями граждан',
           subsections: [{
             fields: [
-              { key: 'total_appeals', label: 'Проверено обращений граждан и юр. лиц (сумма пп. 5.1.1 - 5.1.6.)', type: 'number' },
+              { key: 'total_appeals', label: 'Проверено обращений граждан и юр. лиц', type: 'number' },
               { key: 'zon_applications', label: 'Проверено заявлений абонентов о непричастности к договору (ЗОН)', type: 'number' },
                 { key: 'fictitious_contracts', label: 'Из них выявлено фиктивных договоров', type: 'number' },
               { key: 'termination_requests', label: 'Проверено заявлений абонентов о расторжении договора и возврате ДС', type: 'number' },
@@ -208,7 +206,8 @@ export const OperationalActivityView = () => {
           sectionTitle: 'События и мероприятия, связанные с минимизацией рисков и угроз в информационной сфере',
           subsections: [{
             fields: [
-              { key: 'audit_description', label: 'Проведение аудита и контроль защищённости информационной инфраструктуры ИС - Описание статуса и/или результата проводимых работ в рамках данной задачи (текст)', type: 'text' },
+              { key: 'audit_security_control_count', label: 'Проведение аудита и контроль защищённости информационной инфраструктуры ИС', type: 'number' },
+              { key: 'work_status_result_count', label: 'Описание статуса и/или результата проводимых работ в рамках данной задачи', type: 'number' },
               { key: 'scanned_count', label: 'Проведено /просканировано (кол-во)', type: 'number' },
               { key: 'vulnerabilities_found', label: 'Выявлено уязвимостей (кол-во)', type: 'number' },
             ]
@@ -221,6 +220,7 @@ export const OperationalActivityView = () => {
               { key: 'ct_ki_description', label: 'Описание проведенных работ в рамках реализации режима защиты коммерческой тайны, а так же проведения мероприятий по предотвращению утечки конфиденциальной информации и персональных данных (текст)', type: 'text' },
               { key: 'confidential_docs', label: 'Зарегистрировано конфиденциальных документов (кол-во)', type: 'number' },
               { key: 'compliance_checks', label: 'Проведено проверок на соответствие нормативным документам (кол-во)', type: 'number' },
+              { key: 'ct_ki_protection_count', label: 'Реализация режима защиты КТ и КИ', type: 'number' },
             ]
           }]
         },
@@ -229,6 +229,7 @@ export const OperationalActivityView = () => {
           subsections: [{
             fields: [
               { key: 'awareness_description', label: 'Описание проведенных работ по проведению информирований сотрудников компании (в том числе обмен опытом между подразделений ИБ) о правилах и рекомендациях по ИБ, а так же сведениях об актуальных угрозах ИБ (текст)', type: 'text' },
+              { key: 'awareness_count', label: 'Повышение осведомленности в области ИБ сотрудников компании', type: 'number' },
             ]
           }]
         },
@@ -293,7 +294,8 @@ export const OperationalActivityView = () => {
           subsections: [{
             fields: [
               { key: 'project_status_description', label: 'Реализация проектной деятельности в области ИБ - Статус и описание проведенных работ по обновлению и/или внедрению систем ИБ (верхнеуровневые реперные точки, например, подготовка ТЗ, RFI, RFP, заключение договора, завершение этапа работ, ввод в эксплуатацию и т.п.) (текст)', type: 'text' },
-              { key: 'normative_docs_list', label: 'Актуализация нормативной и справочной документации по линии ИБ - Перечень и статус пересмотренных и/или утвержденных нормативных документов по ИБ (текст)', type: 'text' },
+              { key: 'normative_docs_update_description', label: 'Актуализация нормативной и справочной документации по линии ИБ (текст)', type: 'text' },
+              { key: 'normative_docs_list', label: 'Перечень и статус пересмотренных и/или утвержденных нормативных документов по ИБ (текст)', type: 'text' },
             ]
           }]
         },
@@ -331,8 +333,10 @@ export const OperationalActivityView = () => {
           sectionTitle: 'Количество объектов',
           subsections: [{
             fields: [
+              { key: 'objects_count', label: 'Количество объектов', type: 'number' },
               { key: 'objects_physical_security', label: 'Под физической охраной', type: 'number' },
               { key: 'objects_panel_security', label: 'Под пультовой охраной', type: 'number' },
+              { key: 'categorized_rooms_count', label: 'Количество категорированных помещений', type: 'number' },
             ]
           }]
         },
@@ -377,54 +381,6 @@ export const OperationalActivityView = () => {
             fields: [
               { key: 'chop_checks', label: 'Проведено проверок несения службы сотрудниками ЧОП/ЧОО', type: 'number' },
               { key: 'chop_claims', label: 'Подготовлено претензий к ЧОП/ЧОО', type: 'number' },
-            ]
-          }]
-        },
-        {
-          sectionTitle: 'Проникновение на объект',
-          subsections: [{
-            fields: [
-              { key: 'intrusion_total', label: 'Количество случаев (попыток) всего кол-во', type: 'number' },
-              { key: 'intrusion_not_prevented', label: 'Не предотвращенные', type: 'number' },
-              { key: 'intrusion_prevented', label: 'Предотвращенные', type: 'number' },
-              { key: 'intrusion_detained', label: 'Задержаны лица при совершении правонарушения', type: 'number' },
-              { key: 'intrusion_damage', label: 'Установлена сумма причиненного ущерба (руб.)', type: 'money' },
-              { key: 'intrusion_prevented_damage', label: 'Предотвращен ущерб на сумму (руб.)', type: 'money' },
-              { key: 'intrusion_recovered', label: 'Возмещен ущерб на сумму (руб.)', type: 'money' },
-              { key: 'intrusion_employees', label: 'Установлено сотрудников, причастных к проникновению', type: 'number' },
-              { key: 'intrusion_penalties', label: 'Наложено дисциплинарных взысканий', type: 'number' },
-              { key: 'intrusion_dismissals', label: 'Уволено с работы', type: 'number' },
-              { key: 'intrusion_materials', label: 'Передано материалов в правоохранительные органы', type: 'number' },
-              { key: 'intrusion_cases_opened', label: 'Возбуждено уголовных дел', type: 'number' },
-              { key: 'intrusion_cases_closed', label: 'Окончено уголовных дел', type: 'number' },
-            ]
-          }]
-        },
-        {
-          sectionTitle: 'Нападение на объект/сотрудников (грабеж, разбой)',
-          subsections: [{
-            fields: [
-              { key: 'attack_total', label: 'Количество случаев (попыток) всего кол-во', type: 'number' },
-              { key: 'attack_not_prevented', label: 'Не предотвращенные', type: 'number' },
-              { key: 'attack_prevented', label: 'Предотвращенные', type: 'number' },
-              { key: 'attack_detained', label: 'Задержаны лица при совершении правонарушения', type: 'number' },
-              { key: 'attack_damage', label: 'Установлена сумма причиненного ущерба (руб.)', type: 'money' },
-              { key: 'attack_prevented_damage', label: 'Предотвращен ущерб на сумму (руб.)', type: 'money' },
-              { key: 'attack_recovered', label: 'Возмещен ущерб на сумму (руб.)', type: 'money' },
-              { key: 'attack_employees', label: 'Установлено сотрудников, причастных к проникновению', type: 'number' },
-              { key: 'attack_penalties', label: 'Наложено дисциплинарных взысканий', type: 'number' },
-              { key: 'attack_dismissals', label: 'Уволено с работы', type: 'number' },
-              { key: 'attack_materials', label: 'Передано материалов в правоохранительные органы', type: 'number' },
-              { key: 'attack_cases_opened', label: 'Возбуждено уголовных дел', type: 'number' },
-              { key: 'attack_cases_closed', label: 'Окончено уголовных дел', type: 'number' },
-            ]
-          }]
-        },
-        {
-          sectionTitle: 'Проведено проверок и СР',
-          subsections: [{
-            fields: [
-              { key: 'investigations_count', label: 'Всего:', type: 'number' },
             ]
           }]
         },

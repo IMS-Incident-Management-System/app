@@ -22,6 +22,34 @@ export const EventPunishment = () => {
         </Col>
         <Col xs={24} sm={12} lg={8}>
           <Form.Item<CreateEventBody>
+            label="Установлено сотрудников, причастных к инциденту"
+            name={["punishment", "employees_involved_count"]}
+            initialValue={0}
+          >
+            <InputNumber 
+              style={{ width: "100%" }} 
+              min={0} 
+              placeholder="0" 
+              className={styles.formInput}
+            />
+          </Form.Item>
+        </Col>
+        <Col xs={24} sm={12} lg={8}>
+          <Form.Item<CreateEventBody>
+            label="Задержаны лица при совершении правонарушения"
+            name={["punishment", "detained_persons_count"]}
+            initialValue={0}
+          >
+            <InputNumber 
+              style={{ width: "100%" }} 
+              min={0} 
+              placeholder="0" 
+              className={styles.formInput}
+            />
+          </Form.Item>
+        </Col>
+        <Col xs={24} sm={12} lg={8}>
+          <Form.Item<CreateEventBody>
             label="Принято мер к виновным лицам"
             name={["punishment", "measures_taken_count"]}
             initialValue={0}

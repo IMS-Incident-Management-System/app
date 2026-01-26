@@ -48,9 +48,6 @@ export const CategoryFields = () => {
               <Form.Item label="Общий размер списанной дебиторской задолженности (руб.)" name="written_off_debt">
                 <InputNumber style={{ width: "100%" }} placeholder="0.00" />
               </Form.Item>
-              <Form.Item label="Предотвращено фактов необоснованного списания ДЗ на сумму (руб.)" name="prevented_writeoff">
-                <InputNumber style={{ width: "100%" }} placeholder="0.00" />
-              </Form.Item>
             </div>
           </div>
 
@@ -99,9 +96,6 @@ export const CategoryFields = () => {
               <Form.Item label="Из них использован способ закупки 'единственный источник' на сумму (руб.)" name="single_source_sum">
                 <InputNumber style={{ width: "100%" }} placeholder="0.00" />
               </Form.Item>
-              <Form.Item label="Снижена стоимость товаров, работ и услуг на сумму (руб.)" name="cost_reduction">
-                <InputNumber style={{ width: "100%" }} placeholder="0.00" />
-              </Form.Item>
             </div>
           </div>
 
@@ -135,7 +129,7 @@ export const CategoryFields = () => {
           <div className={styles.section}>
             <div className={styles.sectionTitle}>Работа с обращениями граждан</div>
             <div className={styles.fieldsList}>
-              <Form.Item label="Проверено обращений граждан и юр. лиц (сумма пп. 5.1.1 - 5.1.6.)" name="total_appeals">
+              <Form.Item label="Проверено обращений граждан и юр. лиц" name="total_appeals">
                 <InputNumber style={{ width: "100%" }} placeholder="0" />
               </Form.Item>
               <Form.Item label="Проверено заявлений абонентов о непричастности к договору (ЗОН)" name="zon_applications">
@@ -268,8 +262,11 @@ export const CategoryFields = () => {
           <div className={styles.section}>
             <div className={styles.sectionTitle}>События и мероприятия, связанные с минимизацией рисков и угроз в информационной сфере</div>
             <div className={styles.fieldsList}>
-              <Form.Item label="Проведение аудита и контроль защищённости информационной инфраструктуры ИС - Описание статуса и/или результата проводимых работ в рамках данной задачи (текст)" name="audit_description">
-                <TextArea rows={4} placeholder="Описание работ по аудиту и контролю защищённости" />
+              <Form.Item label="Проведение аудита и контроль защищённости информационной инфраструктуры ИС" name="audit_security_control_count">
+                <InputNumber style={{ width: "100%" }} placeholder="0" />
+              </Form.Item>
+              <Form.Item label="Описание статуса и/или результата проводимых работ в рамках данной задачи" name="work_status_result_count">
+                <InputNumber style={{ width: "100%" }} placeholder="0" />
               </Form.Item>
               <Form.Item label="Проведено /просканировано (кол-во)" name="scanned_count">
                 <InputNumber style={{ width: "100%" }} placeholder="0" />
@@ -295,6 +292,9 @@ export const CategoryFields = () => {
               <Form.Item label="Проведено проверок на соответствие нормативным документам (кол-во)" name="compliance_checks">
                 <InputNumber style={{ width: "100%" }} placeholder="0" />
               </Form.Item>
+              <Form.Item label="Реализация режима защиты КТ и КИ" name="ct_ki_protection_count">
+                <InputNumber style={{ width: "100%" }} placeholder="0" />
+              </Form.Item>
             </div>
           </div>
 
@@ -306,6 +306,9 @@ export const CategoryFields = () => {
             <div className={styles.fieldsList}>
               <Form.Item label="Описание проведенных работ по проведению информирований сотрудников компании (в том числе обмен опытом между подразделений ИБ) о правилах и рекомендациях по ИБ, а так же сведениях об актуальных угрозах ИБ (текст)" name="awareness_description">
                 <TextArea rows={4} placeholder="Описание информирований сотрудников об ИБ" />
+              </Form.Item>
+              <Form.Item label="Повышение осведомленности в области ИБ сотрудников компании" name="awareness_count">
+                <InputNumber style={{ width: "100%" }} placeholder="0" />
               </Form.Item>
             </div>
           </div>
@@ -427,7 +430,10 @@ export const CategoryFields = () => {
               <Form.Item label="Реализация проектной деятельности в области ИБ - Статус и описание проведенных работ по обновлению и/или внедрению систем ИБ (верхнеуровневые реперные точки, например, подготовка ТЗ, RFI, RFP, заключение договора, завершение этапа работ, ввод в эксплуатацию и т.п.) (текст)" name="project_status_description">
                 <TextArea rows={4} placeholder="Статус обновления/внедрения систем ИБ" />
               </Form.Item>
-              <Form.Item label="Актуализация нормативной и справочной документации по линии ИБ - Перечень и статус пересмотренных и/или утвержденных нормативных документов по ИБ (текст)" name="normative_docs_list">
+              <Form.Item label="Актуализация нормативной и справочной документации по линии ИБ (текст)" name="normative_docs_update_description">
+                <TextArea rows={3} placeholder="Описание актуализации нормативной документации" />
+              </Form.Item>
+              <Form.Item label="Перечень и статус пересмотренных и/или утвержденных нормативных документов по ИБ (текст)" name="normative_docs_list">
                 <TextArea rows={3} placeholder="Перечень пересмотренных/утвержденных документов" />
               </Form.Item>
             </div>
@@ -491,10 +497,16 @@ export const CategoryFields = () => {
           <div className={styles.section}>
             <div className={styles.sectionTitle}>Количество объектов</div>
             <div className={styles.fieldsList}>
+              <Form.Item label="Количество объектов" name="objects_count">
+                <InputNumber style={{ width: "100%" }} placeholder="0" />
+              </Form.Item>
               <Form.Item label="Под физической охраной" name="objects_physical_security">
                 <InputNumber style={{ width: "100%" }} placeholder="0" />
               </Form.Item>
               <Form.Item label="Под пультовой охраной" name="objects_panel_security">
+                <InputNumber style={{ width: "100%" }} placeholder="0" />
+              </Form.Item>
+              <Form.Item label="Количество категорированных помещений" name="categorized_rooms_count">
                 <InputNumber style={{ width: "100%" }} placeholder="0" />
               </Form.Item>
             </div>
@@ -572,113 +584,6 @@ export const CategoryFields = () => {
             </div>
           </div>
 
-          <Divider className={styles.divider} />
-
-          {/* Проникновение на объект */}
-          <div className={styles.section}>
-            <div className={styles.sectionTitle}>Проникновение на объект</div>
-            <div className={styles.fieldsList}>
-              <Form.Item label="Количество случаев (попыток) всего кол-во" name="intrusion_total">
-                <InputNumber style={{ width: "100%" }} placeholder="0" />
-              </Form.Item>
-              <Form.Item label="Не предотвращенные" name="intrusion_not_prevented">
-                <InputNumber style={{ width: "100%" }} placeholder="0" />
-              </Form.Item>
-              <Form.Item label="Предотвращенные" name="intrusion_prevented">
-                <InputNumber style={{ width: "100%" }} placeholder="0" />
-              </Form.Item>
-              <Form.Item label="Задержаны лица при совершении правонарушения" name="intrusion_detained">
-                <InputNumber style={{ width: "100%" }} placeholder="0" />
-              </Form.Item>
-              <Form.Item label="Установлена сумма причиненного ущерба (руб.)" name="intrusion_damage">
-                <InputNumber style={{ width: "100%" }} placeholder="0.00" />
-              </Form.Item>
-              <Form.Item label="Предотвращен ущерб на сумму (руб.)" name="intrusion_prevented_damage">
-                <InputNumber style={{ width: "100%" }} placeholder="0.00" />
-              </Form.Item>
-              <Form.Item label="Возмещен ущерб на сумму (руб.)" name="intrusion_recovered">
-                <InputNumber style={{ width: "100%" }} placeholder="0.00" />
-              </Form.Item>
-              <Form.Item label="Установлено сотрудников, причастных к проникновению" name="intrusion_employees">
-                <InputNumber style={{ width: "100%" }} placeholder="0" />
-              </Form.Item>
-              <Form.Item label="Наложено дисциплинарных взысканий" name="intrusion_penalties">
-                <InputNumber style={{ width: "100%" }} placeholder="0" />
-              </Form.Item>
-              <Form.Item label="Уволено с работы" name="intrusion_dismissals">
-                <InputNumber style={{ width: "100%" }} placeholder="0" />
-              </Form.Item>
-              <Form.Item label="Передано материалов в правоохранительные органы" name="intrusion_materials">
-                <InputNumber style={{ width: "100%" }} placeholder="0" />
-              </Form.Item>
-              <Form.Item label="Возбуждено уголовных дел" name="intrusion_cases_opened">
-                <InputNumber style={{ width: "100%" }} placeholder="0" />
-              </Form.Item>
-              <Form.Item label="Окончено уголовных дел" name="intrusion_cases_closed">
-                <InputNumber style={{ width: "100%" }} placeholder="0" />
-              </Form.Item>
-            </div>
-          </div>
-
-          <Divider className={styles.divider} />
-
-          {/* Нападение на объект/сотрудников */}
-          <div className={styles.section}>
-            <div className={styles.sectionTitle}>Нападение на объект/сотрудников (грабеж, разбой)</div>
-            <div className={styles.fieldsList}>
-              <Form.Item label="Количество случаев (попыток) всего кол-во" name="attack_total">
-                <InputNumber style={{ width: "100%" }} placeholder="0" />
-              </Form.Item>
-              <Form.Item label="Не предотвращенные" name="attack_not_prevented">
-                <InputNumber style={{ width: "100%" }} placeholder="0" />
-              </Form.Item>
-              <Form.Item label="Предотвращенные" name="attack_prevented">
-                <InputNumber style={{ width: "100%" }} placeholder="0" />
-              </Form.Item>
-              <Form.Item label="Задержаны лица при совершении правонарушения" name="attack_detained">
-                <InputNumber style={{ width: "100%" }} placeholder="0" />
-              </Form.Item>
-              <Form.Item label="Установлена сумма причиненного ущерба (руб.)" name="attack_damage">
-                <InputNumber style={{ width: "100%" }} placeholder="0.00" />
-              </Form.Item>
-              <Form.Item label="Предотвращен ущерб на сумму (руб.)" name="attack_prevented_damage">
-                <InputNumber style={{ width: "100%" }} placeholder="0.00" />
-              </Form.Item>
-              <Form.Item label="Возмещен ущерб на сумму (руб.)" name="attack_recovered">
-                <InputNumber style={{ width: "100%" }} placeholder="0.00" />
-              </Form.Item>
-              <Form.Item label="Установлено сотрудников, причастных к проникновению" name="attack_employees">
-                <InputNumber style={{ width: "100%" }} placeholder="0" />
-              </Form.Item>
-              <Form.Item label="Наложено дисциплинарных взысканий" name="attack_penalties">
-                <InputNumber style={{ width: "100%" }} placeholder="0" />
-              </Form.Item>
-              <Form.Item label="Уволено с работы" name="attack_dismissals">
-                <InputNumber style={{ width: "100%" }} placeholder="0" />
-              </Form.Item>
-              <Form.Item label="Передано материалов в правоохранительные органы" name="attack_materials">
-                <InputNumber style={{ width: "100%" }} placeholder="0" />
-              </Form.Item>
-              <Form.Item label="Возбуждено уголовных дел" name="attack_cases_opened">
-                <InputNumber style={{ width: "100%" }} placeholder="0" />
-              </Form.Item>
-              <Form.Item label="Окончено уголовных дел" name="attack_cases_closed">
-                <InputNumber style={{ width: "100%" }} placeholder="0" />
-              </Form.Item>
-            </div>
-          </div>
-
-          <Divider className={styles.divider} />
-
-          {/* Проверки и СР */}
-          <div className={styles.section}>
-            <div className={styles.sectionTitle}>Проведено проверок и СР</div>
-            <div className={styles.fieldsList}>
-              <Form.Item label="Всего:" name="investigations_count">
-                <InputNumber style={{ width: "100%" }} placeholder="0" />
-              </Form.Item>
-            </div>
-          </div>
         </div>
       </Card>
     );

@@ -42,8 +42,13 @@ export const reportService = {
     // Определяем булевы поля, которые нужно считать как количество
     const booleanFields = new Set([
       'is_service_investigation',
+      'is_service_investigation_ib',
+      'is_service_investigation_bpio',
+      'is_service_investigation_bpio_hotline',
       'is_service_check',
       'is_service_check_ib',
+      'is_service_check_bpio',
+      'is_service_check_bpio_hotline',
       'is_verification_activity',
       'is_db'
     ]);
