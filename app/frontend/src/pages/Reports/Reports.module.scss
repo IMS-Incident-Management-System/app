@@ -1,14 +1,197 @@
-@use "../../styles/common/colors.scss" as colors;
-
 .container {
-  padding: 24px;
+  padding: 40px 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: linear-gradient(180deg, #fafafa 0%, #ffffff 100%);
 }
 
-.formCard {
-  margin-top: 24px;
+.description {
+  margin-bottom: 48px;
+  text-align: center;
+
+  :global(.ant-typography) {
+    font-size: 16px;
+    color: #8c8c8c;
+    max-width: 700px;
+    margin: 0 auto;
+    line-height: 1.8;
+    font-weight: 400;
+  }
 }
 
+.content {
+  margin-bottom: 48px;
+}
 
+.reportCard {
+  height: 100%;
+  border-radius: 16px;
+  border: 1px solid #f0f0f0;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  overflow: hidden;
+  position: relative;
+  background: #ffffff;
 
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: transparent;
+    transition: all 0.4s ease;
+  }
 
+  &:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.08);
+    border-color: transparent;
 
+    &::before {
+      background: linear-gradient(90deg, var(--card-color) 0%, var(--card-color-dark) 100%);
+    }
+  }
+
+  :global(.ant-card-body) {
+    padding: 32px;
+    height: 100%;
+  }
+}
+
+.cardContent {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.iconWrapper {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  transition: all 0.4s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+
+  :global(.anticon) {
+    color: var(--card-color);
+  }
+}
+
+.arrowButton {
+  opacity: 0;
+  transition: all 0.3s ease;
+  color: #bfbfbf;
+  transform: translateX(-8px);
+
+  :global(.anticon) {
+    font-size: 18px;
+  }
+}
+
+.reportCard:hover {
+  .arrowButton {
+    opacity: 1;
+    transform: translateX(0);
+    color: var(--card-color);
+  }
+
+  .iconWrapper {
+    transform: scale(1.05) rotate(5deg);
+  }
+}
+
+.cardBody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.cardTitle {
+  margin-bottom: 12px !important;
+  color: #262626;
+  font-weight: 700;
+  font-size: 20px !important;
+  letter-spacing: -0.3px;
+}
+
+.cardDescription {
+  color: #8c8c8c;
+  line-height: 1.7;
+  margin-bottom: 0 !important;
+  flex: 1;
+  font-size: 14px;
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .container {
+    padding: 24px 16px;
+  }
+
+  .description {
+    margin-bottom: 32px;
+
+    :global(.ant-typography) {
+      font-size: 14px;
+    }
+  }
+
+  .reportCard {
+    :global(.ant-card-body) {
+      padding: 24px;
+    }
+  }
+
+  .iconWrapper {
+    width: 56px;
+    height: 56px;
+    font-size: 24px;
+  }
+
+  .cardTitle {
+    font-size: 18px !important;
+  }
+
+  .cardDescription {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 576px) {
+  .container {
+    padding: 20px 12px;
+  }
+
+  .reportCard {
+    :global(.ant-card-body) {
+      padding: 20px;
+    }
+  }
+
+  .iconWrapper {
+    width: 48px;
+    height: 48px;
+    font-size: 20px;
+  }
+
+  .cardHeader {
+    margin-bottom: 16px;
+  }
+
+  .arrowButton {
+    opacity: 1;
+  }
+}

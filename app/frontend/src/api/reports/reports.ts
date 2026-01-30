@@ -2,8 +2,10 @@ import { axiosGatewayBackend } from "../../plugins/axios";
 import { useRequest } from "../../hooks/useRequest";
 
 export interface ReportField {
-  entity: 'incident' | 'event' | 'operationalActivity';
-  field: string;
+  /** Ключ поля для API (r1..r160) — используется в таблице и выгрузке */
+  key?: string;
+  entity?: 'incident' | 'event' | 'operationalActivity';
+  field?: string;
   label: string;
   group?: string;
   groupName?: string;
@@ -41,6 +43,111 @@ export const getAvailableFields = async (): Promise<ReportField[]> => {
   }
   
   return [];
+};
+
+export interface GetReportTableRequest {
+  dateFrom: string;
+  dateTo: string;
+  departmentIds?: number[];
+  page?: number;
+  limit?: number;
+}
+
+export interface ReportTableRow {
+  fieldName: string;
+  fieldKey: string;
+  [key: string]: string | number;
+}
+
+export interface ReportTableResponse {
+  rows: ReportTableRow[];
+  departments: Array<{ id: number; name: string }>;
+  total: number;
+  paoMtsDepartmentIds?: number[];
+}
+
+export interface ExportReportRequest {
+  dateFrom: string;
+  dateTo: string;
+  departmentIds: number[];
+  fieldKeys: string[];
+}
+
+export const getReportTableData = async (
+  data: GetReportTableRequest,
+  signal?: AbortSignal
+): Promise<ReportTableResponse> => {
+  try {
+    const raw = await useRequest<ReportTableResponse | { success: boolean; data: ReportTableResponse; message?: string }>(
+      async () => axiosGatewayBackend.post("/reports/table", data, { signal }),
+    );
+
+    if (!raw || typeof raw !== 'object') {
+      return { rows: [], departments: [], total: 0 };
+    }
+    const payload = 'data' in raw && raw.data && typeof raw.data === 'object' ? raw.data : raw;
+    if (payload && 'rows' in payload && Array.isArray(payload.rows)) {
+      return {
+        rows: payload.rows,
+        departments: payload.departments ?? [],
+        total: typeof payload.total === 'number' ? payload.total : 0,
+        paoMtsDepartmentIds: Array.isArray(payload.paoMtsDepartmentIds) ? payload.paoMtsDepartmentIds : undefined,
+      };
+    }
+    return { rows: [], departments: [], total: 0 };
+  } catch (error: any) {
+    // Проверяем различные типы ошибок отмены
+    const isAbortError = 
+      error?.name === 'AbortError' || 
+      error?.name === 'CanceledError' || 
+      error?.code === 'ERR_CANCELED' ||
+      error?.message?.includes('aborted') || 
+      error?.message?.includes('canceled') ||
+      (error?.response?.status === 499);
+    
+    if (isAbortError) {
+      // Создаем специальную ошибку отмены, которую React Query может правильно обработать
+      const abortError = new Error('Request was cancelled');
+      abortError.name = 'AbortError';
+      throw abortError;
+    }
+    throw error;
+  }
+};
+
+export const exportReportToExcel = async (data: ExportReportRequest) => {
+  const response = await axiosGatewayBackend.post("/reports/export", data, {
+    responseType: 'blob',
+  });
+
+  let blob: Blob;
+  if (response instanceof Blob) {
+    blob = response;
+  } else if (response.data instanceof Blob) {
+    blob = response.data;
+  } else {
+    blob = new Blob([response.data || response], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  }
+
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  
+  const headers = (response as any).headers || {};
+  const contentDisposition = headers['content-disposition'] || headers['Content-Disposition'];
+  let fileName = 'report.xlsx';
+  if (contentDisposition) {
+    const fileNameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+    if (fileNameMatch && fileNameMatch[1]) {
+      fileName = decodeURIComponent(fileNameMatch[1].replace(/['"]/g, ''));
+    }
+  }
+  
+  link.setAttribute('download', fileName);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
 };
 
 export const generateReport = async (data: GenerateReportRequest) => {

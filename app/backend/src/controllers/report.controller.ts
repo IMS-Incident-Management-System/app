@@ -2,6 +2,7 @@ import { Request } from 'express';
 import { asyncErrorHandler } from '../middlewares/errorHandler.middleware';
 import { CustomResponse } from '../middlewares/responseHandler.middleware';
 import { reportService } from '../services/report.service';
+import { REPORT_FIELDS } from '../constants/reportFields';
 
 export const reportController = {
   /**
@@ -47,13 +48,16 @@ export const reportController = {
   }),
 
   /**
-   * Получение списка доступных полей для отчетов
-   * 
-   * ВАЖНО: Названия и группировка полей временные, на основе комментариев из моделей.
-   * После получения информации от клиента о правильных названиях и группировке, 
-   * этот список будет обновлен.
+   * Получение списка доступных полей для отчёта (160 правил РП-053).
+   * key — идентификатор для API (r1..r160), label — название показателя.
    */
   getAvailableFields: asyncErrorHandler(async (req: Request, res: CustomResponse) => {
+    const fields = REPORT_FIELDS.map((def) => ({ key: def.key, label: def.label }));
+    res.success(fields, 'Available fields retrieved successfully');
+  }),
+
+  /** @deprecated Используется getAvailableFields из REPORT_FIELDS; оставлен старый список для совместимости при необходимости */
+  getAvailableFieldsLegacy: asyncErrorHandler(async (req: Request, res: CustomResponse) => {
     const fields = [
       // ========== ИНЦИДЕНТЫ (Incident) ==========
       { entity: 'incident', field: 'is_db', label: 'Особо важно (1ДБ) - инциденты', group: '1', groupName: 'Проведение мероприятий, проверок и расследований', subgroup: '1.0', subgroupName: 'Инциденты' },
@@ -220,5 +224,131 @@ export const reportController = {
     ];
 
     res.success(fields, 'Available fields retrieved successfully');
-  })
+  }),
+
+  /**
+   * Получение данных таблицы отчетов с пагинацией
+   */
+  getReportTable: asyncErrorHandler(async (req: Request, res: CustomResponse) => {
+    console.log('[getReportTable] Request started', { dateFrom: req.body.dateFrom, dateTo: req.body.dateTo });
+    
+    const { dateFrom, dateTo, departmentIds, page = 1, limit = 50 } = req.body;
+
+    if (!dateFrom || !dateTo) {
+      return res.status(400).json({
+        success: false,
+        message: 'Необходимо указать dateFrom и dateTo'
+      });
+    }
+
+    const ids = Array.isArray(departmentIds) && departmentIds.length > 0
+      ? departmentIds.map((id: any) => Number(id))
+      : [];
+
+    // Создаем AbortController для отслеживания отмены запроса
+    // Передаем его сигнал в сервис, где он будет проверяться в циклах вычислений
+    // НЕ устанавливаем автоматические обработчики событий - они могут срабатывать преждевременно
+    const abortController = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    
+    // Устанавливаем обработчик закрытия соединения, но только для логирования
+    // Реальная проверка отмены будет в сервисе через abortSignal
+    if (abortController) {
+      req.on('close', () => {
+        // Логируем, но не прерываем сразу - проверка будет в сервисе
+        console.log('[getReportTable] Request connection close event (will check in service)');
+      });
+    }
+
+    try {
+      console.log('[getReportTable] Starting service call');
+      
+      // Передаем abortSignal в сервис - он будет проверять его в циклах вычислений
+      // Если запрос отменен, вычисления прервутся
+      const result = await reportService.getReportTable({
+        dateFrom: new Date(dateFrom),
+        dateTo: new Date(dateTo),
+        departmentIds: ids,
+        page: Number(page),
+        limit: Number(limit),
+        abortSignal: abortController?.signal,
+      });
+
+      // Проверяем, не был ли запрос отменен во время выполнения
+      // Проверяем только abortSignal - события 'close' и 'aborted' уже обработаны
+      if (abortController?.signal.aborted) {
+        console.log('[getReportTable] Request was aborted during computation, not sending response');
+        if (!res.headersSent) {
+          // Не отправляем ответ - соединение уже закрыто клиентом
+          return;
+        }
+        return;
+      }
+
+      console.log('[getReportTable] Sending success response');
+      res.success(result, 'Report table data retrieved successfully');
+    } catch (error: any) {
+      // Проверяем, не был ли запрос отменен
+      // Проверяем только abortSignal и ошибку - события уже обработаны
+      const isAbortError = 
+        error?.name === 'AbortError' || 
+        error?.message === 'Request aborted' || 
+        abortController?.signal.aborted;
+      
+      if (isAbortError) {
+        console.log('[getReportTable] Request aborted, not sending response');
+        // Не отправляем ответ и не пробрасываем ошибку - просто завершаем обработку
+        // Axios сам обработает закрытие соединения на клиенте
+        if (!res.headersSent) {
+          // Просто завершаем без отправки ответа
+          return;
+        }
+        return;
+      }
+      
+      // Для всех остальных ошибок логируем и пробрасываем
+      console.error('[getReportTable] Error:', error.message, error.stack);
+      throw error;
+    }
+  }),
+
+  /**
+   * Выгрузка выбранного разреза в Excel
+   */
+  exportReport: asyncErrorHandler(async (req: Request, res: CustomResponse) => {
+    const { dateFrom, dateTo, departmentIds, fieldKeys } = req.body;
+
+    if (!dateFrom || !dateTo || !departmentIds || !Array.isArray(departmentIds) || !fieldKeys || !Array.isArray(fieldKeys)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Необходимо указать dateFrom, dateTo, departmentIds (массив) и fieldKeys (массив)'
+      });
+    }
+
+    const buffer = await reportService.exportSelectedReport({
+      dateFrom: new Date(dateFrom),
+      dateTo: new Date(dateTo),
+      departmentIds: departmentIds.map((id: any) => Number(id)),
+      fieldKeys: fieldKeys,
+    });
+
+    const monthNames = [
+      'январь', 'февраль', 'март', 'апрель', 'май', 'июнь',
+      'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'
+    ];
+
+    const fromDate = new Date(dateFrom);
+    const toDate = new Date(dateTo);
+    const fromMonth = monthNames[fromDate.getMonth()];
+    const fromYear = fromDate.getFullYear();
+    const toMonth = monthNames[toDate.getMonth()];
+    const toYear = toDate.getFullYear();
+
+    const fileName = fromMonth === toMonth && fromYear === toYear
+      ? `Отчет_${fromMonth}_${fromYear}.xlsx`
+      : `Отчет_${fromMonth}_${fromYear}_${toMonth}_${toYear}.xlsx`;
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(fileName)}"`);
+    res.send(buffer);
+  }),
 };
