@@ -35,6 +35,88 @@ interface ExportRequest {
   fieldKeys: string[];
 }
 
+/** Ячейка иерархической шапки: подпись и число объединяемых столбцов */
+export interface ReportHeaderCell {
+  label: string;
+  span: number;
+}
+
+/** Узел дерева департаментов для построения шапки */
+interface DeptTreeNode {
+  departmentId: number;
+  title: string;
+  children: DeptTreeNode[];
+}
+
+/**
+ * Строит дерево департаментов от заданных корней (дети из allDepartments, порядок по сортировке).
+ */
+function buildDepartmentForest(
+  rootDepts: Array<{ department_id: number; title: string }>,
+  allDepartments: Array<{ department_id: number; title: string; parent_id: number | null }>,
+  childOrder: (a: { department_id: number; title: string }, b: { department_id: number; title: string }) => number
+): DeptTreeNode[] {
+  const byId = new Map(allDepartments.map((d) => [d.department_id, d]));
+
+  function buildNode(departmentId: number): DeptTreeNode {
+    const d = byId.get(departmentId);
+    const title = d?.title ?? `Департамент ${departmentId}`;
+    const children = allDepartments
+      .filter((x) => x.parent_id === departmentId)
+      .sort(childOrder)
+      .map((c) => buildNode(c.department_id));
+    return { departmentId, title, children };
+  }
+
+  return rootDepts.map((r) => buildNode(r.department_id));
+}
+
+/**
+ * Число листьев в поддереве (для span в шапке).
+ */
+function countLeaves(node: DeptTreeNode): number {
+  if (node.children.length === 0) return 1;
+  return node.children.reduce((s, c) => s + countLeaves(c), 0);
+}
+
+/**
+ * Строит иерархическую шапку и упорядоченный список id листьев по обходу дерева (DFS).
+ * Один источник правды для таблицы и Excel.
+ */
+export function buildReportHeaderStructure(
+  forest: DeptTreeNode[]
+): { headerRows: ReportHeaderCell[][]; leafDepartmentIds: number[] } {
+  const byDepth = new Map<number, ReportHeaderCell[]>();
+  const leafIds: number[] = [];
+
+  function traverse(node: DeptTreeNode, depth: number): void {
+    const span = countLeaves(node);
+    const row = byDepth.get(depth) ?? [];
+    row.push({ label: node.title, span });
+    byDepth.set(depth, row);
+
+    if (node.children.length === 0) {
+      leafIds.push(node.departmentId);
+    } else {
+      for (const child of node.children) {
+        traverse(child, depth + 1);
+      }
+    }
+  }
+
+  for (const root of forest) {
+    traverse(root, 0);
+  }
+
+  const maxDepth = Math.max(...byDepth.keys(), 0);
+  const headerRows: ReportHeaderCell[][] = [];
+  for (let d = 0; d <= maxDepth; d++) {
+    headerRows.push(byDepth.get(d) ?? []);
+  }
+
+  return { headerRows, leafDepartmentIds: leafIds };
+}
+
 const BOOLEAN_FIELDS = new Set([
   'is_service_investigation', 'is_service_investigation_ib', 'is_service_investigation_bpio',
   'is_service_investigation_bpio_hotline', 'is_service_check', 'is_service_check_ib',
@@ -152,11 +234,28 @@ export const reportService = {
     
     // Проверяем, все ли выбранные департаменты входят в ПАО МТС
     const allSelectedArePaoMts = sortedDepartments.every(dept => paoMtsIdsForExcel.has(dept.department_id));
-    
-    // Используем отсортированные департаменты
-    const sortedDepartmentIds = sortedDepartments.map(d => d.department_id);
-    
-    const departmentMap = new Map(sortedDepartments.map((d) => [d.department_id, d.title]));
+
+    // Дерево и иерархическая шапка: столбцы данных — листья
+    const allDeptsForTree = allDepartmentsForCalc.map((d) => ({
+      department_id: d.department_id,
+      title: d.title,
+      parent_id: d.parent_id,
+    }));
+    const rootDepts = sortedDepartments.map((d) => ({ department_id: d.department_id, title: d.title }));
+    const childOrderExcel = (
+      a: { department_id: number; title: string },
+      b: { department_id: number; title: string }
+    ) => {
+      const ai = paoMtsDepartmentNames.indexOf(a.title);
+      const bi = paoMtsDepartmentNames.indexOf(b.title);
+      if (ai !== -1 && bi !== -1) return ai - bi;
+      if (ai !== -1) return -1;
+      if (bi !== -1) return 1;
+      return (a.title || '').localeCompare(b.title || '');
+    };
+    const forestExcel = buildDepartmentForest(rootDepts, allDeptsForTree, childOrderExcel);
+    const { headerRows: excelHeaderRows, leafDepartmentIds: excelLeafIds } = buildReportHeaderStructure(forestExcel);
+    const departmentMap = new Map(allDepartmentsForCalc.map((d) => [d.department_id, d.title]));
     const fieldData = new Map<string, Map<number, number>>();
     const booleanFields = new Set([
       'is_service_investigation', 'is_service_investigation_ib', 'is_service_investigation_bpio',
@@ -173,14 +272,9 @@ export const reportService = {
         .filter((f): f is NonNullable<typeof f> => f != null);
       for (const def of defs) {
         const dataMap = new Map<number, number>();
-        for (const departmentId of sortedDepartmentIds) {
-          const leafIds = getLeafDescendants(departmentId);
-          let totalValue = 0;
-          for (const deptId of leafIds) {
-            const value = await computeFieldValueByRule(def, deptId, request.dateFrom, dateToEndOfDay, undefined);
-            totalValue += value;
-          }
-          dataMap.set(departmentId, totalValue);
+        for (const leafId of excelLeafIds) {
+          const value = await computeFieldValueByRule(def, leafId, request.dateFrom, dateToEndOfDay, undefined);
+          dataMap.set(leafId, value);
         }
         fieldData.set(def.key, dataMap);
       }
@@ -188,55 +282,49 @@ export const reportService = {
       for (const field of request.fields) {
         const dataMap = new Map<number, number>();
         const isBooleanField = booleanFields.has(field.field);
-        for (const departmentId of sortedDepartmentIds) {
-          const leafIds = getLeafDescendants(departmentId);
-          let totalValue = 0;
-          for (const deptId of leafIds) {
-            let value = 0;
-            if (field.entity === 'incident') {
-              if (isBooleanField) {
-                value = (await Incident.count({
-                  where: {
-                    department_id: deptId,
-                    createdAt: { [Op.between]: [request.dateFrom, dateToEndOfDay] },
-                    [field.field]: true,
-                  } as any,
-                })) as number;
-              } else {
-                const whereOpt = { where: { department_id: deptId, createdAt: { [Op.between]: [request.dateFrom, dateToEndOfDay] } } } as any;
-                value = Number(await Incident.sum(field.field as any, whereOpt)) || 0;
-              }
-            } else if (field.entity === 'event') {
-              if (isBooleanField) {
-                value = (await Event.count({
-                  where: {
-                    department_id: deptId,
-                    createdAt: { [Op.between]: [request.dateFrom, dateToEndOfDay] },
-                    [field.field]: true,
-                  } as any,
-                })) as number;
-              } else {
-                const whereOpt = { where: { department_id: deptId, createdAt: { [Op.between]: [request.dateFrom, dateToEndOfDay] } } } as any;
-                value = Number(await Event.sum(field.field as any, whereOpt)) || 0;
-              }
-            } else if (field.entity === 'operationalActivity') {
-              if (isBooleanField) {
-                value = (await OperationalActivity.count({
-                  where: {
-                    department_id: deptId,
-                    createdAt: { [Op.between]: [request.dateFrom, dateToEndOfDay] },
-                    [field.field]: true,
-                  } as any,
-                })) as number;
-              } else {
-                const whereOpt = { where: { department_id: deptId, createdAt: { [Op.between]: [request.dateFrom, dateToEndOfDay] } } } as any;
-                value = Number(await OperationalActivity.sum(field.field as any, whereOpt)) || 0;
-              }
+        for (const leafId of excelLeafIds) {
+          let value = 0;
+          if (field.entity === 'incident') {
+            if (isBooleanField) {
+              value = (await Incident.count({
+                where: {
+                  department_id: leafId,
+                  createdAt: { [Op.between]: [request.dateFrom, dateToEndOfDay] },
+                  [field.field]: true,
+                } as any,
+              })) as number;
+            } else {
+              const whereOpt = { where: { department_id: leafId, createdAt: { [Op.between]: [request.dateFrom, dateToEndOfDay] } } } as any;
+              value = Number(await Incident.sum(field.field as any, whereOpt)) || 0;
             }
-            totalValue += value;
+          } else if (field.entity === 'event') {
+            if (isBooleanField) {
+              value = (await Event.count({
+                where: {
+                  department_id: leafId,
+                  createdAt: { [Op.between]: [request.dateFrom, dateToEndOfDay] },
+                  [field.field]: true,
+                } as any,
+              })) as number;
+            } else {
+              const whereOpt = { where: { department_id: leafId, createdAt: { [Op.between]: [request.dateFrom, dateToEndOfDay] } } } as any;
+              value = Number(await Event.sum(field.field as any, whereOpt)) || 0;
+            }
+          } else if (field.entity === 'operationalActivity') {
+            if (isBooleanField) {
+              value = (await OperationalActivity.count({
+                where: {
+                  department_id: leafId,
+                  createdAt: { [Op.between]: [request.dateFrom, dateToEndOfDay] },
+                  [field.field]: true,
+                } as any,
+              })) as number;
+            } else {
+              const whereOpt = { where: { department_id: leafId, createdAt: { [Op.between]: [request.dateFrom, dateToEndOfDay] } } } as any;
+              value = Number(await OperationalActivity.sum(field.field as any, whereOpt)) || 0;
+            }
           }
-          
-          dataMap.set(departmentId, totalValue);
+          dataMap.set(leafId, value);
         }
         fieldData.set(`${field.entity}.${field.field}`, dataMap);
       }
@@ -263,35 +351,47 @@ export const reportService = {
     const titleRow = worksheet.getRow(1);
     titleRow.getCell(1).value = reportTitle;
     titleRow.getCell(1).font = { size: 18, bold: true };
-    // Столбец "Показатель" + департаменты + "Итого ГК МТС" (если есть) + "Итого ПАО МТС" (всегда)
-    const totalCols = sortedDepartmentIds.length + 1 + (allSelectedArePaoMts ? 1 : 2);
+    const numLeafCols = excelLeafIds.length;
+    const totalCols = 1 + numLeafCols + (allSelectedArePaoMts ? 1 : 2);
     worksheet.mergeCells(1, 1, 1, Math.max(1, totalCols));
 
-    const headerRow = worksheet.getRow(2);
-    headerRow.getCell(1).value = 'Показатель';
-    headerRow.getCell(1).font = { bold: true };
-    sortedDepartmentIds.forEach((deptId, index) => {
-      headerRow.getCell(index + 2).value = departmentMap.get(deptId) || `Департамент ${deptId}`;
-      headerRow.getCell(index + 2).font = { bold: true };
-    });
-    
-    // Добавляем заголовки итоговых столбцов
+    const headerStartRow = 2;
+    const numHeaderRows = Math.max(1, excelHeaderRows.length);
+    worksheet.mergeCells(headerStartRow, 1, headerStartRow + numHeaderRows - 1, 1);
+    worksheet.getRow(headerStartRow).getCell(1).value = 'Показатель';
+    worksheet.getRow(headerStartRow).getCell(1).font = { bold: true };
+    worksheet.getRow(headerStartRow).getCell(1).alignment = { vertical: 'middle' };
+
+    let col = 2;
+    for (let r = 0; r < excelHeaderRows.length; r++) {
+      const row = worksheet.getRow(headerStartRow + r);
+      for (const cell of excelHeaderRows[r]) {
+        if (cell.span > 1) {
+          worksheet.mergeCells(headerStartRow + r, col, headerStartRow + r, col + cell.span - 1);
+        }
+        row.getCell(col).value = cell.label;
+        row.getCell(col).font = { bold: true };
+        col += cell.span;
+      }
+      col = 2;
+    }
+
     let totalGkCol = 0;
     let totalPaoCol = 0;
-    
-    // Столбец "Итого ГК МТС" только если не все департаменты ПАО МТС
     if (!allSelectedArePaoMts) {
-      totalGkCol = sortedDepartmentIds.length + 2;
-      headerRow.getCell(totalGkCol).value = 'Итого ГК МТС';
-      headerRow.getCell(totalGkCol).font = { bold: true };
-      totalPaoCol = sortedDepartmentIds.length + 3;
+      totalGkCol = 2 + numLeafCols;
+      totalPaoCol = 3 + numLeafCols;
+      const lastHeaderRow = worksheet.getRow(headerStartRow + numHeaderRows - 1);
+      lastHeaderRow.getCell(totalGkCol).value = 'Итого ГК МТС';
+      lastHeaderRow.getCell(totalGkCol).font = { bold: true };
+      lastHeaderRow.getCell(totalPaoCol).value = 'Итого ПАО МТС';
+      lastHeaderRow.getCell(totalPaoCol).font = { bold: true };
     } else {
-      totalPaoCol = sortedDepartmentIds.length + 2;
+      totalPaoCol = 2 + numLeafCols;
+      const lastHeaderRow = worksheet.getRow(headerStartRow + numHeaderRows - 1);
+      lastHeaderRow.getCell(totalPaoCol).value = 'Итого ПАО МТС';
+      lastHeaderRow.getCell(totalPaoCol).font = { bold: true };
     }
-    
-    // Столбец "Итого ПАО МТС" всегда отображается
-    headerRow.getCell(totalPaoCol).value = 'Итого ПАО МТС';
-    headerRow.getCell(totalPaoCol).font = { bold: true };
 
     const outputFields: Array<{ label: string; dataKey: string }> =
       request.fieldKeys && request.fieldKeys.length > 0
@@ -301,7 +401,7 @@ export const reportService = {
             .map((def) => ({ label: def.label, dataKey: def.key })))
         : (request.fields || []).map((f) => ({ label: f.label, dataKey: `${f.entity}.${f.field}` }));
 
-    let currentRow = 3;
+    let currentRow = headerStartRow + numHeaderRows;
 
     for (const { label, dataKey } of outputFields) {
       const dataRow = worksheet.getRow(currentRow);
@@ -310,14 +410,14 @@ export const reportService = {
       let rowTotalGk = 0;
       let rowTotalPao = 0;
       
-      sortedDepartmentIds.forEach((deptId, index) => {
-        const value = (fieldData.get(dataKey)?.get(deptId)) ?? 0;
+      excelLeafIds.forEach((leafId, index) => {
+        const value = (fieldData.get(dataKey)?.get(leafId)) ?? 0;
         const cell = dataRow.getCell(index + 2);
         cell.value = value;
         cell.numFmt = '#,##0';
         
         rowTotalGk += value;
-        if (paoMtsIdsForExcel.has(deptId)) {
+        if (paoMtsIdsForExcel.has(leafId)) {
           rowTotalPao += value;
         }
       });
@@ -343,7 +443,7 @@ export const reportService = {
 
     // Настраиваем ширину столбцов
     worksheet.getColumn(1).width = 60;
-    for (let i = 0; i < sortedDepartmentIds.length; i++) {
+    for (let i = 0; i < numLeafCols; i++) {
       worksheet.getColumn(i + 2).width = 20;
     }
     // Настраиваем ширину итоговых столбцов
@@ -367,6 +467,8 @@ export const reportService = {
     total: number;
     paoMtsDepartmentIds: number[];
     allSelectedArePaoMts?: boolean;
+    /** Иерархическая шапка таблицы: массив строк, каждая строка — массив ячеек с label и span */
+    headerRows?: ReportHeaderCell[][];
   }> {
     console.log('[reportService.getReportTable] Starting', { page: request.page, limit: request.limit, departmentIds: request.departmentIds });
     const { dateFrom, dateTo, departmentIds, page, limit } = request;
@@ -458,6 +560,31 @@ export const reportService = {
     
     // Проверяем, все ли выбранные департаменты входят в ПАО МТС
     const allSelectedArePaoMts = sortedDepartments.every(dept => paoMtsIds.has(dept.department_id));
+
+    // Дерево департаментов и иерархическая шапка: корни — выбранные, столбцы данных — листья
+    const allDeptsForTree = allDepartments.map((d) => ({
+      department_id: d.department_id,
+      title: d.title,
+      parent_id: d.parent_id,
+    }));
+    const rootDepts = sortedDepartments.map((d) => ({ department_id: d.department_id, title: d.title }));
+    const childOrder = (
+      a: { department_id: number; title: string },
+      b: { department_id: number; title: string }
+    ) => {
+      const ai = paoMtsDepartmentNames.indexOf(a.title);
+      const bi = paoMtsDepartmentNames.indexOf(b.title);
+      if (ai !== -1 && bi !== -1) return ai - bi;
+      if (ai !== -1) return -1;
+      if (bi !== -1) return 1;
+      return (a.title || '').localeCompare(b.title || '');
+    };
+    const forest = buildDepartmentForest(rootDepts, allDeptsForTree, childOrder);
+    const { headerRows, leafDepartmentIds } = buildReportHeaderStructure(forest);
+    const leafDepartments = leafDepartmentIds.map((id) => {
+      const d = allDepartments.find((x) => x.department_id === id);
+      return { id, name: d?.title ?? `Департамент ${id}` };
+    });
     
     const total = REPORT_FIELDS.length;
     const start = (page - 1) * limit;
@@ -482,42 +609,21 @@ export const reportService = {
       
       let totalGkMts = 0;
       let totalPaoMts = 0;
-      
-      for (const dept of sortedDepartments) {
-        // Проверяем сигнал отмены перед обработкой каждого департамента
+
+      for (const leafId of leafDepartmentIds) {
+        // Проверяем сигнал отмены перед обработкой каждого листа
         if (request.abortSignal?.aborted) {
-          console.log(`[reportService.getReportTable] Abort signal detected, stopping computation at dept ${dept.department_id}`);
+          console.log(`[reportService.getReportTable] Abort signal detected, stopping computation at leaf ${leafId}`);
           throw new Error('Request aborted');
         }
-
-        // Считаем только по листьям (нижним филиалам), без дублирования по родителям
-        const leafIds = getLeafDescendants(dept.department_id);
-        
-        let deptValue = 0;
-        for (const deptId of leafIds) {
-          // Проверяем сигнал отмены перед каждым вычислением
-          if (request.abortSignal?.aborted) {
-            console.log(`[reportService.getReportTable] Abort signal detected, stopping computation at dept ${deptId}`);
-            throw new Error('Request aborted');
-          }
-          const val = await computeFieldValueByRule(def, deptId, dateFrom, dateTo, request.abortSignal);
-          
-          // Проверяем сигнал отмены после каждого вычисления
-          if (request.abortSignal?.aborted) {
-            console.log(`[reportService.getReportTable] Abort signal detected after computation for dept ${deptId}`);
-            throw new Error('Request aborted');
-          }
-          
-          deptValue += val;
+        const val = await computeFieldValueByRule(def, leafId, dateFrom, dateTo, request.abortSignal);
+        if (request.abortSignal?.aborted) {
+          console.log(`[reportService.getReportTable] Abort signal detected after computation for leaf ${leafId}`);
+          throw new Error('Request aborted');
         }
-        
-        row[`dept_${dept.department_id}`] = deptValue;
-        
-        totalGkMts += deptValue;
-        // В ПАО МТС включаем только если департамент входит в белый список
-        if (paoMtsIds.has(dept.department_id)) {
-          totalPaoMts += deptValue;
-        }
+        row[`dept_${leafId}`] = val;
+        totalGkMts += val;
+        if (paoMtsIds.has(leafId)) totalPaoMts += val;
       }
       
       // Добавляем total_gk_mts только если не все выбранные департаменты входят в ПАО МТС
@@ -534,15 +640,13 @@ export const reportService = {
     console.log('[reportService.getReportTable] All fields processed, returning result');
     const result = {
       rows,
-      departments: sortedDepartments.map((d) => ({ id: d.department_id, name: d.title })),
+      departments: leafDepartments,
       total,
-      // Возвращаем только основные департаменты ПАО МТС (без потомков)
-      // Потомки будут получены автоматически через getAllDescendants при фильтрации
       paoMtsDepartmentIds: paoMtsMainIds,
-      // Флаг, указывающий, что все выбранные департаменты входят в ПАО МТС
       allSelectedArePaoMts,
+      headerRows,
     };
-    console.log('[reportService.getReportTable] Result prepared:', { rowsCount: rows.length, departmentsCount: result.departments.length });
+    console.log('[reportService.getReportTable] Result prepared:', { rowsCount: rows.length, departmentsCount: result.departments.length, headerRowsCount: headerRows.length });
     return result;
   },
 

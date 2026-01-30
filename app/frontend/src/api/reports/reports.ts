@@ -59,12 +59,20 @@ export interface ReportTableRow {
   [key: string]: string | number;
 }
 
+/** Ячейка иерархической шапки (бэкенд) */
+export interface ReportHeaderCell {
+  label: string;
+  span: number;
+}
+
 export interface ReportTableResponse {
   rows: ReportTableRow[];
   departments: Array<{ id: number; name: string }>;
   total: number;
   paoMtsDepartmentIds?: number[];
   allSelectedArePaoMts?: boolean;
+  /** Иерархическая шапка таблицы: массив строк, каждая строка — массив ячеек с label и span */
+  headerRows?: ReportHeaderCell[][];
 }
 
 export interface ExportReportRequest {
@@ -93,6 +101,8 @@ export const getReportTableData = async (
         departments: payload.departments ?? [],
         total: typeof payload.total === 'number' ? payload.total : 0,
         paoMtsDepartmentIds: Array.isArray(payload.paoMtsDepartmentIds) ? payload.paoMtsDepartmentIds : undefined,
+        allSelectedArePaoMts: typeof payload.allSelectedArePaoMts === 'boolean' ? payload.allSelectedArePaoMts : undefined,
+        headerRows: Array.isArray(payload.headerRows) ? payload.headerRows : undefined,
       };
     }
     return { rows: [], departments: [], total: 0 };

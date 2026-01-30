@@ -28,7 +28,6 @@ import { getReportTableData, exportReportToExcel } from "../../../api/reports/re
 import { useQuery } from "react-query";
 import { useGetDepartments } from "../../../services/requests/departments/getDepartments";
 import dayjs, { Dayjs } from "dayjs";
-import type { ColumnsType } from "antd/es/table";
 import styles from "./ReportGenerator.module.scss";
 import { ERoutes } from "../../../enums/routes";
 
@@ -42,11 +41,19 @@ interface ReportTableRow {
   [key: string]: string | number | undefined;
 }
 
+/** Ячейка иерархической шапки (бэкенд) */
+interface ReportHeaderCell {
+  label: string;
+  span: number;
+}
+
 interface ReportTableResponse {
   rows: ReportTableRow[];
   departments: Array<{ id: number; name: string }>;
   total: number;
   paoMtsDepartmentIds?: number[];
+  allSelectedArePaoMts?: boolean;
+  headerRows?: ReportHeaderCell[][];
 }
 
 function formatCellValue(value: string | number): string {
@@ -55,6 +62,83 @@ function formatCellValue(value: string | number): string {
     return value.toLocaleString("ru-RU");
   }
   return String(value);
+}
+
+/** Тип колонки таблицы (Ant Design ожидает вложенные children для многострочной шапки) */
+type ReportColumnType = {
+  key: string;
+  title: React.ReactNode;
+  dataIndex?: string;
+  width?: number;
+  align?: "left" | "right" | "center";
+  fixed?: "left" | "right";
+  className?: string;
+  children?: ReportColumnType[];
+  render?: (value: unknown, record: ReportTableRow) => React.ReactNode;
+  ellipsis?: boolean;
+};
+
+/** Строит колонки департаментов из headerRows (вложенные children = несколько строк заголовка) */
+function buildDepartmentColumns(
+  headerRows: ReportHeaderCell[][],
+  deptList: Array<{ id: number; name: string }>,
+  rowIndex: number,
+  rangeStart: number,
+  rangeEnd: number,
+  selectedDepartments: Set<number>,
+  onDepartmentToggle: (id: number, checked: boolean) => void,
+  styles: Record<string, string>
+): ReportColumnType[] {
+  const L = headerRows.length;
+  // На последнем уровне headerRows сразу отдаём листовые колонки (чекбокс + название), без лишней строки заголовка
+  if (rowIndex >= L - 1) {
+    return deptList.slice(rangeStart, rangeEnd).map((dept) => ({
+      key: `dept_${dept.id}`,
+      title: (
+        <div className={styles.columnHeader}>
+          <Space>
+            <Checkbox
+              checked={selectedDepartments.has(dept.id)}
+              onChange={(e) => onDepartmentToggle(dept.id, e.target.checked)}
+            />
+            <span>{dept.name}</span>
+          </Space>
+        </div>
+      ),
+      dataIndex: `dept_${dept.id}`,
+      width: 140,
+      align: "right" as const,
+      className: selectedDepartments.has(dept.id) ? styles.selectedCol : undefined,
+      render: (value: unknown) => (
+        <span className={styles.cellValue}>{formatCellValue(value as number | string)}</span>
+      ),
+    }));
+  }
+  const row = headerRows[rowIndex];
+  let pos = 0;
+  const result: ReportColumnType[] = [];
+  for (const cell of row) {
+    const cellStart = pos;
+    const cellEnd = pos + cell.span;
+    pos = cellEnd;
+    if (cellEnd <= rangeStart || cellStart >= rangeEnd) continue;
+    result.push({
+      key: `h${rowIndex}-${cell.label}-${cellStart}`,
+      title: cell.label,
+      align: "center",
+      children: buildDepartmentColumns(
+        headerRows,
+        deptList,
+        rowIndex + 1,
+        cellStart,
+        cellEnd,
+        selectedDepartments,
+        onDepartmentToggle,
+        styles
+      ),
+    });
+  }
+  return result;
 }
 
 export const ReportGenerator: React.FC = () => {
@@ -192,129 +276,172 @@ export const ReportGenerator: React.FC = () => {
     message.info("Выбор департаментов сброшен");
   }, []);
 
-  const columns: ColumnsType<ReportTableRow> = useMemo(() => {
-    const cols: ColumnsType<ReportTableRow> = [
-      {
-        title: (
-          <div className={styles.columnHeader}>
-            <Space>
-              <Checkbox
-                checked={rows.length > 0 && rows.every((r) => selectedFields.has(r.fieldKey))}
-                indeterminate={
-                  rows.length > 0 &&
-                  rows.some((r) => selectedFields.has(r.fieldKey)) &&
-                  !rows.every((r) => selectedFields.has(r.fieldKey))
-                }
-                onChange={(e) => {
-                  if (e.target.checked) {
-                    setSelectedFields(new Set(rows.map((r) => r.fieldKey)));
-                  } else {
-                    setSelectedFields(new Set());
-                  }
-                }}
-              />
-              <span>Название показателя</span>
-            </Space>
-            <Space size={4} className={styles.columnActions}>
-              <Tooltip title="Выбрать все">
-                <Button type="link" size="small" icon={<CheckSquareOutlined />} onClick={selectAllFields} />
-              </Tooltip>
-              <Tooltip title="Снять все">
-                <Button type="link" size="small" icon={<BorderOutlined />} onClick={clearAllFields} />
-              </Tooltip>
-            </Space>
-          </div>
-        ),
-        dataIndex: "fieldName",
-        key: "fieldName",
-        width: 260,
-        ellipsis: true,
-        render: (text: string, record: ReportTableRow) => (
-          <Space className={styles.fieldCell}>
+  const onDepartmentToggle = useCallback((id: number, checked: boolean) => {
+    setSelectedDepartments((prev) => {
+      const next = new Set(prev);
+      if (checked) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  }, []);
+
+  const headerRows = tableData?.headerRows;
+  const useHierarchy = !!(headerRows && headerRows.length > 0 && deptList.length > 0);
+
+  // Отладка: что пришло с бэкенда и какая структура колонок
+  useEffect(() => {
+    if (!tableData) return;
+    console.log("[ReportGenerator] headerRows from API:", {
+      length: headerRows?.length ?? 0,
+      rows: headerRows?.map((r, i) => ({ rowIndex: i, cellCount: r.length, cells: r.slice(0, 5) })),
+    });
+  }, [tableData, headerRows]);
+
+  const tableColumns: ReportColumnType[] = useMemo(() => {
+    const indicatorCol: ReportColumnType = {
+      key: "fieldName",
+      title: (
+        <div className={styles.columnHeader}>
+          <Space>
             <Checkbox
-              checked={selectedFields.has(record.fieldKey)}
+              checked={rows.length > 0 && rows.every((r) => selectedFields.has(r.fieldKey))}
+              indeterminate={
+                rows.length > 0 &&
+                rows.some((r) => selectedFields.has(r.fieldKey)) &&
+                !rows.every((r) => selectedFields.has(r.fieldKey))
+              }
               onChange={(e) => {
-                const next = new Set(selectedFields);
-                if (e.target.checked) next.add(record.fieldKey);
-                else next.delete(record.fieldKey);
-                setSelectedFields(next);
+                if (e.target.checked) setSelectedFields(new Set(rows.map((r) => r.fieldKey)));
+                else setSelectedFields(new Set());
               }}
             />
-            <span title={text}>{text}</span>
+            <span>Название показателя</span>
           </Space>
+          <Space size={4} className={styles.columnActions}>
+            <Tooltip title="Выбрать все">
+              <Button type="link" size="small" icon={<CheckSquareOutlined />} onClick={selectAllFields} />
+            </Tooltip>
+            <Tooltip title="Снять все">
+              <Button type="link" size="small" icon={<BorderOutlined />} onClick={clearAllFields} />
+            </Tooltip>
+          </Space>
+        </div>
+      ),
+      dataIndex: "fieldName",
+      width: 260,
+      ellipsis: true,
+      render: (_: unknown, record: ReportTableRow) => (
+        <Space className={styles.fieldCell}>
+          <Checkbox
+            checked={selectedFields.has(record.fieldKey)}
+            onChange={(e) => {
+              const next = new Set(selectedFields);
+              if (e.target.checked) next.add(record.fieldKey);
+              else next.delete(record.fieldKey);
+              setSelectedFields(next);
+            }}
+          />
+          <span title={record.fieldName}>{record.fieldName}</span>
+        </Space>
+      ),
+    };
+    const deptCols: ReportColumnType[] = useHierarchy
+      ? buildDepartmentColumns(
+          headerRows!,
+          deptList,
+          0,
+          0,
+          deptList.length,
+          selectedDepartments,
+          onDepartmentToggle,
+          styles
+        )
+      : deptList.map((dept) => ({
+          key: `dept_${dept.id}`,
+          title: (
+            <div className={styles.columnHeader}>
+              <Space>
+                <Checkbox
+                  checked={selectedDepartments.has(dept.id)}
+                  onChange={(e) => onDepartmentToggle(dept.id, e.target.checked)}
+                />
+                <span>{dept.name}</span>
+              </Space>
+            </div>
+          ),
+          dataIndex: `dept_${dept.id}`,
+          width: 140,
+          align: "right" as const,
+          className: selectedDepartments.has(dept.id) ? styles.selectedCol : undefined,
+          render: (value: unknown) => (
+            <span className={styles.cellValue}>{formatCellValue(value as number | string)}</span>
+          ),
+        }));
+    const totalCols: ReportColumnType[] = [
+      ...(!tableData?.allSelectedArePaoMts
+        ? [
+            {
+              key: "total_gk_mts",
+              title: "Итого ГК МТС",
+              dataIndex: "total_gk_mts",
+              width: 140,
+              align: "right" as const,
+              fixed: "right" as const,
+              className: styles.totalColumn,
+              render: (value: unknown) => (
+                <span className={styles.totalValue}>{formatCellValue(value as number)}</span>
+              ),
+            } as ReportColumnType,
+          ]
+        : []),
+      {
+        key: "total_pao_mts",
+        title: "Итого ПАО МТС",
+        dataIndex: "total_pao_mts",
+        width: 140,
+        align: "right" as const,
+        fixed: "right" as const,
+        className: styles.totalColumn,
+        render: (value: unknown) => (
+          <span className={styles.totalValue}>{formatCellValue(value as number)}</span>
         ),
       },
     ];
-
-    deptList.forEach((dept) => {
-      cols.push({
-        title: (
-          <div className={styles.columnHeader}>
-            <Space>
-              <Checkbox
-                checked={selectedDepartments.has(dept.id)}
-                onChange={(e) => {
-                  const next = new Set(selectedDepartments);
-                  if (e.target.checked) next.add(dept.id);
-                  else next.delete(dept.id);
-                  setSelectedDepartments(next);
-                }}
-              />
-              <span>{dept.name}</span>
-            </Space>
-          </div>
-        ),
-        dataIndex: `dept_${dept.id}`,
-        key: `dept_${dept.id}`,
-        width: 140,
-        align: "right",
-        className: selectedDepartments.has(dept.id) ? styles.selectedCol : "",
-        render: (value: number | string) => (
-          <span className={styles.cellValue}>{formatCellValue(value)}</span>
-        ),
-      });
+    const result = [indicatorCol, ...deptCols, ...totalCols];
+    // Отладка: структура колонок для многоуровневой шапки
+    const firstDeptCol = deptCols[0];
+    console.log("[ReportGenerator] tableColumns:", {
+      totalColumns: result.length,
+      deptColumnsCount: deptCols.length,
+      useHierarchy,
+      firstDeptCol: firstDeptCol
+        ? {
+            key: firstDeptCol.key,
+            title: typeof firstDeptCol.title === "string" ? firstDeptCol.title : "(node)",
+            hasChildren: !!firstDeptCol.children,
+            childrenCount: firstDeptCol.children?.length ?? 0,
+            firstChild: firstDeptCol.children?.[0]
+              ? {
+                  key: firstDeptCol.children[0].key,
+                  hasChildren: !!firstDeptCol.children[0].children,
+                }
+              : null,
+          }
+        : null,
     });
-
-    // Добавляем столбец "Итого ГК МТС" только если не все выбранные департаменты входят в ПАО МТС
-    if (!tableData?.allSelectedArePaoMts) {
-      cols.push({
-        title: "Итого ГК МТС",
-        dataIndex: "total_gk_mts",
-        key: "total_gk_mts",
-        width: 140,
-        align: "right",
-        fixed: "right",
-        className: styles.totalColumn,
-        render: (value: number) => (
-          <span className={styles.totalValue}>{formatCellValue(value)}</span>
-        ),
-      });
-    }
-
-    // Столбец "Итого ПАО МТС" всегда отображается
-    cols.push({
-      title: "Итого ПАО МТС",
-      dataIndex: "total_pao_mts",
-      key: "total_pao_mts",
-      width: 140,
-      align: "right",
-      fixed: "right",
-      className: styles.totalColumn,
-      render: (value: number) => (
-        <span className={styles.totalValue}>{formatCellValue(value)}</span>
-      ),
-    });
-
-    return cols;
+    return result;
   }, [
-    tableData,
-    selectedFields,
-    selectedDepartments,
-    rows,
+    headerRows,
     deptList,
-    filterPaoMts, // Добавляем filterPaoMts, чтобы колонки пересоздавались при изменении фильтра
+    useHierarchy,
+    selectedDepartments,
+    onDepartmentToggle,
+    tableData?.allSelectedArePaoMts,
+    selectedFields,
+    rows,
     selectAllFields,
     clearAllFields,
+    styles,
   ]);
 
   const rowClassName = useCallback(
@@ -503,10 +630,10 @@ export const ReportGenerator: React.FC = () => {
             />
           ) : (
             <div ref={tableWrapperRef} className={styles.tableWrapper}>
-            <Table
-              columns={columns}
+            <Table<ReportTableRow>
               dataSource={rows}
-              loading={isTableFetching || isExporting}
+              columns={tableColumns}
+              loading={isTableLoading || isExporting}
               scroll={{ x: "max-content", y: 560 }}
               pagination={{
                 current: pagination.page,
