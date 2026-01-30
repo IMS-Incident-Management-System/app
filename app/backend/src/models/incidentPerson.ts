@@ -8,6 +8,7 @@ export interface IncidentPersonAttributes {
   first_name?: string;
   middle_name?: string;
   employee_number?: string;
+  outcome_type?: 'injury' | 'fatal'; // Травма / Смертельный исход
 }
 
 export interface IncidentPersonCreationAttributes extends Optional<IncidentPersonAttributes, 'id'> {}
@@ -50,6 +51,11 @@ const IncidentPerson = sequelize.define<IncidentPersonInstance>('incident_person
     type: DataTypes.STRING,
     allowNull: true,
     comment: 'Табельный номер'
+  },
+  outcome_type: {
+    type: DataTypes.STRING(20),
+    allowNull: true,
+    comment: 'Тип исхода: injury - Травма, fatal - Смертельный исход'
   },
 }, {
   tableName: 'incident_persons',

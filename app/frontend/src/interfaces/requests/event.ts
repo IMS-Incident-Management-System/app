@@ -12,8 +12,13 @@ export interface EventAttributes {
   department_id: number;
   date: Date;
   is_service_investigation: boolean;
+  is_service_investigation_ib: boolean;
+  is_service_investigation_bpio: boolean;
+  is_service_investigation_bpio_hotline: boolean;
   is_service_check: boolean;
   is_service_check_ib: boolean;
+  is_service_check_bpio: boolean;
+  is_service_check_bpio_hotline: boolean;
   is_verification_activity: boolean;
   is_db: boolean;
   description?: string;
@@ -64,6 +69,8 @@ export interface EventCriminalCaseAttributes {
 export interface EventPunishmentAttributes {
   id?: number;
   guilty_persons_count?: number;
+  employees_involved_count?: number;
+  detained_persons_count?: number;
   measures_taken_count?: number;
   warning_letter_rp398?: number;
   remark?: number;
@@ -77,8 +84,13 @@ export interface CreateEventBody {
   entry_date?: Date;
   event_type?: string; // Временное поле для радиокнопок, преобразуется в boolean поля
   is_service_investigation: boolean;
+  is_service_investigation_ib: boolean;
+  is_service_investigation_bpio: boolean;
+  is_service_investigation_bpio_hotline: boolean;
   is_service_check: boolean;
   is_service_check_ib: boolean;
+  is_service_check_bpio: boolean;
+  is_service_check_bpio_hotline: boolean;
   is_verification_activity: boolean;
   is_db: boolean;
   description?: string;

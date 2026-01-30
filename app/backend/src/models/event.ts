@@ -10,8 +10,13 @@ export interface EventAttributes {
   date: Date;
   // Чекбоксы
   is_service_investigation: boolean; // Служебные расследования
+  is_service_investigation_ib: boolean; // Служебные расследования ИБ
+  is_service_investigation_bpio: boolean; // Служебные расследования БПиО
+  is_service_investigation_bpio_hotline: boolean; // Служебные расследования БПиО (горячая линия)
   is_service_check: boolean; // Служебные проверки
-  is_service_check_ib: boolean; // Служебные проверки по линии ИБ
+  is_service_check_ib: boolean; // Служебные проверки ИБ
+  is_service_check_bpio: boolean; // Служебная проверка БПиО
+  is_service_check_bpio_hotline: boolean; // Служебная проверка БПиО (горячая линия)
   is_verification_activity: boolean; // Проверочные мероприятия
   is_db: boolean; // Особо важно (1ДБ)
   // Текстовые поля
@@ -75,6 +80,24 @@ const Event = sequelize.define<EventInstance>(
       defaultValue: false,
       comment: 'Служебные расследования',
     },
+    is_service_investigation_ib: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      comment: 'Служебные расследования ИБ',
+    },
+    is_service_investigation_bpio: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      comment: 'Служебные расследования БПиО',
+    },
+    is_service_investigation_bpio_hotline: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      comment: 'Служебные расследования БПиО (горячая линия)',
+    },
     is_service_check: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
@@ -85,7 +108,19 @@ const Event = sequelize.define<EventInstance>(
       type: DataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: false,
-      comment: 'Служебные проверки по линии ИБ',
+      comment: 'Служебные проверки ИБ',
+    },
+    is_service_check_bpio: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      comment: 'Служебная проверка БПиО',
+    },
+    is_service_check_bpio_hotline: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      comment: 'Служебная проверка БПиО (горячая линия)',
     },
     is_verification_activity: {
       type: DataTypes.BOOLEAN,

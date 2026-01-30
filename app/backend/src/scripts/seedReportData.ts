@@ -11,6 +11,12 @@ import dotenv from 'dotenv';
 import { sequelize } from '../models/sequelize';
 import { QueryTypes } from 'sequelize';
 import Incident, { SecurityDirectionEnum, IncidentCreationAttributes, IncidentInstance } from '../models/incident';
+import IncidentEvent, { IncidentEventCreationAttributes } from '../models/incidentEvent';
+import Additionally, { AdditionallyCreationAttributes } from '../models/additionally';
+import CriminalCase, { CriminalCaseCreationAttributes } from '../models/criminalCase';
+import Punishment, { PunishmentCreationAttributes } from '../models/punishment';
+import AdditionallyPerson, { AdditionallyPersonCreationAttributes } from '../models/additionallyPerson';
+import IncidentEventType from '../models/incidentEventType';
 import Event, { EventCreationAttributes, EventInstance } from '../models/event';
 import OperationalActivity, { OperationalActivityCreationAttributes, OperationalActivityInstance } from '../models/operationalActivity';
 import { OperationalActivityDirectionEnum } from '../enums/operationalActivity';
@@ -49,8 +55,17 @@ async function seedReportData() {
     const departmentIds = departments.map(d => d.department_id);
     console.log(`📋 Найдено департаментов: ${departmentIds.length}\n`);
 
-    // Очищаем существующие данные (опционально)
+    // Тип события инцидента для дополнений (корневой тип, если есть)
+    const rootEventType = await IncidentEventType.findOne({ where: { parent_id: null } });
+    const defaultEventTypeId = rootEventType?.event_type_id ?? null;
+
+    // Очищаем существующие данные (порядок: зависимые от инцидентов → инциденты → события → ОД)
     console.log('🗑️  Очистка существующих данных...');
+    await CriminalCase.destroy({ where: {}, force: true });
+    await Punishment.destroy({ where: {}, force: true });
+    await AdditionallyPerson.destroy({ where: {}, force: true });
+    await Additionally.destroy({ where: {}, force: true });
+    await IncidentEvent.destroy({ where: {}, force: true });
     await Incident.destroy({ where: {}, force: true });
     await Event.destroy({ where: {}, force: true });
     await OperationalActivity.destroy({ where: {}, force: true });
@@ -61,6 +76,8 @@ async function seedReportData() {
     const incidents: IncidentInstance[] = [];
     const years = [2023, 2024, 2025];
     const months = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]; // Все месяцы
+
+    const ADDITIONS_PER_INCIDENT = 3;
 
     for (let i = 0; i < 300; i++) {
       const year = randomElement(years);
@@ -84,16 +101,104 @@ async function seedReportData() {
       const incident = await Incident.create(incidentData);
 
       // Устанавливаем createdAt и updatedAt вручную через SQL
-      // Используем прямой SQL с форматированием даты для PostgreSQL
-      // Формат: 'YYYY-MM-DD HH:MM:SS'
       const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')} 12:00:00`;
       await sequelize.query(
         `UPDATE incidents SET "createdAt" = '${dateStr}', "updatedAt" = '${dateStr}' WHERE id = ${incident.id}`
       );
 
       incidents.push(incident);
+
+      // Создаём минимум 3 дополнения к инциденту со всеми полями
+      for (let a = 0; a < ADDITIONS_PER_INCIDENT; a++) {
+        const addDay = ((day - 1 + a) % 28) + 1;
+        const addDate = new Date(year, month, addDay);
+        const addDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(addDay).padStart(2, '0')} 12:00:00`;
+
+        const eventData: IncidentEventCreationAttributes = {
+          incident_id: incident.id,
+          event_type_id: defaultEventTypeId,
+          date: addDate,
+          entry_date: addDate,
+          description: `Дополнение ${a + 1} к инциденту ${i + 1}`,
+          city: `Город ${randomInt(1, 50)}`,
+          street: `Ул. Тестовая ${randomInt(1, 100)}`,
+          house: String(randomInt(1, 99)),
+          building: randomInt(1, 5) > 3 ? String(randomInt(1, 10)) : undefined,
+          number: String(randomInt(1, 500)),
+          last_name: `Фамилия${i}_${a}`,
+          first_name: `Имя${i}_${a}`,
+          middle_name: `Отчество${i}_${a}`,
+          employee_number: `TN-${randomInt(10000, 99999)}`,
+        };
+        const incidentEvent = await IncidentEvent.create(eventData);
+        await sequelize.query(
+          `UPDATE incident_events SET "createdAt" = '${addDateStr}', "updatedAt" = '${addDateStr}' WHERE id = ${incidentEvent.id}`
+        );
+
+        const additionallyData: AdditionallyCreationAttributes = {
+          incident_id: incident.id,
+          incident_event_id: incidentEvent.id,
+          incident_date: addDate,
+          addition_date: addDate,
+          text_field: `Текст дополнения ${a + 1} к инциденту ${i + 1}. Описание обстоятельств.`,
+          detected_damage: randomInt(5000, 300000),
+          prevented_damage: randomInt(10000, 400000),
+          recovered_damage: randomInt(3000, 200000),
+          additional_income: randomInt(5000, 150000),
+          reduced_cost: randomInt(2000, 100000),
+        };
+        const addition = await Additionally.create(additionallyData);
+
+        const criminalCaseData: CriminalCaseCreationAttributes = {
+          additionally_id: addition.id,
+          transfer_date: addDate,
+          document_number: `Док-${year}-${randomInt(1000, 9999)}`,
+          department_name: `Подразделение ${randomInt(1, 20)}`,
+          review_result: `Рассмотрение материалов по дополнению ${a + 1}`,
+          rejection_date: randomInt(1, 5) > 3 ? addDate : undefined,
+          rejection_reason: randomInt(1, 5) > 4 ? 'Причина отказа' : undefined,
+          appeal_date: undefined,
+          case_date: addDate,
+          case_number: `УД-${randomInt(100, 999)}/${year}`,
+          law_article: `ст. ${randomInt(158, 165)} УК РФ`,
+          initiator: `Инициатор ${randomInt(1, 10)}`,
+          subject: `Субъект преступления по дополнению ${a + 1}`,
+          detained_count: randomInt(0, 3),
+          person_name: `ФИО привлекаемого ${i}_${a}`,
+          case_result: `Результат рассмотрения по дополнению ${a + 1}`,
+          court_decision: `Решение суда по делу ${a + 1}`,
+          convicted_count: randomInt(0, 2),
+        };
+        await CriminalCase.create(criminalCaseData);
+
+        const punishmentData: PunishmentCreationAttributes = {
+          additionally_id: addition.id,
+          guilty_persons_count: randomInt(1, 4),
+          employees_involved_count: randomInt(0, 2),
+          detained_persons_count: randomInt(0, 2),
+          measures_taken_count: randomInt(1, 5),
+          warning_letter_rp398: randomInt(0, 2),
+          remark: randomInt(0, 2),
+          reprimand: randomInt(0, 2),
+          dismissed_count: randomInt(0, 1),
+        };
+        await Punishment.create(punishmentData);
+
+        for (let p = 0; p < 2; p++) {
+          const personBirthYear = year - randomInt(25, 55);
+          const personData: AdditionallyPersonCreationAttributes = {
+            additionally_id: addition.id,
+            last_name: `ФамилияФ${i}_${a}_${p}`,
+            first_name: `ИмяФ${i}_${a}_${p}`,
+            middle_name: `ОтчФ${i}_${a}_${p}`,
+            birth_date: new Date(personBirthYear, randomInt(0, 11), randomInt(1, 28)),
+            employee_number: `TN-${randomInt(1000, 9999)}-${p}`,
+          };
+          await AdditionallyPerson.create(personData);
+        }
+      }
     }
-    console.log(`✅ Создано инцидентов: ${incidents.length}\n`);
+    console.log(`✅ Создано инцидентов: ${incidents.length} (у каждого минимум ${ADDITIONS_PER_INCIDENT} дополнения со всеми полями)\n`);
 
     // Создаем события
     console.log('📝 Создание событий...');
@@ -110,12 +215,16 @@ async function seedReportData() {
         department_id: randomElement(departmentIds),
         date: date,
         is_service_investigation: true,
+        is_service_investigation_ib: false,
+        is_service_investigation_bpio: false,
+        is_service_investigation_bpio_hotline: false,
         is_service_check: false,
         is_service_check_ib: false,
+        is_service_check_bpio: false,
+        is_service_check_bpio_hotline: false,
         is_verification_activity: false,
         is_db: false,
         description: `Служебное расследование ${i + 1}`,
-        // Всегда ненулевые значения
         detected_damage: randomInt(10000, 500000),
         recovered_damage: randomInt(5000, 200000),
         prevented_damage: randomInt(15000, 800000),
@@ -126,7 +235,6 @@ async function seedReportData() {
 
       const event = await Event.create(eventData);
 
-      // Устанавливаем createdAt и updatedAt вручную через SQL
       const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')} 12:00:00`;
       await sequelize.query(
         `UPDATE events SET "createdAt" = '${dateStr}', "updatedAt" = '${dateStr}' WHERE id = ${event.id}`
@@ -146,8 +254,13 @@ async function seedReportData() {
         department_id: randomElement(departmentIds),
         date: date,
         is_service_investigation: false,
+        is_service_investigation_ib: false,
+        is_service_investigation_bpio: false,
+        is_service_investigation_bpio_hotline: false,
         is_service_check: true,
         is_service_check_ib: false,
+        is_service_check_bpio: false,
+        is_service_check_bpio_hotline: false,
         is_verification_activity: false,
         is_db: false,
         description: `Служебная проверка ${i + 1}`,
@@ -161,7 +274,6 @@ async function seedReportData() {
 
       const event = await Event.create(eventData);
 
-      // Устанавливаем createdAt и updatedAt вручную через SQL
       const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')} 12:00:00`;
       await sequelize.query(
         `UPDATE events SET "createdAt" = '${dateStr}', "updatedAt" = '${dateStr}' WHERE id = ${event.id}`
@@ -181,8 +293,13 @@ async function seedReportData() {
         department_id: randomElement(departmentIds),
         date: date,
         is_service_investigation: false,
+        is_service_investigation_ib: false,
+        is_service_investigation_bpio: false,
+        is_service_investigation_bpio_hotline: false,
         is_service_check: false,
         is_service_check_ib: true,
+        is_service_check_bpio: false,
+        is_service_check_bpio_hotline: false,
         is_verification_activity: false,
         is_db: false,
         description: `Служебная проверка по ИБ ${i + 1}`,
@@ -196,7 +313,6 @@ async function seedReportData() {
 
       const event = await Event.create(eventData);
 
-      // Устанавливаем createdAt и updatedAt вручную через SQL
       const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')} 12:00:00`;
       await sequelize.query(
         `UPDATE events SET "createdAt" = '${dateStr}', "updatedAt" = '${dateStr}' WHERE id = ${event.id}`
@@ -216,8 +332,13 @@ async function seedReportData() {
         department_id: randomElement(departmentIds),
         date: date,
         is_service_investigation: false,
+        is_service_investigation_ib: false,
+        is_service_investigation_bpio: false,
+        is_service_investigation_bpio_hotline: false,
         is_service_check: false,
         is_service_check_ib: false,
+        is_service_check_bpio: false,
+        is_service_check_bpio_hotline: false,
         is_verification_activity: true,
         is_db: false,
         description: `Проверочное мероприятие ${i + 1}`,
@@ -231,7 +352,6 @@ async function seedReportData() {
 
       const event = await Event.create(eventData);
 
-      // Устанавливаем createdAt и updatedAt вручную через SQL
       const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')} 12:00:00`;
       await sequelize.query(
         `UPDATE events SET "createdAt" = '${dateStr}', "updatedAt" = '${dateStr}' WHERE id = ${event.id}`
@@ -251,8 +371,13 @@ async function seedReportData() {
         department_id: randomElement(departmentIds),
         date: date,
         is_service_investigation: false,
+        is_service_investigation_ib: false,
+        is_service_investigation_bpio: false,
+        is_service_investigation_bpio_hotline: false,
         is_service_check: false,
         is_service_check_ib: false,
+        is_service_check_bpio: false,
+        is_service_check_bpio_hotline: false,
         is_verification_activity: false,
         is_db: false,
         description: `Событие с финансовыми данными ${i + 1}`,
@@ -266,7 +391,6 @@ async function seedReportData() {
 
       const event = await Event.create(eventData);
 
-      // Устанавливаем createdAt и updatedAt вручную через SQL
       const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')} 12:00:00`;
       await sequelize.query(
         `UPDATE events SET "createdAt" = '${dateStr}', "updatedAt" = '${dateStr}' WHERE id = ${event.id}`

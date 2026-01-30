@@ -1,0 +1,335 @@
+.container {
+  padding: 24px;
+  max-width: 1600px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 50%, #f1f5f9 100%);
+}
+
+.topBar {
+  margin-bottom: 8px;
+}
+
+.backBtn {
+  color: #64748b;
+  font-weight: 500;
+  padding-left: 0;
+
+  &:hover {
+    color: #1e3c72;
+  }
+
+  :global(.anticon) {
+    margin-right: 6px;
+  }
+}
+
+.pageTitleBlock {
+  margin-bottom: 24px;
+
+  .pageSubtitle {
+    display: block;
+    margin-top: 4px;
+    margin-left: 1px;
+    font-size: 14px;
+  }
+}
+
+.filtersCard {
+  margin-bottom: 24px;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(30, 60, 114, 0.06);
+  overflow: hidden;
+
+  :global(.ant-card-body) {
+    padding: 24px 28px;
+  }
+
+  .filterLabel {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    font-weight: 600;
+    color: #334155;
+    font-size: 14px;
+
+    :global(.anticon) {
+      color: #64748b;
+      font-size: 16px;
+    }
+  }
+
+  .rangePicker {
+    width: 100%;
+    border-radius: 10px;
+
+    :global(.ant-picker) {
+      border-radius: 10px;
+      border-color: #e2e8f0;
+      transition: border-color 0.2s, box-shadow 0.2s;
+
+      &:hover,
+      &:focus {
+        border-color: #2a5298;
+        box-shadow: 0 0 0 2px rgba(42, 82, 152, 0.12);
+      }
+    }
+  }
+
+  .treeSelect {
+    width: 100%;
+    border-radius: 10px;
+
+    :global(.ant-select-selector) {
+      border-radius: 10px !important;
+      border-color: #e2e8f0 !important;
+      min-height: 40px !important;
+      padding: 4px 11px !important;
+
+      &:hover {
+        border-color: #2a5298 !important;
+      }
+    }
+
+    :global(.ant-select-focused .ant-select-selector) {
+      border-color: #2a5298 !important;
+      box-shadow: 0 0 0 2px rgba(42, 82, 152, 0.12) !important;
+    }
+  }
+}
+
+.emptyStateCard {
+  margin-bottom: 24px;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(30, 60, 114, 0.06);
+
+  :global(.ant-card-body) {
+    padding: 64px 24px;
+  }
+
+  :global(.ant-empty-description) {
+    color: #64748b;
+    font-size: 15px;
+    max-width: 360px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+}
+
+.tableCard {
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(30, 60, 114, 0.06);
+  overflow: hidden;
+
+  :global(.ant-card-body) {
+    padding: 24px 28px;
+  }
+}
+
+.toolbar {
+  margin-bottom: 20px;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+
+  .toolbarDivider {
+    color: #cbd5e1;
+    font-weight: 300;
+    user-select: none;
+  }
+
+  :global(.ant-btn-primary) {
+    box-shadow: 0 2px 8px rgba(42, 82, 152, 0.25);
+  }
+
+  :global(.ant-tag) {
+    margin-right: 0;
+  }
+}
+
+.columnHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+
+  .columnActions {
+    opacity: 0.7;
+
+    :global(.ant-btn-link) {
+      padding: 0 4px;
+      color: #64748b;
+      font-size: 12px;
+
+      &:hover {
+        color: #1e3c72;
+      }
+    }
+  }
+}
+
+.groupHeaderTitle {
+  justify-content: center;
+}
+
+.fieldCell {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+
+  :global(.ant-checkbox-wrapper) {
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  span:last-child {
+    word-break: break-word;
+    line-height: 1.45;
+  }
+}
+
+.cellValue {
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  color: #334155;
+}
+
+.selectedCol {
+  background: linear-gradient(90deg, rgba(42, 82, 152, 0.04) 0%, rgba(42, 82, 152, 0.08) 100%);
+}
+
+.selectedRow {
+  background: linear-gradient(90deg, rgba(42, 82, 152, 0.06) 0%, rgba(42, 82, 152, 0.02) 100%) !important;
+
+  &:hover {
+    background: linear-gradient(90deg, rgba(42, 82, 152, 0.1) 0%, rgba(42, 82, 152, 0.04) 100%) !important;
+  }
+}
+
+.table {
+  :global(.ant-table) {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+  }
+
+  :global(.ant-table-thead > tr > th) {
+    background: linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%) !important;
+    font-weight: 600;
+    color: #334155;
+    border-right: 1px solid #cbd5e1;
+    border-bottom: 1px solid #cbd5e1;
+    padding: 14px 16px;
+
+    &:last-child {
+      border-right: none;
+    }
+  }
+
+  :global(.ant-table-thead > tr:last-child > th) {
+    border-bottom: 2px solid #94a3b8;
+  }
+
+  :global(.ant-table-tbody > tr > td) {
+    padding: 12px 16px;
+    border-right: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
+    transition: background 0.15s ease;
+
+    &:last-child {
+      border-right: none;
+    }
+  }
+
+  :global(.ant-table-tbody > tr:nth-child(odd) > td) {
+    background: #ffffff;
+  }
+
+  :global(.ant-table-tbody > tr:nth-child(even) > td) {
+    background: #f8fafc;
+  }
+
+  :global(.ant-table-tbody > tr:hover > td) {
+    background: #f1f5f9 !important;
+  }
+
+  :global(.ant-table-tbody > tr.ant-table-row-selected > td),
+  :global(.ant-table-tbody > tr.selectedRow > td) {
+    background: linear-gradient(90deg, rgba(42, 82, 152, 0.06) 0%, transparent 100%) !important;
+  }
+
+  :global(.ant-table-pagination) {
+    margin: 20px 0 0 !important;
+    padding-top: 16px;
+    border-top: 1px solid #e2e8f0;
+  }
+}
+
+.tableEmpty {
+  padding: 48px 24px;
+
+  :global(.ant-empty-description) {
+    color: #64748b;
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 16px;
+  }
+
+  .filtersCard :global(.ant-card-body),
+  .tableCard :global(.ant-card-body) {
+    padding: 20px 20px;
+  }
+
+  .toolbar {
+    padding: 12px 16px;
+
+    :global(.ant-space) {
+      width: 100%;
+    }
+
+    :global(.ant-btn) {
+      width: 100%;
+    }
+  }
+
+  .columnHeader .columnActions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 576px) {
+  .container {
+    padding: 12px;
+  }
+
+  .backBtn {
+    font-size: 13px;
+  }
+
+  .pageTitleBlock .pageSubtitle {
+    font-size: 13px;
+  }
+}
+
+.totalColumn {
+  background-color: #f3f4f6 !important;
+  font-weight: 600 !important;
+
+  :global(.ant-table-cell) {
+    background-color: #f3f4f6 !important;
+  }
+}
+
+.totalValue {
+  font-weight: 600;
+  color: #1e3c72;
+  font-size: 14px;
+}

@@ -18,6 +18,7 @@ import { EventsList } from "../pages/EventsList/EventsList";
 import { EventProvider } from "../pages/EventProvider/EventProvider";
 import { EventView } from "../pages/EventView/EventView";
 import { Reports } from "../pages/Reports/Reports";
+import { ReportGenerator } from "../pages/Reports/ReportGenerator/ReportGenerator";
 
 export const router = createBrowserRouter([
   {
@@ -99,6 +100,10 @@ export const router = createBrowserRouter([
       {
         path: ERoutes.REPORTS,
         element: <Reports />,
+      },
+      {
+        path: ERoutes.REPORT_GENERATOR,
+        element: <ReportGenerator />,
       },
     ],
   },

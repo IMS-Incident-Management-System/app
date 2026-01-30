@@ -50,6 +50,7 @@ interface CreateIncidentBody {
     first_name?: string;
     middle_name?: string;
     employee_number?: string;
+    outcome_type?: 'injury' | 'fatal';
   }>;
   additionally: Array<{
     id?: number; // ID записи (исключается при создании)
@@ -81,6 +82,8 @@ interface CreateIncidentBody {
     };
     punishment?: {
       guilty_persons_count?: number;
+      employees_involved_count?: number;
+      detained_persons_count?: number;
       measures_taken_count?: number;
       warning_letter_rp398?: number;
       remark?: number;

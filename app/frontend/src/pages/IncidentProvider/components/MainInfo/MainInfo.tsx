@@ -1,4 +1,4 @@
-import { Form, Select, TreeSelect, DatePicker, Input, InputNumber, Row, Col, Card, Divider, Button, Space } from "antd";
+import { Form, Select, TreeSelect, DatePicker, Input, InputNumber, Row, Col, Card, Divider, Button, Space, Radio } from "antd";
 import { PlusOutlined, MinusCircleOutlined } from "@ant-design/icons";
 import { useGetDepartments } from "../../../../services/requests/departments/getDepartments";
 import { useGetObjectTypes } from "../../../../services/requests/objectTypes/getObjectTypes";
@@ -283,6 +283,20 @@ export const MainInfo = () => {
                         name={[name, "employee_number"]}
                       >
                         <Input placeholder="Введите табельный номер" />
+                      </Form.Item>
+                    </Col>
+                  </Row>
+                  <Row gutter={[16, 16]}>
+                    <Col xs={24} sm={12} lg={12}>
+                      <Form.Item
+                        {...restField}
+                        label="Травма / Смертельный исход"
+                        name={[name, "outcome_type"]}
+                      >
+                        <Radio.Group>
+                          <Radio value="injury">Травма</Radio>
+                          <Radio value="fatal">Смертельный исход</Radio>
+                        </Radio.Group>
                       </Form.Item>
                     </Col>
                   </Row>

@@ -144,5 +144,7 @@ router.post('/profile/photo', verifyToken, upload.single('file'), uploadProfileP
 // Report routes
 router.post('/reports/generate', reportController.generateReport);
 router.get('/reports/fields', reportController.getAvailableFields);
+router.post('/reports/table', reportController.getReportTable);
+router.post('/reports/export', reportController.exportReport);
 
 export default router;

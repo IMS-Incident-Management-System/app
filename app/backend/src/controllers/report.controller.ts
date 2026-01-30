@@ -2,6 +2,37 @@ import { Request } from 'express';
 import { asyncErrorHandler } from '../middlewares/errorHandler.middleware';
 import { CustomResponse } from '../middlewares/responseHandler.middleware';
 import { reportService } from '../services/report.service';
+import { REPORT_FIELDS } from '../constants/reportFields';
+
+// Хранилище активных запросов для отмены предыдущих при поступлении новых
+interface ActiveRequest {
+  abortController: AbortController;
+  key: string;
+  timestamp: number;
+}
+
+// Храним все активные запросы в одном массиве для глобальной отмены
+const allActiveRequests: ActiveRequest[] = [];
+
+// Генерируем ключ для запроса на основе параметров
+function getRequestKey(dateFrom: string, dateTo: string, departmentIds: number[], page: number, limit: number): string {
+  const deptIdsStr = departmentIds.sort((a, b) => a - b).join(',');
+  return `${dateFrom}_${dateTo}_${deptIdsStr}_${page}_${limit}`;
+}
+
+// Отменяем ВСЕ предыдущие активные запросы при новом запросе
+function cancelAllPreviousRequests(): void {
+  if (allActiveRequests.length > 0) {
+    console.log(`[getReportTable] Cancelling ${allActiveRequests.length} previous active request(s) before starting new one`);
+    allActiveRequests.forEach((req, index) => {
+      console.log(`[getReportTable] Aborting request ${index + 1}/${allActiveRequests.length} (age: ${Date.now() - req.timestamp}ms)`);
+      req.abortController.abort();
+    });
+    allActiveRequests.length = 0; // Очищаем массив
+  } else {
+    console.log('[getReportTable] No previous requests to cancel');
+  }
+}
 
 export const reportController = {
   /**
@@ -47,13 +78,16 @@ export const reportController = {
   }),
 
   /**
-   * Получение списка доступных полей для отчетов
-   * 
-   * ВАЖНО: Названия и группировка полей временные, на основе комментариев из моделей.
-   * После получения информации от клиента о правильных названиях и группировке, 
-   * этот список будет обновлен.
+   * Получение списка доступных полей для отчёта (160 правил РП-053).
+   * key — идентификатор для API (r1..r160), label — название показателя.
    */
   getAvailableFields: asyncErrorHandler(async (req: Request, res: CustomResponse) => {
+    const fields = REPORT_FIELDS.map((def) => ({ key: def.key, label: def.label }));
+    res.success(fields, 'Available fields retrieved successfully');
+  }),
+
+  /** @deprecated Используется getAvailableFields из REPORT_FIELDS; оставлен старый список для совместимости при необходимости */
+  getAvailableFieldsLegacy: asyncErrorHandler(async (req: Request, res: CustomResponse) => {
     const fields = [
       // ========== ИНЦИДЕНТЫ (Incident) ==========
       { entity: 'incident', field: 'is_db', label: 'Особо важно (1ДБ) - инциденты', group: '1', groupName: 'Проведение мероприятий, проверок и расследований', subgroup: '1.0', subgroupName: 'Инциденты' },
@@ -65,8 +99,13 @@ export const reportController = {
 
       // ========== СОБЫТИЯ (Event) ==========
       { entity: 'event', field: 'is_service_investigation', label: 'Проведено служебных расследований (СР)', group: '1', groupName: 'Проведение мероприятий, проверок и расследований', subgroup: '1.1', subgroupName: 'Проведено служебных проверок и расследований', subsubgroup: '1.1.1' },
-      { entity: 'event', field: 'is_service_check', label: 'Проведено служебных проверок (СП)', group: '1', groupName: 'Проведение мероприятий, проверок и расследований', subgroup: '1.1', subgroupName: 'Проведено служебных проверок и расследований', subsubgroup: '1.1.2' },
-      { entity: 'event', field: 'is_service_check_ib', label: 'Проведено служебных проверок по ИБ (СП ИБ)', group: '1', groupName: 'Проведение мероприятий, проверок и расследований', subgroup: '1.1', subgroupName: 'Проведено служебных проверок и расследований', subsubgroup: '1.1.3' },
+      { entity: 'event', field: 'is_service_investigation_ib', label: 'Проведено служебных расследований по ИБ (СР ИБ)', group: '1', groupName: 'Проведение мероприятий, проверок и расследований', subgroup: '1.1', subgroupName: 'Проведено служебных проверок и расследований', subsubgroup: '1.1.2' },
+      { entity: 'event', field: 'is_service_investigation_bpio', label: 'Проведено служебных расследований БПиО (СР БПиО)', group: '1', groupName: 'Проведение мероприятий, проверок и расследований', subgroup: '1.1', subgroupName: 'Проведено служебных проверок и расследований', subsubgroup: '1.1.3' },
+      { entity: 'event', field: 'is_service_investigation_bpio_hotline', label: 'Проведено служебных расследований БПиО (горячая линия)', group: '1', groupName: 'Проведение мероприятий, проверок и расследований', subgroup: '1.1', subgroupName: 'Проведено служебных проверок и расследований', subsubgroup: '1.1.4' },
+      { entity: 'event', field: 'is_service_check', label: 'Проведено служебных проверок (СП)', group: '1', groupName: 'Проведение мероприятий, проверок и расследований', subgroup: '1.1', subgroupName: 'Проведено служебных проверок и расследований', subsubgroup: '1.1.5' },
+      { entity: 'event', field: 'is_service_check_ib', label: 'Проведено служебных проверок по ИБ (СП ИБ)', group: '1', groupName: 'Проведение мероприятий, проверок и расследований', subgroup: '1.1', subgroupName: 'Проведено служебных проверок и расследований', subsubgroup: '1.1.6' },
+      { entity: 'event', field: 'is_service_check_bpio', label: 'Проведено служебных проверок БПиО (СП БПиО)', group: '1', groupName: 'Проведение мероприятий, проверок и расследований', subgroup: '1.1', subgroupName: 'Проведено служебных проверок и расследований', subsubgroup: '1.1.7' },
+      { entity: 'event', field: 'is_service_check_bpio_hotline', label: 'Проведено служебных проверок БПиО (горячая линия)', group: '1', groupName: 'Проведение мероприятий, проверок и расследований', subgroup: '1.1', subgroupName: 'Проведено служебных проверок и расследований', subsubgroup: '1.1.8' },
       { entity: 'event', field: 'is_verification_activity', label: 'Проведено проверочных мероприятий (ПМ)', group: '1', groupName: 'Проведение мероприятий, проверок и расследований', subgroup: '1.3', subgroupName: 'Проведено проверочных мероприятий (ПМ) в рамках' },
       { entity: 'event', field: 'is_db', label: 'Особо важно (1ДБ) - события', group: '1', groupName: 'Проведение мероприятий, проверок и расследований', subgroup: '1.0', subgroupName: 'События' },
       { entity: 'event', field: 'detected_damage', label: 'Выявлен ущерб (руб.) - события', group: '1', groupName: 'Проведение мероприятий, проверок и расследований', subgroup: '1.4', subgroupName: 'Выявлен ущерб (руб.)' },
@@ -87,7 +126,6 @@ export const reportController = {
       { entity: 'operationalActivity', field: 'available_vat', label: 'Общая сумма доступного к возмещению, но не возмещенного НДС', group: '2', groupName: 'Работа по возмещению ДЗ и НДС', subgroup: '2.4', subgroupName: 'Общая сумма доступного к возмещению, но не возмещенного НДС' },
       { entity: 'operationalActivity', field: 'vat_assistance', label: 'Содействие в получении документов для возмещения НДС', group: '2', groupName: 'Работа по возмещению ДЗ и НДС', subgroup: '2.5', subgroupName: 'Содействие в получении документов для возмещения НДС' },
       { entity: 'operationalActivity', field: 'written_off_debt', label: 'Общий размер списанной дебиторской задолженности', group: '2', groupName: 'Работа по возмещению ДЗ и НДС', subgroup: '2.6', subgroupName: 'Общий размер списанной дебиторской задолженности' },
-      { entity: 'operationalActivity', field: 'prevented_writeoff', label: 'Предотвращено фактов необоснованного списания', group: '2', groupName: 'Работа по возмещению ДЗ и НДС', subgroup: '2.7', subgroupName: 'Предотвращено фактов необоснованного списания' },
 
       // ЭБ - Взаимодействие с правоохранительными органами (LAW_ENFORCEMENT)
       { entity: 'operationalActivity', field: 'incoming_requests', label: 'Поступило входящих запросов', group: '2', groupName: 'Взаимодействие с правоохранительными органами', subgroup: '2.8', subgroupName: 'Взаимодействие с правоохранительными органами' },
@@ -110,7 +148,6 @@ export const reportController = {
       { entity: 'operationalActivity', field: 'single_source_count', label: 'использован способ "единственный источник" (кол-во)', group: '3', groupName: 'Контроль инвестиционной, закупочной и договорной деятельности', subgroup: '3.5', subgroupName: 'Бюджет и закупки' },
       { entity: 'operationalActivity', field: 'procurement_procedures_sum', label: 'Проведено закупочных процедур на сумму (руб.)', group: '3', groupName: 'Контроль инвестиционной, закупочной и договорной деятельности', subgroup: '3.5', subgroupName: 'Бюджет и закупки' },
       { entity: 'operationalActivity', field: 'single_source_sum', label: 'использован способ "единственный источник" на сумму (руб.)', group: '3', groupName: 'Контроль инвестиционной, закупочной и договорной деятельности', subgroup: '3.5', subgroupName: 'Бюджет и закупки' },
-      { entity: 'operationalActivity', field: 'cost_reduction', label: 'Снижена стоимость товаров, работ и услуг (руб.)', group: '3', groupName: 'Контроль инвестиционной, закупочной и договорной деятельности', subgroup: '3.5', subgroupName: 'Бюджет и закупки' },
 
       // ЭБ - Работа по выявлению признаков аффилированности (AFFILIATION)
       { entity: 'operationalActivity', field: 'checked_employees', label: 'Проверено сотрудников', group: '4', groupName: 'Работа по выявлению признаков аффилированности', subgroup: '4.1', subgroupName: 'Проверка сотрудников и кандидатов' },
@@ -183,8 +220,10 @@ export const reportController = {
       { entity: 'operationalActivity', field: 'staff_count', label: 'Штатное количество сотрудников', group: '7', groupName: 'БПиО - Штатное количество сотрудников', subgroup: '7.1', subgroupName: 'Штат' },
 
       // БПиО - Количество объектов (OBJECTS_COUNT)
+      { entity: 'operationalActivity', field: 'objects_count', label: 'Количество объектов', group: '7', groupName: 'БПиО - Количество объектов', subgroup: '7.1', subgroupName: 'Количество объектов' },
       { entity: 'operationalActivity', field: 'objects_physical_security', label: 'Объектов под физической охраной', group: '7', groupName: 'БПиО - Количество объектов', subgroup: '7.2', subgroupName: 'Объекты' },
       { entity: 'operationalActivity', field: 'objects_panel_security', label: 'Объектов под пультовой охраной', group: '7', groupName: 'БПиО - Количество объектов', subgroup: '7.2', subgroupName: 'Объекты' },
+      { entity: 'operationalActivity', field: 'categorized_rooms_count', label: 'Количество категорированных помещений', group: '7', groupName: 'БПиО - Количество объектов', subgroup: '7.2', subgroupName: 'Объекты' },
 
       // БПиО - Бюджет на усиление АТЗ (CAPEX_BUDGET)
       { entity: 'operationalActivity', field: 'capex_allocated', label: 'Сумма выделенного бюджета на год (руб.)', group: '7', groupName: 'БПиО - Бюджет на усиление АТЗ', subgroup: '7.3', subgroupName: 'Бюджет АТЗ' },
@@ -205,38 +244,6 @@ export const reportController = {
       { entity: 'operationalActivity', field: 'chop_checks', label: 'Проведено проверок несения службы', group: '7', groupName: 'БПиО - Взаимодействие с ЧОП/ЧОО', subgroup: '7.7', subgroupName: 'Взаимодействие с ЧОП/ЧОО' },
       { entity: 'operationalActivity', field: 'chop_claims', label: 'Подготовлено претензий', group: '7', groupName: 'БПиО - Взаимодействие с ЧОП/ЧОО', subgroup: '7.7', subgroupName: 'Взаимодействие с ЧОП/ЧОО' },
 
-      // БПиО - Проникновение на объект (INTRUSION)
-      { entity: 'operationalActivity', field: 'intrusion_total', label: 'Количество случаев (попыток) проникновения', group: '7', groupName: 'БПиО - Проникновение на объект', subgroup: '7.8', subgroupName: 'Проникновение' },
-      { entity: 'operationalActivity', field: 'intrusion_not_prevented', label: 'Не предотвращено', group: '7', groupName: 'БПиО - Проникновение на объект', subgroup: '7.8', subgroupName: 'Проникновение' },
-      { entity: 'operationalActivity', field: 'intrusion_prevented', label: 'Предотвращено', group: '7', groupName: 'БПиО - Проникновение на объект', subgroup: '7.8', subgroupName: 'Проникновение' },
-      { entity: 'operationalActivity', field: 'intrusion_detained', label: 'Задержаны лица', group: '7', groupName: 'БПиО - Проникновение на объект', subgroup: '7.8', subgroupName: 'Проникновение' },
-      { entity: 'operationalActivity', field: 'intrusion_damage', label: 'Установлена сумма причиненного ущерба (руб.)', group: '7', groupName: 'БПиО - Проникновение на объект', subgroup: '7.8', subgroupName: 'Проникновение' },
-      { entity: 'operationalActivity', field: 'intrusion_prevented_damage', label: 'Предотвращен ущерб (руб.)', group: '7', groupName: 'БПиО - Проникновение на объект', subgroup: '7.8', subgroupName: 'Проникновение' },
-      { entity: 'operationalActivity', field: 'intrusion_recovered', label: 'Возмещен ущерб (руб.)', group: '7', groupName: 'БПиО - Проникновение на объект', subgroup: '7.8', subgroupName: 'Проникновение' },
-      { entity: 'operationalActivity', field: 'intrusion_employees', label: 'Установлено сотрудников, причастных', group: '7', groupName: 'БПиО - Проникновение на объект', subgroup: '7.8', subgroupName: 'Проникновение' },
-      { entity: 'operationalActivity', field: 'intrusion_penalties', label: 'Наложено дисциплинарных взысканий', group: '7', groupName: 'БПиО - Проникновение на объект', subgroup: '7.8', subgroupName: 'Проникновение' },
-      { entity: 'operationalActivity', field: 'intrusion_dismissals', label: 'Уволено с работы', group: '7', groupName: 'БПиО - Проникновение на объект', subgroup: '7.8', subgroupName: 'Проникновение' },
-      { entity: 'operationalActivity', field: 'intrusion_materials', label: 'Передано материалов в ПОО', group: '7', groupName: 'БПиО - Проникновение на объект', subgroup: '7.8', subgroupName: 'Проникновение' },
-      { entity: 'operationalActivity', field: 'intrusion_cases_opened', label: 'Возбуждено уголовных дел', group: '7', groupName: 'БПиО - Проникновение на объект', subgroup: '7.8', subgroupName: 'Проникновение' },
-      { entity: 'operationalActivity', field: 'intrusion_cases_closed', label: 'Окончено уголовных дел', group: '7', groupName: 'БПиО - Проникновение на объект', subgroup: '7.8', subgroupName: 'Проникновение' },
-
-      // БПиО - Нападение на объект/сотрудников (ATTACK)
-      { entity: 'operationalActivity', field: 'attack_total', label: 'Количество случаев нападения', group: '7', groupName: 'БПиО - Нападение на объект/сотрудников', subgroup: '7.9', subgroupName: 'Нападение' },
-      { entity: 'operationalActivity', field: 'attack_not_prevented', label: 'Не предотвращено', group: '7', groupName: 'БПиО - Нападение на объект/сотрудников', subgroup: '7.9', subgroupName: 'Нападение' },
-      { entity: 'operationalActivity', field: 'attack_prevented', label: 'Предотвращено', group: '7', groupName: 'БПиО - Нападение на объект/сотрудников', subgroup: '7.9', subgroupName: 'Нападение' },
-      { entity: 'operationalActivity', field: 'attack_detained', label: 'Задержаны лица', group: '7', groupName: 'БПиО - Нападение на объект/сотрудников', subgroup: '7.9', subgroupName: 'Нападение' },
-      { entity: 'operationalActivity', field: 'attack_damage', label: 'Установлена сумма причиненного ущерба (руб.)', group: '7', groupName: 'БПиО - Нападение на объект/сотрудников', subgroup: '7.9', subgroupName: 'Нападение' },
-      { entity: 'operationalActivity', field: 'attack_prevented_damage', label: 'Предотвращен ущерб (руб.)', group: '7', groupName: 'БПиО - Нападение на объект/сотрудников', subgroup: '7.9', subgroupName: 'Нападение' },
-      { entity: 'operationalActivity', field: 'attack_recovered', label: 'Возмещен ущерб (руб.)', group: '7', groupName: 'БПиО - Нападение на объект/сотрудников', subgroup: '7.9', subgroupName: 'Нападение' },
-      { entity: 'operationalActivity', field: 'attack_employees', label: 'Установлено сотрудников, причастных', group: '7', groupName: 'БПиО - Нападение на объект/сотрудников', subgroup: '7.9', subgroupName: 'Нападение' },
-      { entity: 'operationalActivity', field: 'attack_penalties', label: 'Наложено дисциплинарных взысканий', group: '7', groupName: 'БПиО - Нападение на объект/сотрудников', subgroup: '7.9', subgroupName: 'Нападение' },
-      { entity: 'operationalActivity', field: 'attack_dismissals', label: 'Уволено с работы', group: '7', groupName: 'БПиО - Нападение на объект/сотрудников', subgroup: '7.9', subgroupName: 'Нападение' },
-      { entity: 'operationalActivity', field: 'attack_materials', label: 'Передано материалов в ПОО', group: '7', groupName: 'БПиО - Нападение на объект/сотрудников', subgroup: '7.9', subgroupName: 'Нападение' },
-      { entity: 'operationalActivity', field: 'attack_cases_opened', label: 'Возбуждено уголовных дел', group: '7', groupName: 'БПиО - Нападение на объект/сотрудников', subgroup: '7.9', subgroupName: 'Нападение' },
-      { entity: 'operationalActivity', field: 'attack_cases_closed', label: 'Окончено уголовных дел', group: '7', groupName: 'БПиО - Нападение на объект/сотрудников', subgroup: '7.9', subgroupName: 'Нападение' },
-
-      // БПиО - Проведено проверок и СР (INVESTIGATIONS)
-      { entity: 'operationalActivity', field: 'investigations_count', label: 'Проведено проверок и СР', group: '7', groupName: 'БПиО - Проведено проверок и СР', subgroup: '7.10', subgroupName: 'Проверки и СР' },
 
       // КБ - Взаимодействие с правоохранительными органами (LAW_ENFORCEMENT)
       { entity: 'operationalActivity', field: 'cyber_incoming_paper_requests', label: 'Поступило входящих бумажных запросов ПОО на предоставление информации', group: '8', groupName: 'КБ - Взаимодействие с правоохранительными органами', subgroup: '8.1', subgroupName: 'Взаимодействие с ПОО' },
@@ -247,5 +254,181 @@ export const reportController = {
     ];
 
     res.success(fields, 'Available fields retrieved successfully');
-  })
+  }),
+
+  /**
+   * Получение данных таблицы отчетов с пагинацией
+   */
+  getReportTable: asyncErrorHandler(async (req: Request, res: CustomResponse) => {
+    console.log('[getReportTable] Request started', { dateFrom: req.body.dateFrom, dateTo: req.body.dateTo });
+    
+    const { dateFrom, dateTo, departmentIds, page = 1, limit = 50 } = req.body;
+
+    if (!dateFrom || !dateTo) {
+      return res.status(400).json({
+        success: false,
+        message: 'Необходимо указать dateFrom и dateTo'
+      });
+    }
+
+    const ids = Array.isArray(departmentIds) && departmentIds.length > 0
+      ? departmentIds.map((id: any) => Number(id))
+      : [];
+
+    // Генерируем ключ для этого запроса
+    const requestKey = getRequestKey(dateFrom, dateTo, ids, Number(page), Number(limit));
+    
+    // Отменяем ВСЕ предыдущие активные запросы ДО начала обработки нового
+    // Это гарантирует, что старые запросы не будут продолжаться параллельно
+    cancelAllPreviousRequests();
+
+    // Создаем новый AbortController для этого запроса
+    const abortController = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    
+    // Сохраняем активный запрос в глобальный массив
+    if (abortController) {
+      const requestEntry = { abortController, key: requestKey, timestamp: Date.now() };
+      allActiveRequests.push(requestEntry);
+    }
+    
+    // Устанавливаем обработчик закрытия соединения
+    // НЕ отменяем запрос при закрытии соединения - это может быть преждевременное закрытие
+    // Отменяем только через механизм cancelAllPreviousRequests при новом запросе
+    if (abortController) {
+      const cleanup = () => {
+        const index = allActiveRequests.findIndex(r => r.abortController === abortController);
+        if (index !== -1) {
+          allActiveRequests.splice(index, 1);
+        }
+      };
+      
+      // Только логируем закрытие соединения, но НЕ отменяем запрос
+      // Отмена будет происходить только через cancelAllPreviousRequests при новом запросе
+      req.on('close', () => {
+        console.log('[getReportTable] Request connection closed (not aborting - will check abortSignal in service)');
+        // Не вызываем abort() - пусть сервис проверяет abortSignal
+        // Очищаем из списка активных запросов только если запрос уже завершен
+        // Но не отменяем его, так как это может быть преждевременное закрытие
+      });
+      
+      req.on('aborted', () => {
+        console.log('[getReportTable] Request aborted by client (not aborting - will check abortSignal in service)');
+        // Не вызываем abort() - пусть сервис проверяет abortSignal
+      });
+    }
+
+    try {
+      // Проверяем, не был ли запрос уже отменен перед началом обработки
+      if (abortController?.signal.aborted) {
+        console.log('[getReportTable] Request was already aborted before service call, skipping');
+        const index = allActiveRequests.findIndex(r => r.abortController === abortController);
+        if (index !== -1) {
+          allActiveRequests.splice(index, 1);
+        }
+        return;
+      }
+      
+      console.log('[getReportTable] Starting service call');
+      
+      // Передаем abortSignal в сервис - он будет проверять его в циклах вычислений
+      // Если запрос отменен, вычисления прервутся
+      const result = await reportService.getReportTable({
+        dateFrom: new Date(dateFrom),
+        dateTo: new Date(dateTo),
+        departmentIds: ids,
+        page: Number(page),
+        limit: Number(limit),
+        abortSignal: abortController?.signal,
+      });
+
+      // Удаляем запрос из активных после успешного завершения
+      const index = allActiveRequests.findIndex(r => r.abortController === abortController);
+      if (index !== -1) {
+        allActiveRequests.splice(index, 1);
+      }
+
+      // Проверяем, не был ли запрос отменен во время выполнения
+      if (abortController?.signal.aborted) {
+        console.log('[getReportTable] Request was aborted during computation, not sending response');
+        if (!res.headersSent) {
+          // Не отправляем ответ - соединение уже закрыто клиентом
+          return;
+        }
+        return;
+      }
+
+      console.log('[getReportTable] Sending success response');
+      res.success(result, 'Report table data retrieved successfully');
+    } catch (error: any) {
+      // Удаляем запрос из активных при ошибке
+      if (abortController) {
+        const index = allActiveRequests.findIndex(r => r.abortController === abortController);
+        if (index !== -1) {
+          allActiveRequests.splice(index, 1);
+        }
+      }
+      
+      // Проверяем, не был ли запрос отменен
+      const isAbortError = 
+        error?.name === 'AbortError' || 
+        error?.message === 'Request aborted' || 
+        abortController?.signal.aborted;
+      
+      if (isAbortError) {
+        console.log('[getReportTable] Request aborted, not sending response');
+        // Не отправляем ответ и не пробрасываем ошибку - просто завершаем обработку
+        // Axios сам обработает закрытие соединения на клиенте
+        if (!res.headersSent) {
+          // Просто завершаем без отправки ответа
+          return;
+        }
+        return;
+      }
+      
+      // Для всех остальных ошибок логируем и пробрасываем
+      console.error('[getReportTable] Error:', error.message, error.stack);
+      throw error;
+    }
+  }),
+
+  /**
+   * Выгрузка выбранного разреза в Excel
+   */
+  exportReport: asyncErrorHandler(async (req: Request, res: CustomResponse) => {
+    const { dateFrom, dateTo, departmentIds, fieldKeys } = req.body;
+
+    if (!dateFrom || !dateTo || !departmentIds || !Array.isArray(departmentIds) || !fieldKeys || !Array.isArray(fieldKeys)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Необходимо указать dateFrom, dateTo, departmentIds (массив) и fieldKeys (массив)'
+      });
+    }
+
+    const buffer = await reportService.exportSelectedReport({
+      dateFrom: new Date(dateFrom),
+      dateTo: new Date(dateTo),
+      departmentIds: departmentIds.map((id: any) => Number(id)),
+      fieldKeys: fieldKeys,
+    });
+
+    const monthNames = [
+      'январь', 'февраль', 'март', 'апрель', 'май', 'июнь',
+      'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'
+    ];
+
+    const fromDate = new Date(dateFrom);
+    const toDate = new Date(dateTo);
+    const fromMonth = monthNames[fromDate.getMonth()];
+    const fromYear = fromDate.getFullYear();
+    const toMonth = monthNames[toDate.getMonth()];
+    const toYear = toDate.getFullYear();
+
+    const fileName = fromMonth === toMonth && fromYear === toYear
+      ? `Отчет_${fromMonth}_${fromYear}.xlsx`
+      : `Отчет_${fromMonth}_${fromYear}_${toMonth}_${toYear}.xlsx`;
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(fileName)}"`);
+    res.send(buffer);
+  }),
 };

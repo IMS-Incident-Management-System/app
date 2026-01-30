@@ -70,7 +70,7 @@ BEGIN
     EXECUTE 'COMMENT ON COLUMN events."date" IS ''Дата события''';
     EXECUTE 'COMMENT ON COLUMN events.is_service_investigation IS ''Служебные расследования''';
     EXECUTE 'COMMENT ON COLUMN events.is_service_check IS ''Служебные проверки''';
-    EXECUTE 'COMMENT ON COLUMN events.is_service_check_ib IS ''Служебные проверки по линии ИБ''';
+    EXECUTE 'COMMENT ON COLUMN events.is_service_check_ib IS ''Служебные проверки ИБ''';
     EXECUTE 'COMMENT ON COLUMN events.is_verification_activity IS ''Проверочные мероприятия''';
     IF EXISTS (SELECT FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'events' AND column_name = 'quantity') THEN
       EXECUTE 'COMMENT ON COLUMN events.quantity IS ''Количество – текстовое поле''';

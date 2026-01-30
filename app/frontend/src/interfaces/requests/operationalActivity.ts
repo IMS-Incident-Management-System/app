@@ -92,7 +92,8 @@ export interface OperationalActivityAttributes {
   memos_count?: number;
 
   // ====== ИБ - RISK_MINIMIZATION ======
-  audit_description?: string;
+  audit_security_control_count?: number; // Проведение аудита и контроль защищённости информационной инфраструктуры ИС (кол-во)
+  work_status_result_count?: number; // Описание статуса и/или результата проводимых работ в рамках данной задачи (кол-во)
   scanned_count?: number;
   vulnerabilities_found?: number;
 
@@ -100,9 +101,11 @@ export interface OperationalActivityAttributes {
   ct_ki_description?: string;
   confidential_docs?: number;
   compliance_checks?: number;
+  ct_ki_protection_count?: number; // Реализация режима защиты КТ и КИ (кол-во)
 
   // ====== ИБ - AWARENESS_RAISING ======
   awareness_description?: string;
+  awareness_count?: number; // Повышение осведомленности в области ИБ сотрудников компании (кол-во)
 
   // ====== ИБ - ACCESS_CONTROL ======
   access_control_description?: string;
@@ -137,7 +140,8 @@ export interface OperationalActivityAttributes {
 
   // ====== ИБ - PROJECT_ACTIVITIES ======
   project_status_description?: string;
-  normative_docs_list?: string;
+  normative_docs_update_description?: string; // Актуализация нормативной и справочной документации по линии ИБ (текст)
+  normative_docs_list?: string; // Перечень и статус пересмотренных и/или утвержденных нормативных документов по ИБ (текст)
 
   // ====== ИБ - SYSTEM_OPERATION ======
   support_contracts?: string;
@@ -152,8 +156,10 @@ export interface OperationalActivityAttributes {
   staff_count?: number;
 
   // ====== БПиО - OBJECTS_COUNT ======
+  objects_count?: number;
   objects_physical_security?: number;
   objects_panel_security?: number;
+  categorized_rooms_count?: number; // Количество категорированных помещений
 
   // ====== БПиО - CAPEX_BUDGET ======
   capex_allocated?: number;
