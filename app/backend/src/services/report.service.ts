@@ -93,17 +93,7 @@ export const reportService = {
     const departments = await Department.findAll({
       where: { department_id: { [Op.in]: request.departmentIds } },
     });
-    const departmentMap = new Map(departments.map((d) => [d.department_id, d.title]));
-    const fieldData = new Map<string, Map<number, number>>();
-    const booleanFields = new Set([
-      'is_service_investigation', 'is_service_investigation_ib', 'is_service_investigation_bpio',
-      'is_service_investigation_bpio_hotline', 'is_service_check', 'is_service_check_ib',
-      'is_service_check_bpio', 'is_service_check_bpio_hotline', 'is_verification_activity', 'is_db'
-    ]);
-
-    const dateToEndOfDay = new Date(request.dateTo);
-    dateToEndOfDay.setHours(23, 59, 59, 999);
-
+    
     // Функция для получения всех потомков департамента
     const allDepartmentsForCalc = await Department.findAll();
     const getAllDescendants = (parentId: number): number[] => {
@@ -114,6 +104,55 @@ export const reportService = {
       }
       return result;
     };
+    
+    // Определяем департаменты ПАО МТС (белый список) в заданном порядке
+    const paoMtsDepartmentNames = ['КЦ', 'Москва', 'Центр', 'СЗ', 'Поволжье', 'ЕЦКБ', 'Юг', 'Урал', 'Сибирь', 'ДВ'];
+    const paoMtsIdsForExcel = new Set<number>();
+    const paoMtsNameToId = new Map<string, number>();
+    
+    for (const name of paoMtsDepartmentNames) {
+      const dept = allDepartmentsForCalc.find((d) => d.title === name);
+      if (dept) {
+        paoMtsNameToId.set(name, dept.department_id);
+        getAllDescendants(dept.department_id).forEach(id => paoMtsIdsForExcel.add(id));
+      }
+    }
+    
+    // Сортируем департаменты по заданному порядку ПАО МТС
+    const sortedDepartments = [...departments].sort((a, b) => {
+      const aIndex = paoMtsDepartmentNames.findIndex(name => {
+        const id = paoMtsNameToId.get(name);
+        return id === a.department_id || getAllDescendants(id || 0).includes(a.department_id);
+      });
+      const bIndex = paoMtsDepartmentNames.findIndex(name => {
+        const id = paoMtsNameToId.get(name);
+        return id === b.department_id || getAllDescendants(id || 0).includes(b.department_id);
+      });
+      
+      if (aIndex !== -1 && bIndex !== -1) {
+        return aIndex - bIndex;
+      }
+      if (aIndex !== -1) return -1;
+      if (bIndex !== -1) return 1;
+      return a.title.localeCompare(b.title);
+    });
+    
+    // Проверяем, все ли выбранные департаменты входят в ПАО МТС
+    const allSelectedArePaoMts = sortedDepartments.every(dept => paoMtsIdsForExcel.has(dept.department_id));
+    
+    // Используем отсортированные департаменты
+    const sortedDepartmentIds = sortedDepartments.map(d => d.department_id);
+    
+    const departmentMap = new Map(sortedDepartments.map((d) => [d.department_id, d.title]));
+    const fieldData = new Map<string, Map<number, number>>();
+    const booleanFields = new Set([
+      'is_service_investigation', 'is_service_investigation_ib', 'is_service_investigation_bpio',
+      'is_service_investigation_bpio_hotline', 'is_service_check', 'is_service_check_ib',
+      'is_service_check_bpio', 'is_service_check_bpio_hotline', 'is_verification_activity', 'is_db'
+    ]);
+
+    const dateToEndOfDay = new Date(request.dateTo);
+    dateToEndOfDay.setHours(23, 59, 59, 999);
 
     if (request.fieldKeys && request.fieldKeys.length > 0) {
       const defs = request.fieldKeys
@@ -121,14 +160,14 @@ export const reportService = {
         .filter((f): f is NonNullable<typeof f> => f != null);
       for (const def of defs) {
         const dataMap = new Map<number, number>();
-        for (const departmentId of request.departmentIds) {
+        for (const departmentId of sortedDepartmentIds) {
           // Получаем всех потомков (включая сам департамент)
           const deptWithDescendants = getAllDescendants(departmentId);
           
           // Суммируем значения для департамента и всех его потомков
           let totalValue = 0;
           for (const deptId of deptWithDescendants) {
-            const value = await computeFieldValueByRule(def, deptId, request.dateFrom, dateToEndOfDay);
+            const value = await computeFieldValueByRule(def, deptId, request.dateFrom, dateToEndOfDay, undefined);
             totalValue += value;
           }
           
@@ -140,7 +179,7 @@ export const reportService = {
       for (const field of request.fields) {
         const dataMap = new Map<number, number>();
         const isBooleanField = booleanFields.has(field.field);
-        for (const departmentId of request.departmentIds) {
+        for (const departmentId of sortedDepartmentIds) {
           // Получаем всех потомков (включая сам департамент)
           const deptWithDescendants = getAllDescendants(departmentId);
           let totalValue = 0;
@@ -217,33 +256,33 @@ export const reportService = {
     const titleRow = worksheet.getRow(1);
     titleRow.getCell(1).value = reportTitle;
     titleRow.getCell(1).font = { size: 18, bold: true };
-    worksheet.mergeCells(1, 1, 1, Math.max(1, request.departmentIds.length + 3));
-
-    // Определяем департаменты ПАО МТС (белый список)
-    const paoMtsDepartmentNames = ['КЦ', 'Москва', 'Центр', 'СЗ', 'Поволжье', 'ЕЦКБ', 'Юг', 'Урал', 'Сибирь', 'ДВ'];
-    const paoMtsIdsForExcel = new Set<number>();
-    
-    for (const name of paoMtsDepartmentNames) {
-      const dept = allDepartmentsForCalc.find((d) => d.title === name);
-      if (dept) {
-        // Добавляем департамент и всех его потомков
-        getAllDescendants(dept.department_id).forEach(id => paoMtsIdsForExcel.add(id));
-      }
-    }
+    // Столбец "Показатель" + департаменты + "Итого ГК МТС" (если есть) + "Итого ПАО МТС" (всегда)
+    const totalCols = sortedDepartmentIds.length + 1 + (allSelectedArePaoMts ? 1 : 2);
+    worksheet.mergeCells(1, 1, 1, Math.max(1, totalCols));
 
     const headerRow = worksheet.getRow(2);
     headerRow.getCell(1).value = 'Показатель';
     headerRow.getCell(1).font = { bold: true };
-    request.departmentIds.forEach((deptId, index) => {
+    sortedDepartmentIds.forEach((deptId, index) => {
       headerRow.getCell(index + 2).value = departmentMap.get(deptId) || `Департамент ${deptId}`;
       headerRow.getCell(index + 2).font = { bold: true };
     });
     
     // Добавляем заголовки итоговых столбцов
-    const totalGkCol = request.departmentIds.length + 2;
-    const totalPaoCol = request.departmentIds.length + 3;
-    headerRow.getCell(totalGkCol).value = 'Итого ГК МТС';
-    headerRow.getCell(totalGkCol).font = { bold: true };
+    let totalGkCol = 0;
+    let totalPaoCol = 0;
+    
+    // Столбец "Итого ГК МТС" только если не все департаменты ПАО МТС
+    if (!allSelectedArePaoMts) {
+      totalGkCol = sortedDepartmentIds.length + 2;
+      headerRow.getCell(totalGkCol).value = 'Итого ГК МТС';
+      headerRow.getCell(totalGkCol).font = { bold: true };
+      totalPaoCol = sortedDepartmentIds.length + 3;
+    } else {
+      totalPaoCol = sortedDepartmentIds.length + 2;
+    }
+    
+    // Столбец "Итого ПАО МТС" всегда отображается
     headerRow.getCell(totalPaoCol).value = 'Итого ПАО МТС';
     headerRow.getCell(totalPaoCol).font = { bold: true };
 
@@ -256,45 +295,6 @@ export const reportService = {
         : (request.fields || []).map((f) => ({ label: f.label, dataKey: `${f.entity}.${f.field}` }));
 
     let currentRow = 3;
-    const totalRow = worksheet.getRow(currentRow);
-    totalRow.getCell(1).value = 'ИТОГО';
-    totalRow.getCell(1).font = { bold: true };
-    totalRow.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE8F5E9' } };
-    
-    let grandTotalGk = 0;
-    let grandTotalPao = 0;
-    
-    request.departmentIds.forEach((deptId, index) => {
-      let totalSum = 0;
-      for (const { dataKey } of outputFields) {
-        const dataMap = fieldData.get(dataKey);
-        if (dataMap) totalSum += dataMap.get(deptId) || 0;
-      }
-      const cell = totalRow.getCell(index + 2);
-      cell.value = totalSum;
-      cell.numFmt = '#,##0';
-      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE8F5E9' } };
-      
-      grandTotalGk += totalSum;
-      if (paoMtsIdsForExcel.has(deptId)) {
-        grandTotalPao += totalSum;
-      }
-    });
-    
-    // Итоговые столбцы для строки ИТОГО
-    const totalGkCell = totalRow.getCell(totalGkCol);
-    totalGkCell.value = grandTotalGk;
-    totalGkCell.numFmt = '#,##0';
-    totalGkCell.font = { bold: true };
-    totalGkCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE8F5E9' } };
-    
-    const totalPaoCell = totalRow.getCell(totalPaoCol);
-    totalPaoCell.value = grandTotalPao;
-    totalPaoCell.numFmt = '#,##0';
-    totalPaoCell.font = { bold: true };
-    totalPaoCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE8F5E9' } };
-    
-    currentRow++;
 
     for (const { label, dataKey } of outputFields) {
       const dataRow = worksheet.getRow(currentRow);
@@ -303,7 +303,7 @@ export const reportService = {
       let rowTotalGk = 0;
       let rowTotalPao = 0;
       
-      request.departmentIds.forEach((deptId, index) => {
+      sortedDepartmentIds.forEach((deptId, index) => {
         const value = (fieldData.get(dataKey)?.get(deptId)) ?? 0;
         const cell = dataRow.getCell(index + 2);
         cell.value = value;
@@ -316,12 +316,15 @@ export const reportService = {
       });
       
       // Добавляем итоговые столбцы для каждой строки
-      const rowGkCell = dataRow.getCell(totalGkCol);
-      rowGkCell.value = rowTotalGk;
-      rowGkCell.numFmt = '#,##0';
-      rowGkCell.font = { bold: true };
-      rowGkCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF3F3F3' } };
+      if (!allSelectedArePaoMts && totalGkCol > 0) {
+        const rowGkCell = dataRow.getCell(totalGkCol);
+        rowGkCell.value = rowTotalGk;
+        rowGkCell.numFmt = '#,##0';
+        rowGkCell.font = { bold: true };
+        rowGkCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF3F3F3' } };
+      }
       
+      // Столбец "Итого ПАО МТС" всегда отображается
       const rowPaoCell = dataRow.getCell(totalPaoCol);
       rowPaoCell.value = rowTotalPao;
       rowPaoCell.numFmt = '#,##0';
@@ -333,11 +336,14 @@ export const reportService = {
 
     // Настраиваем ширину столбцов
     worksheet.getColumn(1).width = 60;
-    for (let i = 0; i < request.departmentIds.length; i++) {
+    for (let i = 0; i < sortedDepartmentIds.length; i++) {
       worksheet.getColumn(i + 2).width = 20;
     }
-    // Итоговые столбцы
-    worksheet.getColumn(totalGkCol).width = 20;
+    // Настраиваем ширину итоговых столбцов
+    if (!allSelectedArePaoMts && totalGkCol > 0) {
+      worksheet.getColumn(totalGkCol).width = 20;
+    }
+    // Столбец "Итого ПАО МТС" всегда есть
     worksheet.getColumn(totalPaoCol).width = 20;
 
     // Генерируем буфер
@@ -353,6 +359,7 @@ export const reportService = {
     departments: Array<{ id: number; name: string }>;
     total: number;
     paoMtsDepartmentIds: number[];
+    allSelectedArePaoMts?: boolean;
   }> {
     console.log('[reportService.getReportTable] Starting', { page: request.page, limit: request.limit, departmentIds: request.departmentIds });
     const { dateFrom, dateTo, departmentIds, page, limit } = request;
@@ -362,11 +369,24 @@ export const reportService = {
       ? await Department.findAll({ where: { department_id: { [Op.in]: departmentIds } } })
       : await Department.findAll();
     
+    // Проверяем сигнал отмены после SQL запроса
+    if (request.abortSignal?.aborted) {
+      console.log('[reportService.getReportTable] Abort signal detected after fetching departments');
+      throw new Error('Request aborted');
+    }
+    
     console.log('[reportService.getReportTable] Departments fetched:', departments.length, 'IDs:', departments.map(d => d.department_id));
     
     // Функция для получения всех потомков департамента
     console.log('[reportService.getReportTable] Fetching all departments');
     const allDepartments = await Department.findAll();
+    
+    // Проверяем сигнал отмены после SQL запроса
+    if (request.abortSignal?.aborted) {
+      console.log('[reportService.getReportTable] Abort signal detected after fetching all departments');
+      throw new Error('Request aborted');
+    }
+    
     console.log('[reportService.getReportTable] All departments fetched:', allDepartments.length);
     const getAllDescendants = (parentId: number): number[] => {
       const result = [parentId];
@@ -377,20 +397,47 @@ export const reportService = {
       return result;
     };
     
-    // Определяем департаменты ПАО МТС (белый список)
+    // Определяем департаменты ПАО МТС (белый список) в заданном порядке
     const paoMtsDepartmentNames = ['КЦ', 'Москва', 'Центр', 'СЗ', 'Поволжье', 'ЕЦКБ', 'Юг', 'Урал', 'Сибирь', 'ДВ'];
     const paoMtsIds = new Set<number>(); // Все ID включая потомков - для подсчета total_pao_mts
     const paoMtsMainIds: number[] = []; // Только основные департаменты - для фильтрации
+    const paoMtsNameToId = new Map<string, number>(); // Маппинг названий на ID для сортировки
     
     for (const name of paoMtsDepartmentNames) {
       const dept = allDepartments.find((d) => d.title === name);
       if (dept) {
         // Сохраняем основной департамент
         paoMtsMainIds.push(dept.department_id);
+        paoMtsNameToId.set(name, dept.department_id);
         // Добавляем департамент и всех его потомков для подсчета total_pao_mts
         getAllDescendants(dept.department_id).forEach(id => paoMtsIds.add(id));
       }
     }
+    
+    // Сортируем департаменты по заданному порядку ПАО МТС
+    const sortedDepartments = [...departments].sort((a, b) => {
+      const aIndex = paoMtsDepartmentNames.findIndex(name => {
+        const id = paoMtsNameToId.get(name);
+        return id === a.department_id || getAllDescendants(id || 0).includes(a.department_id);
+      });
+      const bIndex = paoMtsDepartmentNames.findIndex(name => {
+        const id = paoMtsNameToId.get(name);
+        return id === b.department_id || getAllDescendants(id || 0).includes(b.department_id);
+      });
+      
+      // Если оба в списке ПАО МТС, сортируем по индексу
+      if (aIndex !== -1 && bIndex !== -1) {
+        return aIndex - bIndex;
+      }
+      // Если только один в списке, он идет первым
+      if (aIndex !== -1) return -1;
+      if (bIndex !== -1) return 1;
+      // Если оба не в списке, сортируем по названию
+      return a.title.localeCompare(b.title);
+    });
+    
+    // Проверяем, все ли выбранные департаменты входят в ПАО МТС
+    const allSelectedArePaoMts = sortedDepartments.every(dept => paoMtsIds.has(dept.department_id));
     
     const total = REPORT_FIELDS.length;
     const start = (page - 1) * limit;
@@ -416,7 +463,7 @@ export const reportService = {
       let totalGkMts = 0;
       let totalPaoMts = 0;
       
-      for (const dept of departments) {
+      for (const dept of sortedDepartments) {
         // Проверяем сигнал отмены перед обработкой каждого департамента
         if (request.abortSignal?.aborted) {
           console.log(`[reportService.getReportTable] Abort signal detected, stopping computation at dept ${dept.department_id}`);
@@ -434,7 +481,14 @@ export const reportService = {
             console.log(`[reportService.getReportTable] Abort signal detected, stopping computation at dept ${deptId}`);
             throw new Error('Request aborted');
           }
-          const val = await computeFieldValueByRule(def, deptId, dateFrom, dateTo);
+          const val = await computeFieldValueByRule(def, deptId, dateFrom, dateTo, request.abortSignal);
+          
+          // Проверяем сигнал отмены после каждого вычисления
+          if (request.abortSignal?.aborted) {
+            console.log(`[reportService.getReportTable] Abort signal detected after computation for dept ${deptId}`);
+            throw new Error('Request aborted');
+          }
+          
           deptValue += val;
         }
         
@@ -447,7 +501,11 @@ export const reportService = {
         }
       }
       
-      row.total_gk_mts = totalGkMts;
+      // Добавляем total_gk_mts только если не все выбранные департаменты входят в ПАО МТС
+      if (!allSelectedArePaoMts) {
+        row.total_gk_mts = totalGkMts;
+      }
+      // total_pao_mts всегда добавляем
       row.total_pao_mts = totalPaoMts;
       
       rows.push(row);
@@ -457,11 +515,13 @@ export const reportService = {
     console.log('[reportService.getReportTable] All fields processed, returning result');
     const result = {
       rows,
-      departments: departments.map((d) => ({ id: d.department_id, name: d.title })),
+      departments: sortedDepartments.map((d) => ({ id: d.department_id, name: d.title })),
       total,
       // Возвращаем только основные департаменты ПАО МТС (без потомков)
       // Потомки будут получены автоматически через getAllDescendants при фильтрации
       paoMtsDepartmentIds: paoMtsMainIds,
+      // Флаг, указывающий, что все выбранные департаменты входят в ПАО МТС
+      allSelectedArePaoMts,
     };
     console.log('[reportService.getReportTable] Result prepared:', { rowsCount: rows.length, departmentsCount: result.departments.length });
     return result;

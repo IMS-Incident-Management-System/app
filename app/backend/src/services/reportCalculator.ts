@@ -19,6 +19,13 @@ const dateRangeWhere = (dateFrom: Date, dateTo: Date) => {
   return { [Op.between]: [dateFrom, dateToEnd] as [Date, Date] };
 };
 
+// Вспомогательная функция для проверки отмены запроса
+function checkAbortSignal(abortSignal?: AbortSignal): void {
+  if (abortSignal?.aborted) {
+    throw new Error('Request aborted');
+  }
+}
+
 /** Получить id типа события инцидента по названию (и опционально подтипа) */
 async function getIncidentEventTypeIds(
   title: string,
@@ -44,13 +51,18 @@ export async function computeFieldValueByRule(
   def: ReportFieldDef,
   departmentId: number,
   dateFrom: Date,
-  dateTo: Date
+  dateTo: Date,
+  abortSignal?: AbortSignal
 ): Promise<number> {
+  // Проверяем сигнал отмены перед началом вычислений
+  checkAbortSignal(abortSignal);
+  
   const rule = def.rule;
   const createdAtWhere = { createdAt: dateRangeWhere(dateFrom, dateTo) };
 
   switch (rule.type) {
     case 'EVENT_SUM_BOOLEANS': {
+      if (abortSignal?.aborted) throw new Error('Request aborted');
       const or = rule.flags.map((f) => ({ [f]: true }));
       const count = await Event.count({
         where: {
@@ -59,10 +71,12 @@ export async function computeFieldValueByRule(
           [Op.or]: or,
         } as any,
       });
+      if (abortSignal?.aborted) throw new Error('Request aborted');
       return count;
     }
 
     case 'EVENT_COUNT_BOOLEAN': {
+      if (abortSignal?.aborted) throw new Error('Request aborted');
       const count = await Event.count({
         where: {
           department_id: departmentId,
@@ -70,10 +84,12 @@ export async function computeFieldValueByRule(
           [rule.flag]: true,
         } as any,
       });
+      if (abortSignal?.aborted) throw new Error('Request aborted');
       return count;
     }
 
     case 'EVENT_EVENTS_WITH_VIOLATIONS': {
+      if (abortSignal?.aborted) throw new Error('Request aborted');
       const allFlagsTrue = Object.fromEntries(rule.flags.map((f) => [f, true]));
       const events = await Event.findAll({
         where: {
@@ -86,8 +102,10 @@ export async function computeFieldValueByRule(
           { model: EventCriminalCase, as: 'criminal_case', required: false },
         ],
       });
+      if (abortSignal?.aborted) throw new Error('Request aborted');
       let n = 0;
       for (const e of events) {
+        if (abortSignal?.aborted) throw new Error('Request aborted');
         const pun = (e as any).punishment;
         const crim = (e as any).criminal_case;
         const hasPun =
@@ -107,6 +125,7 @@ export async function computeFieldValueByRule(
     }
 
     case 'SUM_EVENTS_INCIDENTS_ADDITIONALLY': {
+      if (abortSignal?.aborted) throw new Error('Request aborted');
       const field = rule.field as string;
       const [evSum, incSum, addIdsRows] = await Promise.all([
         Event.sum(field as any, {
@@ -121,42 +140,52 @@ export async function computeFieldValueByRule(
           where: { addition_date: dateRangeWhere(dateFrom, dateTo) } as any,
         }),
       ]);
+      if (abortSignal?.aborted) throw new Error('Request aborted');
       const addIds = (addIdsRows as { id: number }[]).map((r) => r.id);
       const addSum =
         addIds.length > 0
           ? await Additionally.sum(field as any, { where: { id: { [Op.in]: addIds } } } as any)
           : 0;
+      if (abortSignal?.aborted) throw new Error('Request aborted');
       return (Number(evSum) || 0) + (Number(incSum) || 0) + (Number(addSum) || 0);
     }
 
     case 'EVENT_SUM_FIELD': {
+      if (abortSignal?.aborted) throw new Error('Request aborted');
       const sum = await Event.sum(rule.field as any, {
         where: { department_id: departmentId, ...createdAtWhere },
       } as any);
+      if (abortSignal?.aborted) throw new Error('Request aborted');
       return Number(sum) || 0;
     }
 
     case 'EVENT_SUM_VAT': {
+      if (abortSignal?.aborted) throw new Error('Request aborted');
       const sum = await Event.sum('vat_deducted', {
         where: { department_id: departmentId, ...createdAtWhere },
       } as any);
+      if (abortSignal?.aborted) throw new Error('Request aborted');
       return Number(sum) || 0;
     }
 
     case 'EVENT_ADDITIONALLY_SUM': {
+      checkAbortSignal(abortSignal);
       const eventIds = await Event.findAll({
         where: { department_id: departmentId, ...createdAtWhere },
         attributes: ['id'],
       });
+      checkAbortSignal(abortSignal);
       const ids = eventIds.map((e) => e.id);
       const epSum = await EventPunishment.sum(rule.source as any, {
         where: { event_id: { [Op.in]: ids } },
       } as any);
+      checkAbortSignal(abortSignal);
       const addIds = await Additionally.findAll({
         include: [{ model: Incident, as: 'incident', where: { department_id: departmentId }, required: true }],
         where: { addition_date: dateRangeWhere(dateFrom, dateTo) } as any,
         attributes: ['id'],
       });
+      checkAbortSignal(abortSignal);
       const addIdList = addIds.map((a) => a.id);
       const punSum =
         addIdList.length > 0
@@ -164,22 +193,27 @@ export async function computeFieldValueByRule(
               where: { additionally_id: { [Op.in]: addIdList } },
             } as any)
           : 0;
+      checkAbortSignal(abortSignal);
       return (Number(epSum) || 0) + (Number(punSum) || 0);
     }
 
     case 'EVENT_ADDITIONALLY_CRIMINAL': {
+      if (abortSignal?.aborted) throw new Error('Request aborted');
       const eventIds = await Event.findAll({
         where: { department_id: departmentId, ...createdAtWhere },
         attributes: ['id'],
       });
+      if (abortSignal?.aborted) throw new Error('Request aborted');
       const ids = eventIds.map((e) => e.id);
       const addIds = await Additionally.findAll({
         include: [{ model: Incident, as: 'incident', where: { department_id: departmentId }, required: true }],
         where: { addition_date: dateRangeWhere(dateFrom, dateTo) } as any,
         attributes: ['id'],
       });
+      if (abortSignal?.aborted) throw new Error('Request aborted');
       const addIdList = addIds.map((a) => a.id);
       if (rule.condition === 'transferred') {
+        if (abortSignal?.aborted) throw new Error('Request aborted');
         const evCount = await EventCriminalCase.count({
           where: {
             event_id: { [Op.in]: ids },
@@ -198,9 +232,11 @@ export async function computeFieldValueByRule(
         return evCount + addCount;
       }
       if (rule.condition === 'rejected') {
+        if (abortSignal?.aborted) throw new Error('Request aborted');
         const evCount = await EventCriminalCase.count({
           where: { event_id: { [Op.in]: ids }, rejection_date: { [Op.not]: null } } as any,
         });
+        if (abortSignal?.aborted) throw new Error('Request aborted');
         const addCount =
           addIdList.length > 0
             ? await CriminalCase.count({
@@ -210,12 +246,14 @@ export async function computeFieldValueByRule(
         return Number(evCount) + Number(addCount);
       }
       if (rule.condition === 'opened') {
+        if (abortSignal?.aborted) throw new Error('Request aborted');
         const evCount = await EventCriminalCase.count({
           where: {
             event_id: { [Op.in]: ids },
             [Op.or]: [{ case_date: { [Op.ne]: null } }, { case_number: { [Op.ne]: null } }],
           } as any,
         });
+        if (abortSignal?.aborted) throw new Error('Request aborted');
         const addCount =
           addIdList.length > 0
             ? await CriminalCase.count({
@@ -228,12 +266,14 @@ export async function computeFieldValueByRule(
         return evCount + addCount;
       }
       if (rule.condition === 'closed') {
+        if (abortSignal?.aborted) throw new Error('Request aborted');
         const evCount = await EventCriminalCase.count({
           where: {
             event_id: { [Op.in]: ids },
             [Op.or]: [{ court_decision: { [Op.ne]: null } }, { convicted_count: { [Op.ne]: null } }],
           } as any,
         });
+        if (abortSignal?.aborted) throw new Error('Request aborted');
         const addCount =
           addIdList.length > 0
             ? await CriminalCase.count({
@@ -250,6 +290,7 @@ export async function computeFieldValueByRule(
 
     case 'OA_FIELD':
     case 'OA_FIELD_OPT': {
+      if (abortSignal?.aborted) throw new Error('Request aborted');
       const periodWhere = {
         [Op.and]: [
           { period_from: { [Op.lte]: dateTo } },
@@ -267,6 +308,7 @@ export async function computeFieldValueByRule(
     }
 
     case 'OA_SUM_FIELDS': {
+      checkAbortSignal(abortSignal);
       const periodWhere = {
         [Op.and]: [
           { period_from: { [Op.lte]: dateTo } },
@@ -275,6 +317,7 @@ export async function computeFieldValueByRule(
       };
       let total = 0;
       for (const f of rule.fields) {
+        checkAbortSignal(abortSignal);
         const s = await OperationalActivity.sum(f as any, {
           where: {
             department_id: departmentId,
@@ -282,14 +325,17 @@ export async function computeFieldValueByRule(
             ...periodWhere,
           } as any,
         } as any);
+        checkAbortSignal(abortSignal);
         total += Number(s) || 0;
       }
       return total;
     }
 
     case 'INCIDENT_COUNT_BY_TYPE': {
+      if (abortSignal?.aborted) throw new Error('Request aborted');
       const typeIds = await getIncidentEventTypeIds(rule.eventTypeTitle, rule.subTypeTitle);
       if (typeIds.length === 0) return 0;
+      if (abortSignal?.aborted) throw new Error('Request aborted');
       const incidents = await Incident.findAll({
         where: { department_id: departmentId, ...createdAtWhere },
         include: [
@@ -305,8 +351,10 @@ export async function computeFieldValueByRule(
     }
 
     case 'INCIDENT_SUM_BY_TYPE': {
+      if (abortSignal?.aborted) throw new Error('Request aborted');
       const typeIds = await getIncidentEventTypeIds(rule.eventTypeTitle);
       if (typeIds.length === 0) return 0;
+      if (abortSignal?.aborted) throw new Error('Request aborted');
       const count = await Incident.count({
         where: { department_id: departmentId, ...createdAtWhere },
         include: [
@@ -322,18 +370,22 @@ export async function computeFieldValueByRule(
     }
 
     case 'ADDITIONALLY_BY_INCIDENT_TYPE': {
+      if (abortSignal?.aborted) throw new Error('Request aborted');
       const typeIds = await getIncidentEventTypeIds(rule.eventTypeTitle);
       if (typeIds.length === 0) return 0;
+      if (abortSignal?.aborted) throw new Error('Request aborted');
       const incidentsInDept = await Incident.findAll({
         where: { department_id: departmentId, createdAt: dateRangeWhere(dateFrom, dateTo) } as any,
         attributes: ['id'],
       });
+      if (abortSignal?.aborted) throw new Error('Request aborted');
       const deptIncidentIds = incidentsInDept.map((i) => i.id);
       if (deptIncidentIds.length === 0) return 0;
       const withType = await IncidentEvent.findAll({
         where: { event_type_id: { [Op.in]: typeIds }, incident_id: { [Op.in]: deptIncidentIds } },
         attributes: ['incident_id'],
       });
+      if (abortSignal?.aborted) throw new Error('Request aborted');
       const incidentIds = [...new Set(withType.map((r) => r.incident_id))];
       if (incidentIds.length === 0) return 0;
       const addList = await Additionally.findAll({
@@ -343,14 +395,17 @@ export async function computeFieldValueByRule(
         } as any,
         attributes: ['id'],
       });
+      if (abortSignal?.aborted) throw new Error('Request aborted');
       const addIds = addList.map((a) => a.id);
       if (addIds.length === 0) return 0;
       if (rule.container === 'punishment') {
+        if (abortSignal?.aborted) throw new Error('Request aborted');
         const sum = await Punishment.sum(rule.field as any, {
           where: { additionally_id: { [Op.in]: addIds } },
         } as any);
         return Number(sum) || 0;
       }
+      if (abortSignal?.aborted) throw new Error('Request aborted');
       const sum = await Additionally.sum(rule.field as any, {
         where: { id: { [Op.in]: addIds } },
       } as any);
@@ -358,18 +413,22 @@ export async function computeFieldValueByRule(
     }
 
     case 'ADDITIONALLY_CRIMINAL_BY_INCIDENT_TYPE': {
+      if (abortSignal?.aborted) throw new Error('Request aborted');
       const typeIds = await getIncidentEventTypeIds(rule.eventTypeTitle);
       if (typeIds.length === 0) return 0;
+      if (abortSignal?.aborted) throw new Error('Request aborted');
       const incidentsInDept = await Incident.findAll({
         where: { department_id: departmentId, createdAt: dateRangeWhere(dateFrom, dateTo) } as any,
         attributes: ['id'],
       });
+      if (abortSignal?.aborted) throw new Error('Request aborted');
       const deptIncidentIds = incidentsInDept.map((i) => i.id);
       if (deptIncidentIds.length === 0) return 0;
       const withType = await IncidentEvent.findAll({
         where: { event_type_id: { [Op.in]: typeIds }, incident_id: { [Op.in]: deptIncidentIds } },
         attributes: ['incident_id'],
       });
+      if (abortSignal?.aborted) throw new Error('Request aborted');
       const incidentIds = [...new Set(withType.map((r) => r.incident_id))];
       if (incidentIds.length === 0) return 0;
       const addList = await Additionally.findAll({
@@ -379,9 +438,11 @@ export async function computeFieldValueByRule(
         } as any,
         attributes: ['id'],
       });
+      if (abortSignal?.aborted) throw new Error('Request aborted');
       const addIds = addList.map((a) => a.id);
       if (addIds.length === 0) return 0;
       if (rule.condition === 'transferred') {
+        if (abortSignal?.aborted) throw new Error('Request aborted');
         return await CriminalCase.count({
           where: {
             additionally_id: { [Op.in]: addIds },
@@ -390,6 +451,7 @@ export async function computeFieldValueByRule(
         });
       }
       if (rule.condition === 'opened') {
+        if (abortSignal?.aborted) throw new Error('Request aborted');
         return await CriminalCase.count({
           where: {
             additionally_id: { [Op.in]: addIds },
@@ -398,6 +460,7 @@ export async function computeFieldValueByRule(
         });
       }
       if (rule.condition === 'closed') {
+        if (abortSignal?.aborted) throw new Error('Request aborted');
         return await CriminalCase.count({
           where: {
             additionally_id: { [Op.in]: addIds },
@@ -409,18 +472,22 @@ export async function computeFieldValueByRule(
     }
 
     case 'ADDITIONALLY_PUNISHMENT_SUM_BY_INCIDENT_TYPE': {
+      checkAbortSignal(abortSignal);
       const typeIds = await getIncidentEventTypeIds(rule.eventTypeTitle);
       if (typeIds.length === 0) return 0;
+      checkAbortSignal(abortSignal);
       const incidentsInDept = await Incident.findAll({
         where: { department_id: departmentId, createdAt: dateRangeWhere(dateFrom, dateTo) } as any,
         attributes: ['id'],
       });
+      checkAbortSignal(abortSignal);
       const deptIncidentIds = incidentsInDept.map((i) => i.id);
       if (deptIncidentIds.length === 0) return 0;
       const withType = await IncidentEvent.findAll({
         where: { event_type_id: { [Op.in]: typeIds }, incident_id: { [Op.in]: deptIncidentIds } },
         attributes: ['incident_id'],
       });
+      checkAbortSignal(abortSignal);
       const incidentIds = [...new Set(withType.map((r) => r.incident_id))];
       if (incidentIds.length === 0) return 0;
       const addList = await Additionally.findAll({
@@ -430,21 +497,26 @@ export async function computeFieldValueByRule(
         } as any,
         attributes: ['id'],
       });
+      checkAbortSignal(abortSignal);
       const addIds = addList.map((a) => a.id);
       if (addIds.length === 0) return 0;
       let total = 0;
       for (const f of rule.fields) {
+        checkAbortSignal(abortSignal);
         const s = await Punishment.sum(f as any, {
           where: { additionally_id: { [Op.in]: addIds } },
         } as any);
+        checkAbortSignal(abortSignal);
         total += Number(s) || 0;
       }
       return total;
     }
 
     case 'EVENT_COUNT_BOOLEANS_SUM': {
+      checkAbortSignal(abortSignal);
       let n = 0;
       for (const flag of rule.flags) {
+        checkAbortSignal(abortSignal);
         const c = await Event.count({
           where: {
             department_id: departmentId,
@@ -452,14 +524,17 @@ export async function computeFieldValueByRule(
             [flag]: true,
           } as any,
         });
+        checkAbortSignal(abortSignal);
         n += c;
       }
       return n;
     }
 
     case 'EVENT_IB_CHECKS_SUM': {
+      checkAbortSignal(abortSignal);
       let n = 0;
       for (const flag of rule.flags) {
+        checkAbortSignal(abortSignal);
         const c = await Event.count({
           where: {
             department_id: departmentId,
@@ -467,12 +542,14 @@ export async function computeFieldValueByRule(
             [flag]: true,
           } as any,
         });
+        checkAbortSignal(abortSignal);
         n += c;
       }
       return n;
     }
 
     case 'EVENT_COUNT_ALL_BOOLEANS': {
+      if (abortSignal?.aborted) throw new Error('Request aborted');
       const allFlagsTrue = Object.fromEntries(rule.flags.map((f) => [f, true]));
       const count = await Event.count({
         where: {
@@ -485,15 +562,18 @@ export async function computeFieldValueByRule(
     }
 
     case 'INCIDENT_EVENT_TRAUMA': {
+      if (abortSignal?.aborted) throw new Error('Request aborted');
       const root = await IncidentEventType.findOne({
         where: { title: 'Травма / Смертельный исход', parent_id: null },
       });
       if (!root) return 0;
+      if (abortSignal?.aborted) throw new Error('Request aborted');
       const incidentIds = await Incident.findAll({
         where: { department_id: departmentId, ...createdAtWhere },
         attributes: ['id'],
       }).then((r) => r.map((i) => i.id));
       if (incidentIds.length === 0) return 0;
+      if (abortSignal?.aborted) throw new Error('Request aborted');
       const ieWhere: any = {
         incident_id: { [Op.in]: incidentIds },
         event_type_id: root.event_type_id,
@@ -507,8 +587,10 @@ export async function computeFieldValueByRule(
     }
 
     case 'INCIDENT_COUNT_EVENT_TYPE': {
+      if (abortSignal?.aborted) throw new Error('Request aborted');
       const typeIds = await getIncidentEventTypeIds(rule.eventTypeTitle);
       if (typeIds.length === 0) return 0;
+      if (abortSignal?.aborted) throw new Error('Request aborted');
       const count = await Incident.count({
         where: { department_id: departmentId, ...createdAtWhere },
         include: [

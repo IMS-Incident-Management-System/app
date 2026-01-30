@@ -64,6 +64,7 @@ export interface ReportTableResponse {
   departments: Array<{ id: number; name: string }>;
   total: number;
   paoMtsDepartmentIds?: number[];
+  allSelectedArePaoMts?: boolean;
 }
 
 export interface ExportReportRequest {

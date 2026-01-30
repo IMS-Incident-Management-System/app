@@ -4,6 +4,36 @@ import { CustomResponse } from '../middlewares/responseHandler.middleware';
 import { reportService } from '../services/report.service';
 import { REPORT_FIELDS } from '../constants/reportFields';
 
+// Хранилище активных запросов для отмены предыдущих при поступлении новых
+interface ActiveRequest {
+  abortController: AbortController;
+  key: string;
+  timestamp: number;
+}
+
+// Храним все активные запросы в одном массиве для глобальной отмены
+const allActiveRequests: ActiveRequest[] = [];
+
+// Генерируем ключ для запроса на основе параметров
+function getRequestKey(dateFrom: string, dateTo: string, departmentIds: number[], page: number, limit: number): string {
+  const deptIdsStr = departmentIds.sort((a, b) => a - b).join(',');
+  return `${dateFrom}_${dateTo}_${deptIdsStr}_${page}_${limit}`;
+}
+
+// Отменяем ВСЕ предыдущие активные запросы при новом запросе
+function cancelAllPreviousRequests(): void {
+  if (allActiveRequests.length > 0) {
+    console.log(`[getReportTable] Cancelling ${allActiveRequests.length} previous active request(s) before starting new one`);
+    allActiveRequests.forEach((req, index) => {
+      console.log(`[getReportTable] Aborting request ${index + 1}/${allActiveRequests.length} (age: ${Date.now() - req.timestamp}ms)`);
+      req.abortController.abort();
+    });
+    allActiveRequests.length = 0; // Очищаем массив
+  } else {
+    console.log('[getReportTable] No previous requests to cancel');
+  }
+}
+
 export const reportController = {
   /**
    * Генерация Excel отчета
@@ -245,21 +275,59 @@ export const reportController = {
       ? departmentIds.map((id: any) => Number(id))
       : [];
 
-    // Создаем AbortController для отслеживания отмены запроса
-    // Передаем его сигнал в сервис, где он будет проверяться в циклах вычислений
-    // НЕ устанавливаем автоматические обработчики событий - они могут срабатывать преждевременно
+    // Генерируем ключ для этого запроса
+    const requestKey = getRequestKey(dateFrom, dateTo, ids, Number(page), Number(limit));
+    
+    // Отменяем ВСЕ предыдущие активные запросы ДО начала обработки нового
+    // Это гарантирует, что старые запросы не будут продолжаться параллельно
+    cancelAllPreviousRequests();
+
+    // Создаем новый AbortController для этого запроса
     const abortController = typeof AbortController !== 'undefined' ? new AbortController() : null;
     
-    // Устанавливаем обработчик закрытия соединения, но только для логирования
-    // Реальная проверка отмены будет в сервисе через abortSignal
+    // Сохраняем активный запрос в глобальный массив
     if (abortController) {
+      const requestEntry = { abortController, key: requestKey, timestamp: Date.now() };
+      allActiveRequests.push(requestEntry);
+    }
+    
+    // Устанавливаем обработчик закрытия соединения
+    // НЕ отменяем запрос при закрытии соединения - это может быть преждевременное закрытие
+    // Отменяем только через механизм cancelAllPreviousRequests при новом запросе
+    if (abortController) {
+      const cleanup = () => {
+        const index = allActiveRequests.findIndex(r => r.abortController === abortController);
+        if (index !== -1) {
+          allActiveRequests.splice(index, 1);
+        }
+      };
+      
+      // Только логируем закрытие соединения, но НЕ отменяем запрос
+      // Отмена будет происходить только через cancelAllPreviousRequests при новом запросе
       req.on('close', () => {
-        // Логируем, но не прерываем сразу - проверка будет в сервисе
-        console.log('[getReportTable] Request connection close event (will check in service)');
+        console.log('[getReportTable] Request connection closed (not aborting - will check abortSignal in service)');
+        // Не вызываем abort() - пусть сервис проверяет abortSignal
+        // Очищаем из списка активных запросов только если запрос уже завершен
+        // Но не отменяем его, так как это может быть преждевременное закрытие
+      });
+      
+      req.on('aborted', () => {
+        console.log('[getReportTable] Request aborted by client (not aborting - will check abortSignal in service)');
+        // Не вызываем abort() - пусть сервис проверяет abortSignal
       });
     }
 
     try {
+      // Проверяем, не был ли запрос уже отменен перед началом обработки
+      if (abortController?.signal.aborted) {
+        console.log('[getReportTable] Request was already aborted before service call, skipping');
+        const index = allActiveRequests.findIndex(r => r.abortController === abortController);
+        if (index !== -1) {
+          allActiveRequests.splice(index, 1);
+        }
+        return;
+      }
+      
       console.log('[getReportTable] Starting service call');
       
       // Передаем abortSignal в сервис - он будет проверять его в циклах вычислений
@@ -273,8 +341,13 @@ export const reportController = {
         abortSignal: abortController?.signal,
       });
 
+      // Удаляем запрос из активных после успешного завершения
+      const index = allActiveRequests.findIndex(r => r.abortController === abortController);
+      if (index !== -1) {
+        allActiveRequests.splice(index, 1);
+      }
+
       // Проверяем, не был ли запрос отменен во время выполнения
-      // Проверяем только abortSignal - события 'close' и 'aborted' уже обработаны
       if (abortController?.signal.aborted) {
         console.log('[getReportTable] Request was aborted during computation, not sending response');
         if (!res.headersSent) {
@@ -287,8 +360,15 @@ export const reportController = {
       console.log('[getReportTable] Sending success response');
       res.success(result, 'Report table data retrieved successfully');
     } catch (error: any) {
+      // Удаляем запрос из активных при ошибке
+      if (abortController) {
+        const index = allActiveRequests.findIndex(r => r.abortController === abortController);
+        if (index !== -1) {
+          allActiveRequests.splice(index, 1);
+        }
+      }
+      
       // Проверяем, не был ли запрос отменен
-      // Проверяем только abortSignal и ошибку - события уже обработаны
       const isAbortError = 
         error?.name === 'AbortError' || 
         error?.message === 'Request aborted' || 

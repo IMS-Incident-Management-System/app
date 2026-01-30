@@ -275,20 +275,23 @@ export const ReportGenerator: React.FC = () => {
       });
     });
 
-    // Добавляем итоговые столбцы
-    cols.push({
-      title: "Итого ГК МТС",
-      dataIndex: "total_gk_mts",
-      key: "total_gk_mts",
-      width: 140,
-      align: "right",
-      fixed: "right",
-      className: styles.totalColumn,
-      render: (value: number) => (
-        <span className={styles.totalValue}>{formatCellValue(value)}</span>
-      ),
-    });
+    // Добавляем столбец "Итого ГК МТС" только если не все выбранные департаменты входят в ПАО МТС
+    if (!tableData?.allSelectedArePaoMts) {
+      cols.push({
+        title: "Итого ГК МТС",
+        dataIndex: "total_gk_mts",
+        key: "total_gk_mts",
+        width: 140,
+        align: "right",
+        fixed: "right",
+        className: styles.totalColumn,
+        render: (value: number) => (
+          <span className={styles.totalValue}>{formatCellValue(value)}</span>
+        ),
+      });
+    }
 
+    // Столбец "Итого ПАО МТС" всегда отображается
     cols.push({
       title: "Итого ПАО МТС",
       dataIndex: "total_pao_mts",
