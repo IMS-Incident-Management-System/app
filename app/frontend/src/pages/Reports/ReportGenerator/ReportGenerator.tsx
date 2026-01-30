@@ -78,7 +78,8 @@ type ReportColumnType = {
   ellipsis?: boolean;
 };
 
-/** Строит колонки департаментов из headerRows (вложенные children = несколько строк заголовка) */
+/** Строит колонки департаментов из headerRows (вложенные children = несколько строк заголовка).
+ * Если следующий уровень — одна ячейка с той же подписью, что и родитель (например КЦ в row0 и row1), уровень пропускается и не дублируется. */
 function buildDepartmentColumns(
   headerRows: ReportHeaderCell[][],
   deptList: Array<{ id: number; name: string }>,
@@ -87,11 +88,74 @@ function buildDepartmentColumns(
   rangeEnd: number,
   selectedDepartments: Set<number>,
   onDepartmentToggle: (id: number, checked: boolean) => void,
-  styles: Record<string, string>
+  onGroupToggle: (leafIds: number[], checked: boolean) => void,
+  styles: Record<string, string>,
+  parentCellLabel?: string
 ): ReportColumnType[] {
   const L = headerRows.length;
-  // На последнем уровне headerRows сразу отдаём листовые колонки (чекбокс + название), без лишней строки заголовка
-  if (rowIndex >= L - 1) {
+  // Листья — только на последнем уровне
+  const isLeafLevel = rowIndex >= L - 1;
+  // Пропустить уровень, если он дублирует родителя: одна ячейка на весь диапазон с той же подписью (КЦ в верхней и во второй строке → показываем один раз)
+  if (parentCellLabel != null && rowIndex < L - 1) {
+    const row = headerRows[rowIndex];
+    let pos = 0;
+    let coveringCell: ReportHeaderCell | null = null;
+    let cellsInRange = 0;
+    for (const cell of row) {
+      const cellStart = pos;
+      const cellEnd = pos + cell.span;
+      pos = cellEnd;
+      if (cellEnd <= rangeStart || cellStart >= rangeEnd) continue;
+      cellsInRange++;
+      if (cellStart <= rangeStart && cellEnd >= rangeEnd && cell.label === parentCellLabel) {
+        coveringCell = cell;
+      }
+    }
+    if (cellsInRange === 1 && coveringCell) {
+      return buildDepartmentColumns(
+        headerRows,
+        deptList,
+        rowIndex + 1,
+        rangeStart,
+        rangeEnd,
+        selectedDepartments,
+        onDepartmentToggle,
+        onGroupToggle,
+        styles,
+        parentCellLabel
+      );
+    }
+  }
+  // При 3+ уровнях: пропустить средний ряд только если он дублирует листовый (те же подписи в том же порядке) — тогда дубля нет, но реальные 3 уровня рисуем
+  const isRedundantMidRow =
+    L >= 3 &&
+    rowIndex === L - 2 &&
+    (() => {
+      const midRow = headerRows[L - 2];
+      const leafRow = headerRows[L - 1];
+      let midPos = 0;
+      const midLabels: string[] = [];
+      for (const cell of midRow) {
+        const start = midPos;
+        const end = midPos + cell.span;
+        midPos = end;
+        if (end <= rangeStart || start >= rangeEnd) continue;
+        const n = Math.min(end, rangeEnd) - Math.max(start, rangeStart);
+        for (let i = 0; i < n; i++) midLabels.push(cell.label);
+      }
+      let leafPos = 0;
+      const leafLabels: string[] = [];
+      for (const cell of leafRow) {
+        const start = leafPos;
+        const end = leafPos + cell.span;
+        leafPos = end;
+        if (end <= rangeStart || start >= rangeEnd) continue;
+        const n = Math.min(end, rangeEnd) - Math.max(start, rangeStart);
+        for (let i = 0; i < n; i++) leafLabels.push(cell.label);
+      }
+      return midLabels.length === leafLabels.length && midLabels.every((l, i) => l === leafLabels[i]);
+    })();
+  if (isLeafLevel || isRedundantMidRow) {
     return deptList.slice(rangeStart, rangeEnd).map((dept) => ({
       key: `dept_${dept.id}`,
       title: (
@@ -122,9 +186,23 @@ function buildDepartmentColumns(
     const cellEnd = pos + cell.span;
     pos = cellEnd;
     if (cellEnd <= rangeStart || cellStart >= rangeEnd) continue;
+    const leafIdsInCell = deptList.slice(cellStart, cellEnd).map((d) => d.id);
+    const allSelected = leafIdsInCell.length > 0 && leafIdsInCell.every((id) => selectedDepartments.has(id));
+    const someSelected = leafIdsInCell.some((id) => selectedDepartments.has(id));
     result.push({
       key: `h${rowIndex}-${cell.label}-${cellStart}`,
-      title: cell.label,
+      title: (
+        <div className={`${styles.columnHeader} ${styles.groupHeaderTitle}`}>
+          <Space>
+            <Checkbox
+              checked={allSelected}
+              indeterminate={someSelected && !allSelected}
+              onChange={(e) => onGroupToggle(leafIdsInCell, e.target.checked)}
+            />
+            <span>{cell.label}</span>
+          </Space>
+        </div>
+      ),
       align: "center",
       children: buildDepartmentColumns(
         headerRows,
@@ -134,7 +212,9 @@ function buildDepartmentColumns(
         cellEnd,
         selectedDepartments,
         onDepartmentToggle,
-        styles
+        onGroupToggle,
+        styles,
+        cell.label
       ),
     });
   }
@@ -285,6 +365,15 @@ export const ReportGenerator: React.FC = () => {
     });
   }, []);
 
+  /** Выделить/снять всю группу (КЦ, Москва и т.д.) — в выгрузку попадают листовые департаменты */
+  const onGroupToggle = useCallback((leafIds: number[], checked: boolean) => {
+    setSelectedDepartments((prev) => {
+      const next = new Set(prev);
+      leafIds.forEach((id) => (checked ? next.add(id) : next.delete(id)));
+      return next;
+    });
+  }, []);
+
   const headerRows = tableData?.headerRows;
   const useHierarchy = !!(headerRows && headerRows.length > 0 && deptList.length > 0);
 
@@ -354,6 +443,7 @@ export const ReportGenerator: React.FC = () => {
           deptList.length,
           selectedDepartments,
           onDepartmentToggle,
+          onGroupToggle,
           styles
         )
       : deptList.map((dept) => ({
@@ -436,6 +526,7 @@ export const ReportGenerator: React.FC = () => {
     useHierarchy,
     selectedDepartments,
     onDepartmentToggle,
+    onGroupToggle,
     tableData?.allSelectedArePaoMts,
     selectedFields,
     rows,

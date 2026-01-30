@@ -81,38 +81,62 @@ function countLeaves(node: DeptTreeNode): number {
 
 /**
  * Строит иерархическую шапку и упорядоченный список id листьев по обходу дерева (DFS).
- * Один источник правды для таблицы и Excel.
+ * Строки шапки: по одной на каждый уровень от корня до родителя листа, плюс строка листьев.
+ * Каждая строка выравнивается по столбцам (листьям): объединяются подряд идущие одинаковые подписи.
  */
 export function buildReportHeaderStructure(
   forest: DeptTreeNode[]
 ): { headerRows: ReportHeaderCell[][]; leafDepartmentIds: number[] } {
-  const byDepth = new Map<number, ReportHeaderCell[]>();
-  const leafIds: number[] = [];
+  /** Для каждого листа в порядке обхода: путь от корня до родителя (включительно). path[0]=root, path[path.length-1]=parent. */
+  const leafPaths: Array<{ leafId: number; leafTitle: string; path: string[] }> = [];
 
-  function traverse(node: DeptTreeNode, depth: number): void {
-    const span = countLeaves(node);
-    const row = byDepth.get(depth) ?? [];
-    row.push({ label: node.title, span });
-    byDepth.set(depth, row);
-
+  function traverse(node: DeptTreeNode, pathFromRoot: string[]): void {
     if (node.children.length === 0) {
-      leafIds.push(node.departmentId);
+      // path = root .. parent; for a leaf root, path is empty — use node title as single level
+      const path = pathFromRoot.length > 0 ? pathFromRoot : [node.title];
+      leafPaths.push({
+        leafId: node.departmentId,
+        leafTitle: node.title,
+        path,
+      });
     } else {
+      const childPath = pathFromRoot.concat(node.title);
       for (const child of node.children) {
-        traverse(child, depth + 1);
+        traverse(child, childPath);
       }
     }
   }
 
   for (const root of forest) {
-    traverse(root, 0);
+    traverse(root, []);
   }
 
-  const maxDepth = Math.max(...byDepth.keys(), 0);
-  const headerRows: ReportHeaderCell[][] = [];
-  for (let d = 0; d <= maxDepth; d++) {
-    headerRows.push(byDepth.get(d) ?? []);
+  const leafIds = leafPaths.map((p) => p.leafId);
+  if (leafPaths.length === 0) {
+    return { headerRows: [], leafDepartmentIds: leafIds };
   }
+
+  const numColumns = leafPaths.length;
+  const maxDepth = Math.max(0, ...leafPaths.map((p) => p.path.length));
+  const headerRows: ReportHeaderCell[][] = [];
+
+  // Строки по уровням: для каждого глубины d — подпись узла на пути к листу; объединяем подряд идущие одинаковые.
+  for (let d = 0; d < maxDepth; d++) {
+    const labels = leafPaths.map((p) => (d < p.path.length ? p.path[d] : p.path[p.path.length - 1]));
+    const row: ReportHeaderCell[] = [];
+    let i = 0;
+    while (i < numColumns) {
+      const label = labels[i];
+      let span = 1;
+      while (i + span < numColumns && labels[i + span] === label) span++;
+      row.push({ label, span });
+      i += span;
+    }
+    headerRows.push(row);
+  }
+
+  // Последняя строка — подписи листьев (по одному столбцу на лист).
+  headerRows.push(leafPaths.map((p) => ({ label: p.leafTitle, span: 1 })));
 
   return { headerRows, leafDepartmentIds: leafIds };
 }
@@ -235,13 +259,19 @@ export const reportService = {
     // Проверяем, все ли выбранные департаменты входят в ПАО МТС
     const allSelectedArePaoMts = sortedDepartments.every(dept => paoMtsIdsForExcel.has(dept.department_id));
 
-    // Дерево и иерархическая шапка: столбцы данных — листья
+    // Дерево и иерархическая шапка: столбцы данных — листья (корни только те выбранные, у которых родитель не выбран — без дубликатов листьев)
     const allDeptsForTree = allDepartmentsForCalc.map((d) => ({
       department_id: d.department_id,
       title: d.title,
       parent_id: d.parent_id,
     }));
-    const rootDepts = sortedDepartments.map((d) => ({ department_id: d.department_id, title: d.title }));
+    const selectedIds = new Set(sortedDepartments.map((d) => d.department_id));
+    const rootDepts = sortedDepartments
+      .filter((d) => {
+        const parentId = allDeptsForTree.find((x) => x.department_id === d.department_id)?.parent_id ?? null;
+        return parentId == null || !selectedIds.has(parentId);
+      })
+      .map((d) => ({ department_id: d.department_id, title: d.title }));
     const childOrderExcel = (
       a: { department_id: number; title: string },
       b: { department_id: number; title: string }
@@ -561,13 +591,19 @@ export const reportService = {
     // Проверяем, все ли выбранные департаменты входят в ПАО МТС
     const allSelectedArePaoMts = sortedDepartments.every(dept => paoMtsIds.has(dept.department_id));
 
-    // Дерево департаментов и иерархическая шапка: корни — выбранные, столбцы данных — листья
+    // Дерево департаментов и иерархическая шапка: корни — только «верхнеуровневые» выбранные (родитель не выбран), столбцы данных — листья без дубликатов
     const allDeptsForTree = allDepartments.map((d) => ({
       department_id: d.department_id,
       title: d.title,
       parent_id: d.parent_id,
     }));
-    const rootDepts = sortedDepartments.map((d) => ({ department_id: d.department_id, title: d.title }));
+    const selectedIds = new Set(sortedDepartments.map((d) => d.department_id));
+    const rootDepts = sortedDepartments
+      .filter((d) => {
+        const parentId = allDeptsForTree.find((x) => x.department_id === d.department_id)?.parent_id ?? null;
+        return parentId == null || !selectedIds.has(parentId);
+      })
+      .map((d) => ({ department_id: d.department_id, title: d.title }));
     const childOrder = (
       a: { department_id: number; title: string },
       b: { department_id: number; title: string }
