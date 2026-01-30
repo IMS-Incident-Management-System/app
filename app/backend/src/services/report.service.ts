@@ -83,15 +83,18 @@ function countLeaves(node: DeptTreeNode): number {
  * Строит иерархическую шапку и упорядоченный список id листьев по обходу дерева (DFS).
  * Строки шапки: по одной на каждый уровень от корня до родителя листа, плюс строка листьев.
  * Каждая строка выравнивается по столбцам (листьям): объединяются подряд идущие одинаковые подписи.
+ * Если передан selectedLeafIds — в отчёт попадают только эти листья (иерархия от корня до листа сохраняется).
  */
 export function buildReportHeaderStructure(
-  forest: DeptTreeNode[]
+  forest: DeptTreeNode[],
+  selectedLeafIds?: Set<number>
 ): { headerRows: ReportHeaderCell[][]; leafDepartmentIds: number[] } {
   /** Для каждого листа в порядке обхода: путь от корня до родителя (включительно). path[0]=root, path[path.length-1]=parent. */
   const leafPaths: Array<{ leafId: number; leafTitle: string; path: string[] }> = [];
 
   function traverse(node: DeptTreeNode, pathFromRoot: string[]): void {
     if (node.children.length === 0) {
+      if (selectedLeafIds != null && !selectedLeafIds.has(node.departmentId)) return;
       // path = root .. parent; for a leaf root, path is empty — use node title as single level
       const path = pathFromRoot.length > 0 ? pathFromRoot : [node.title];
       leafPaths.push({
@@ -140,6 +143,14 @@ export function buildReportHeaderStructure(
 
   return { headerRows, leafDepartmentIds: leafIds };
 }
+
+/** Верхний уровень дерева отчёта: только эти корни; всё под ФО (Москва, Центр, СЗ, …) — внутри ФО, не отдельно. */
+const STANDARD_ROOT_NAMES = ['КЦ', 'ЕЦКБ', 'ДЗК', 'ФО'];
+
+/** Полный список групп ПАО МТС: для галки «ПАО МТС», сортировки и подсчёта итогов (филиалы под этими группами). */
+const PAO_MTS_DEPARTMENT_NAMES = [
+  'КЦ', 'Москва', 'Центр', 'СЗ', 'Поволжье', 'ЕЦКБ', 'Юг', 'Урал', 'Сибирь', 'ДВ'
+];
 
 const BOOLEAN_FIELDS = new Set([
   'is_service_investigation', 'is_service_investigation_ib', 'is_service_investigation_bpio',
@@ -224,12 +235,11 @@ export const reportService = {
       return result;
     };
     
-    // Определяем департаменты ПАО МТС (белый список) в заданном порядке
-    const paoMtsDepartmentNames = ['КЦ', 'Москва', 'Центр', 'СЗ', 'Поволжье', 'ЕЦКБ', 'Юг', 'Урал', 'Сибирь', 'ДВ'];
+    // Департаменты ПАО МТС (белый список) — для сортировки и итогов
     const paoMtsIdsForExcel = new Set<number>();
     const paoMtsNameToId = new Map<string, number>();
     
-    for (const name of paoMtsDepartmentNames) {
+    for (const name of PAO_MTS_DEPARTMENT_NAMES) {
       const dept = allDepartmentsForCalc.find((d) => d.title === name);
       if (dept) {
         paoMtsNameToId.set(name, dept.department_id);
@@ -239,11 +249,11 @@ export const reportService = {
     
     // Сортируем департаменты по заданному порядку ПАО МТС
     const sortedDepartments = [...departments].sort((a, b) => {
-      const aIndex = paoMtsDepartmentNames.findIndex(name => {
+      const aIndex = PAO_MTS_DEPARTMENT_NAMES.findIndex(name => {
         const id = paoMtsNameToId.get(name);
         return id === a.department_id || getAllDescendants(id || 0).includes(a.department_id);
       });
-      const bIndex = paoMtsDepartmentNames.findIndex(name => {
+      const bIndex = PAO_MTS_DEPARTMENT_NAMES.findIndex(name => {
         const id = paoMtsNameToId.get(name);
         return id === b.department_id || getAllDescendants(id || 0).includes(b.department_id);
       });
@@ -259,32 +269,34 @@ export const reportService = {
     // Проверяем, все ли выбранные департаменты входят в ПАО МТС
     const allSelectedArePaoMts = sortedDepartments.every(dept => paoMtsIdsForExcel.has(dept.department_id));
 
-    // Дерево и иерархическая шапка: столбцы данных — листья (корни только те выбранные, у которых родитель не выбран — без дубликатов листьев)
+    // Дерево от стандартных корней (КЦ, ЕЦКБ, ДЗК, ФО); в отчёт — только листья под выбранными группами (при галке ПАО МТС — все филиалы под КЦ, Москва, Центр и т.д.)
     const allDeptsForTree = allDepartmentsForCalc.map((d) => ({
       department_id: d.department_id,
       title: d.title,
       parent_id: d.parent_id,
     }));
-    const selectedIds = new Set(sortedDepartments.map((d) => d.department_id));
-    const rootDepts = sortedDepartments
-      .filter((d) => {
-        const parentId = allDeptsForTree.find((x) => x.department_id === d.department_id)?.parent_id ?? null;
-        return parentId == null || !selectedIds.has(parentId);
-      })
+    const selectedLeafIds = new Set(
+      sortedDepartments.flatMap((d) => getLeafDescendants(d.department_id))
+    );
+    const rootDepts = STANDARD_ROOT_NAMES.map((name) => allDeptsForTree.find((d) => d.title === name))
+      .filter((d): d is NonNullable<typeof d> => d != null)
       .map((d) => ({ department_id: d.department_id, title: d.title }));
     const childOrderExcel = (
       a: { department_id: number; title: string },
       b: { department_id: number; title: string }
     ) => {
-      const ai = paoMtsDepartmentNames.indexOf(a.title);
-      const bi = paoMtsDepartmentNames.indexOf(b.title);
+      const ai = PAO_MTS_DEPARTMENT_NAMES.indexOf(a.title);
+      const bi = PAO_MTS_DEPARTMENT_NAMES.indexOf(b.title);
       if (ai !== -1 && bi !== -1) return ai - bi;
       if (ai !== -1) return -1;
       if (bi !== -1) return 1;
       return (a.title || '').localeCompare(b.title || '');
     };
     const forestExcel = buildDepartmentForest(rootDepts, allDeptsForTree, childOrderExcel);
-    const { headerRows: excelHeaderRows, leafDepartmentIds: excelLeafIds } = buildReportHeaderStructure(forestExcel);
+    const { headerRows: excelHeaderRows, leafDepartmentIds: excelLeafIds } = buildReportHeaderStructure(
+      forestExcel,
+      selectedLeafIds
+    );
     const departmentMap = new Map(allDepartmentsForCalc.map((d) => [d.department_id, d.title]));
     const fieldData = new Map<string, Map<number, number>>();
     const booleanFields = new Set([
@@ -392,18 +404,49 @@ export const reportService = {
     worksheet.getRow(headerStartRow).getCell(1).font = { bold: true };
     worksheet.getRow(headerStartRow).getCell(1).alignment = { vertical: 'middle' };
 
-    let col = 2;
+    // Развернуть каждую строку шапки в ячейки с границами (startCol, endCol) для вертикального объединения
+    type CellBounds = { label: string; startCol: number; endCol: number };
+    const rowCells: CellBounds[][] = excelHeaderRows.map((headerRow) => {
+      const cells: CellBounds[] = [];
+      let pos = 0;
+      for (const cell of headerRow) {
+        cells.push({ label: cell.label, startCol: pos, endCol: pos + cell.span });
+        pos += cell.span;
+      }
+      return cells;
+    });
+
+    // Записываем значения и считаем вертикальный охват (без merge — иначе «Cannot merge already merged cells»)
+    const mergedRanges = new Map<string, { startRow: number; endRow: number; label: string }>();
     for (let r = 0; r < excelHeaderRows.length; r++) {
       const row = worksheet.getRow(headerStartRow + r);
-      for (const cell of excelHeaderRows[r]) {
-        if (cell.span > 1) {
-          worksheet.mergeCells(headerStartRow + r, col, headerStartRow + r, col + cell.span - 1);
+      for (const cell of rowCells[r]) {
+        const key = `${cell.startCol}-${cell.endCol}`;
+        const prev = mergedRanges.get(key);
+        if (prev && prev.label === cell.label && prev.endRow === r - 1) {
+          prev.endRow = r;
+          continue;
         }
-        row.getCell(col).value = cell.label;
-        row.getCell(col).font = { bold: true };
-        col += cell.span;
+        const excelCol = cell.startCol + 2;
+        row.getCell(excelCol).value = cell.label;
+        row.getCell(excelCol).font = { bold: true };
+        row.getCell(excelCol).alignment = { vertical: 'middle', horizontal: 'center' };
+        mergedRanges.set(key, { startRow: r, endRow: r, label: cell.label });
       }
-      col = 2;
+    }
+    // Один проход объединения: каждая область — один прямоугольник (строки startRow..endRow, столбцы startCol..endCol)
+    for (const [key, { startRow, endRow }] of mergedRanges) {
+      const [startCol, endCol] = key.split('-').map(Number);
+      const rowSpan = endRow - startRow + 1;
+      const colSpan = endCol - startCol;
+      if (rowSpan > 1 || colSpan > 1) {
+        worksheet.mergeCells(
+          headerStartRow + startRow,
+          startCol + 2,
+          headerStartRow + endRow,
+          endCol + 1
+        );
+      }
     }
 
     let totalGkCol = 0;
@@ -549,13 +592,12 @@ export const reportService = {
       return result;
     };
     
-    // Определяем департаменты ПАО МТС (белый список) в заданном порядке
-    const paoMtsDepartmentNames = ['КЦ', 'Москва', 'Центр', 'СЗ', 'Поволжье', 'ЕЦКБ', 'Юг', 'Урал', 'Сибирь', 'ДВ'];
+    // Департаменты ПАО МТС (белый список) — для сортировки и итогов
     const paoMtsIds = new Set<number>(); // Все ID включая потомков - для подсчета total_pao_mts
     const paoMtsMainIds: number[] = []; // Только основные департаменты - для фильтрации
-    const paoMtsNameToId = new Map<string, number>(); // Маппинг названий на ID для сортировки
+    const paoMtsNameToId = new Map<string, number>();
     
-    for (const name of paoMtsDepartmentNames) {
+    for (const name of PAO_MTS_DEPARTMENT_NAMES) {
       const dept = allDepartments.find((d) => d.title === name);
       if (dept) {
         // Сохраняем основной департамент
@@ -568,11 +610,11 @@ export const reportService = {
     
     // Сортируем департаменты по заданному порядку ПАО МТС
     const sortedDepartments = [...departments].sort((a, b) => {
-      const aIndex = paoMtsDepartmentNames.findIndex(name => {
+      const aIndex = PAO_MTS_DEPARTMENT_NAMES.findIndex(name => {
         const id = paoMtsNameToId.get(name);
         return id === a.department_id || getAllDescendants(id || 0).includes(a.department_id);
       });
-      const bIndex = paoMtsDepartmentNames.findIndex(name => {
+      const bIndex = PAO_MTS_DEPARTMENT_NAMES.findIndex(name => {
         const id = paoMtsNameToId.get(name);
         return id === b.department_id || getAllDescendants(id || 0).includes(b.department_id);
       });
@@ -591,32 +633,31 @@ export const reportService = {
     // Проверяем, все ли выбранные департаменты входят в ПАО МТС
     const allSelectedArePaoMts = sortedDepartments.every(dept => paoMtsIds.has(dept.department_id));
 
-    // Дерево департаментов и иерархическая шапка: корни — только «верхнеуровневые» выбранные (родитель не выбран), столбцы данных — листья без дубликатов
+    // Дерево от стандартных корней; в отчёт — только листья под выбранными группами (при галке ПАО МТС — все филиалы под КЦ, Москва, Центр и т.д.)
     const allDeptsForTree = allDepartments.map((d) => ({
       department_id: d.department_id,
       title: d.title,
       parent_id: d.parent_id,
     }));
-    const selectedIds = new Set(sortedDepartments.map((d) => d.department_id));
-    const rootDepts = sortedDepartments
-      .filter((d) => {
-        const parentId = allDeptsForTree.find((x) => x.department_id === d.department_id)?.parent_id ?? null;
-        return parentId == null || !selectedIds.has(parentId);
-      })
+    const selectedLeafIds = new Set(
+      sortedDepartments.flatMap((d) => getLeafDescendants(d.department_id))
+    );
+    const rootDepts = STANDARD_ROOT_NAMES.map((name) => allDeptsForTree.find((d) => d.title === name))
+      .filter((d): d is NonNullable<typeof d> => d != null)
       .map((d) => ({ department_id: d.department_id, title: d.title }));
     const childOrder = (
       a: { department_id: number; title: string },
       b: { department_id: number; title: string }
     ) => {
-      const ai = paoMtsDepartmentNames.indexOf(a.title);
-      const bi = paoMtsDepartmentNames.indexOf(b.title);
+      const ai = PAO_MTS_DEPARTMENT_NAMES.indexOf(a.title);
+      const bi = PAO_MTS_DEPARTMENT_NAMES.indexOf(b.title);
       if (ai !== -1 && bi !== -1) return ai - bi;
       if (ai !== -1) return -1;
       if (bi !== -1) return 1;
       return (a.title || '').localeCompare(b.title || '');
     };
     const forest = buildDepartmentForest(rootDepts, allDeptsForTree, childOrder);
-    const { headerRows, leafDepartmentIds } = buildReportHeaderStructure(forest);
+    const { headerRows, leafDepartmentIds } = buildReportHeaderStructure(forest, selectedLeafIds);
     const leafDepartments = leafDepartmentIds.map((id) => {
       const d = allDepartments.find((x) => x.department_id === id);
       return { id, name: d?.title ?? `Департамент ${id}` };
