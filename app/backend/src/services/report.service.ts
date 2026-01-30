@@ -104,6 +104,19 @@ export const reportService = {
       }
       return result;
     };
+
+    /** Листья поддерева: только самые нижние подразделения. Отчётность по фактическим данным филиалов. */
+    const getLeafDescendants = (parentId: number): number[] => {
+      const children = allDepartmentsForCalc.filter((d) => d.parent_id === parentId);
+      if (children.length === 0) {
+        return [parentId];
+      }
+      const result: number[] = [];
+      for (const child of children) {
+        result.push(...getLeafDescendants(child.department_id));
+      }
+      return result;
+    };
     
     // Определяем департаменты ПАО МТС (белый список) в заданном порядке
     const paoMtsDepartmentNames = ['КЦ', 'Москва', 'Центр', 'СЗ', 'Поволжье', 'ЕЦКБ', 'Юг', 'Урал', 'Сибирь', 'ДВ'];
@@ -161,16 +174,12 @@ export const reportService = {
       for (const def of defs) {
         const dataMap = new Map<number, number>();
         for (const departmentId of sortedDepartmentIds) {
-          // Получаем всех потомков (включая сам департамент)
-          const deptWithDescendants = getAllDescendants(departmentId);
-          
-          // Суммируем значения для департамента и всех его потомков
+          const leafIds = getLeafDescendants(departmentId);
           let totalValue = 0;
-          for (const deptId of deptWithDescendants) {
+          for (const deptId of leafIds) {
             const value = await computeFieldValueByRule(def, deptId, request.dateFrom, dateToEndOfDay, undefined);
             totalValue += value;
           }
-          
           dataMap.set(departmentId, totalValue);
         }
         fieldData.set(def.key, dataMap);
@@ -180,11 +189,9 @@ export const reportService = {
         const dataMap = new Map<number, number>();
         const isBooleanField = booleanFields.has(field.field);
         for (const departmentId of sortedDepartmentIds) {
-          // Получаем всех потомков (включая сам департамент)
-          const deptWithDescendants = getAllDescendants(departmentId);
+          const leafIds = getLeafDescendants(departmentId);
           let totalValue = 0;
-          
-          for (const deptId of deptWithDescendants) {
+          for (const deptId of leafIds) {
             let value = 0;
             if (field.entity === 'incident') {
               if (isBooleanField) {
@@ -396,6 +403,19 @@ export const reportService = {
       }
       return result;
     };
+
+    /** Листья поддерева: только самые нижние подразделения (без детей). Отчётность по фактическим данным филиалов. */
+    const getLeafDescendants = (parentId: number): number[] => {
+      const children = allDepartments.filter((d) => d.parent_id === parentId);
+      if (children.length === 0) {
+        return [parentId];
+      }
+      const result: number[] = [];
+      for (const child of children) {
+        result.push(...getLeafDescendants(child.department_id));
+      }
+      return result;
+    };
     
     // Определяем департаменты ПАО МТС (белый список) в заданном порядке
     const paoMtsDepartmentNames = ['КЦ', 'Москва', 'Центр', 'СЗ', 'Поволжье', 'ЕЦКБ', 'Юг', 'Урал', 'Сибирь', 'ДВ'];
@@ -470,12 +490,11 @@ export const reportService = {
           throw new Error('Request aborted');
         }
 
-        // Получаем всех потомков текущего департамента (включая его самого)
-        const deptWithDescendants = getAllDescendants(dept.department_id);
+        // Считаем только по листьям (нижним филиалам), без дублирования по родителям
+        const leafIds = getLeafDescendants(dept.department_id);
         
-        // Суммируем значения для департамента и всех его потомков
         let deptValue = 0;
-        for (const deptId of deptWithDescendants) {
+        for (const deptId of leafIds) {
           // Проверяем сигнал отмены перед каждым вычислением
           if (request.abortSignal?.aborted) {
             console.log(`[reportService.getReportTable] Abort signal detected, stopping computation at dept ${deptId}`);
