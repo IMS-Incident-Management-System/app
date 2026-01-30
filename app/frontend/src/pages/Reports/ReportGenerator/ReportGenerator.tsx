@@ -95,6 +95,53 @@ function buildDepartmentColumns(
   const L = headerRows.length;
   // Листья — только на последнем уровне
   const isLeafLevel = rowIndex >= L - 1;
+  // Пропустить уровень, если средняя строка и листовая совпадают (Москва — Москва): одна ячейка с подписью X и листовой ряд в этом диапазоне тоже X → показываем листья без дубля
+  if (rowIndex === L - 2 && L >= 2) {
+    const midRow = headerRows[L - 2];
+    const leafRow = headerRows[L - 1];
+    let midPos = 0;
+    let coveringMidLabel: string | null = null;
+    let midCellsInRange = 0;
+    for (const cell of midRow) {
+      const cellStart = midPos;
+      const cellEnd = midPos + cell.span;
+      midPos = cellEnd;
+      if (cellEnd <= rangeStart || cellStart >= rangeEnd) continue;
+      midCellsInRange++;
+      if (cellStart <= rangeStart && cellEnd >= rangeEnd) {
+        coveringMidLabel = cell.label;
+      }
+    }
+    if (midCellsInRange === 1 && coveringMidLabel != null) {
+      let leafPos = 0;
+      const leafLabelsInRange: string[] = [];
+      for (const cell of leafRow) {
+        const cellStart = leafPos;
+        const cellEnd = leafPos + cell.span;
+        leafPos = cellEnd;
+        if (cellEnd <= rangeStart || cellStart >= rangeEnd) continue;
+        const n = Math.min(cellEnd, rangeEnd) - Math.max(cellStart, rangeStart);
+        for (let i = 0; i < n; i++) leafLabelsInRange.push(cell.label);
+      }
+      const leafSame =
+        leafLabelsInRange.length === rangeEnd - rangeStart &&
+        leafLabelsInRange.every((l) => l === coveringMidLabel);
+      if (leafSame) {
+        return buildDepartmentColumns(
+          headerRows,
+          deptList,
+          rowIndex + 1,
+          rangeStart,
+          rangeEnd,
+          selectedDepartments,
+          onDepartmentToggle,
+          onGroupToggle,
+          styles,
+          coveringMidLabel
+        );
+      }
+    }
+  }
   // Пропустить уровень, если он дублирует родителя: одна ячейка на весь диапазон с той же подписью (КЦ в верхней и во второй строке → показываем один раз)
   if (parentCellLabel != null && rowIndex < L - 1) {
     const row = headerRows[rowIndex];

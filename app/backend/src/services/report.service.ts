@@ -4,6 +4,22 @@ import { Incident, Event, OperationalActivity, Department } from '../models';
 import { REPORT_FIELDS } from '../constants/reportFields';
 import { computeFieldValueByRule } from './reportCalculator';
 
+/** Стили для Excel-отчёта: строго и читаемо */
+const EXCEL_STYLE = {
+  borderThin: { style: 'thin' as const, color: { argb: 'FFB0B0B0' } },
+  borderMedium: { style: 'medium' as const, color: { argb: 'FF606060' } },
+  fillTitle: { type: 'pattern' as const, pattern: 'solid' as const, fgColor: { argb: 'FF2E5090' } },
+  fillHeader: { type: 'pattern' as const, pattern: 'solid' as const, fgColor: { argb: 'FFD6DCE4' } },
+  fillHeaderIndicator: { type: 'pattern' as const, pattern: 'solid' as const, fgColor: { argb: 'FFE2E6EB' } },
+  fillTotal: { type: 'pattern' as const, pattern: 'solid' as const, fgColor: { argb: 'FFF0F0F0' } },
+  fontTitle: { size: 16, bold: true, color: { argb: 'FFFFFFFF' } },
+  fontHeader: { size: 10, bold: true, color: { argb: 'FF1A1A1A' } },
+  fontData: { size: 10, color: { argb: 'FF000000' } },
+};
+function excelBorder(style: typeof EXCEL_STYLE.borderThin) {
+  return { top: style, left: style, bottom: style, right: style };
+}
+
 interface ReportField {
   entity: 'incident' | 'event' | 'operationalActivity';
   field: string;
@@ -124,8 +140,13 @@ export function buildReportHeaderStructure(
   const headerRows: ReportHeaderCell[][] = [];
 
   // Строки по уровням: для каждого глубины d — подпись узла на пути к листу; объединяем подряд идущие одинаковые.
+  // Для строки перед листьями (d === maxDepth - 1): если лист — прямой ребёнок корня (path.length === 1), подставляем подпись листа, чтобы она объединилась по вертикали с последней строкой (ФО в 1 строке, Москва на 2 ячейки по вертикали).
   for (let d = 0; d < maxDepth; d++) {
-    const labels = leafPaths.map((p) => (d < p.path.length ? p.path[d] : p.path[p.path.length - 1]));
+    const labels = leafPaths.map((p) => {
+      if (d < p.path.length) return p.path[d];
+      if (d === maxDepth - 1 && p.path.length === 1) return p.leafTitle;
+      return p.path[p.path.length - 1];
+    });
     const row: ReportHeaderCell[] = [];
     let i = 0;
     while (i < numColumns) {
@@ -389,20 +410,31 @@ export const reportService = {
       ? `Результаты работы ${fromMonth} ${fromYear}`
       : `Результаты работы ${fromMonth} ${fromYear} - ${toMonth} ${toYear}`;
 
-    // Заголовок отчета
-    const titleRow = worksheet.getRow(1);
-    titleRow.getCell(1).value = reportTitle;
-    titleRow.getCell(1).font = { size: 18, bold: true };
     const numLeafCols = excelLeafIds.length;
     const totalCols = 1 + numLeafCols + (allSelectedArePaoMts ? 1 : 2);
+
+    // Заголовок отчёта: заливка, шрифт, границы
+    const titleRow = worksheet.getRow(1);
+    titleRow.getCell(1).value = reportTitle;
+    titleRow.getCell(1).font = EXCEL_STYLE.fontTitle;
+    titleRow.getCell(1).alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+    titleRow.getCell(1).fill = EXCEL_STYLE.fillTitle;
+    titleRow.getCell(1).border = excelBorder(EXCEL_STYLE.borderThin);
     worksheet.mergeCells(1, 1, 1, Math.max(1, totalCols));
+    titleRow.getCell(1).border = {
+      ...excelBorder(EXCEL_STYLE.borderThin),
+      bottom: EXCEL_STYLE.borderMedium,
+    };
 
     const headerStartRow = 2;
     const numHeaderRows = Math.max(1, excelHeaderRows.length);
     worksheet.mergeCells(headerStartRow, 1, headerStartRow + numHeaderRows - 1, 1);
-    worksheet.getRow(headerStartRow).getCell(1).value = 'Показатель';
-    worksheet.getRow(headerStartRow).getCell(1).font = { bold: true };
-    worksheet.getRow(headerStartRow).getCell(1).alignment = { vertical: 'middle' };
+    const indicatorCell = worksheet.getRow(headerStartRow).getCell(1);
+    indicatorCell.value = 'Показатель';
+    indicatorCell.font = EXCEL_STYLE.fontHeader;
+    indicatorCell.alignment = { horizontal: 'left', vertical: 'middle', wrapText: true };
+    indicatorCell.fill = EXCEL_STYLE.fillHeaderIndicator;
+    indicatorCell.border = excelBorder(EXCEL_STYLE.borderThin);
 
     // Развернуть каждую строку шапки в ячейки с границами (startCol, endCol) для вертикального объединения
     type CellBounds = { label: string; startCol: number; endCol: number };
@@ -428,9 +460,12 @@ export const reportService = {
           continue;
         }
         const excelCol = cell.startCol + 2;
-        row.getCell(excelCol).value = cell.label;
-        row.getCell(excelCol).font = { bold: true };
-        row.getCell(excelCol).alignment = { vertical: 'middle', horizontal: 'center' };
+        const c = row.getCell(excelCol);
+        c.value = cell.label;
+        c.font = EXCEL_STYLE.fontHeader;
+        c.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+        c.fill = EXCEL_STYLE.fillHeader;
+        c.border = excelBorder(EXCEL_STYLE.borderThin);
         mergedRanges.set(key, { startRow: r, endRow: r, label: cell.label });
       }
     }
@@ -451,19 +486,30 @@ export const reportService = {
 
     let totalGkCol = 0;
     let totalPaoCol = 0;
+    const lastHeaderRow = worksheet.getRow(headerStartRow + numHeaderRows - 1);
     if (!allSelectedArePaoMts) {
       totalGkCol = 2 + numLeafCols;
       totalPaoCol = 3 + numLeafCols;
-      const lastHeaderRow = worksheet.getRow(headerStartRow + numHeaderRows - 1);
-      lastHeaderRow.getCell(totalGkCol).value = 'Итого ГК МТС';
-      lastHeaderRow.getCell(totalGkCol).font = { bold: true };
-      lastHeaderRow.getCell(totalPaoCol).value = 'Итого ПАО МТС';
-      lastHeaderRow.getCell(totalPaoCol).font = { bold: true };
+      const cGk = lastHeaderRow.getCell(totalGkCol);
+      cGk.value = 'Итого ГК МТС';
+      cGk.font = EXCEL_STYLE.fontHeader;
+      cGk.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+      cGk.fill = EXCEL_STYLE.fillTotal;
+      cGk.border = excelBorder(EXCEL_STYLE.borderThin);
+      const cPao = lastHeaderRow.getCell(totalPaoCol);
+      cPao.value = 'Итого ПАО МТС';
+      cPao.font = EXCEL_STYLE.fontHeader;
+      cPao.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+      cPao.fill = EXCEL_STYLE.fillTotal;
+      cPao.border = excelBorder(EXCEL_STYLE.borderThin);
     } else {
       totalPaoCol = 2 + numLeafCols;
-      const lastHeaderRow = worksheet.getRow(headerStartRow + numHeaderRows - 1);
-      lastHeaderRow.getCell(totalPaoCol).value = 'Итого ПАО МТС';
-      lastHeaderRow.getCell(totalPaoCol).font = { bold: true };
+      const cPao = lastHeaderRow.getCell(totalPaoCol);
+      cPao.value = 'Итого ПАО МТС';
+      cPao.font = EXCEL_STYLE.fontHeader;
+      cPao.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+      cPao.fill = EXCEL_STYLE.fillTotal;
+      cPao.border = excelBorder(EXCEL_STYLE.borderThin);
     }
 
     const outputFields: Array<{ label: string; dataKey: string }> =
@@ -478,53 +524,70 @@ export const reportService = {
 
     for (const { label, dataKey } of outputFields) {
       const dataRow = worksheet.getRow(currentRow);
-      dataRow.getCell(1).value = label;
-      
+      const indicatorCell = dataRow.getCell(1);
+      indicatorCell.value = label;
+      indicatorCell.font = EXCEL_STYLE.fontData;
+      indicatorCell.alignment = { horizontal: 'left', vertical: 'middle', wrapText: true };
+      indicatorCell.border = excelBorder(EXCEL_STYLE.borderThin);
+
       let rowTotalGk = 0;
       let rowTotalPao = 0;
-      
+
       excelLeafIds.forEach((leafId, index) => {
         const value = (fieldData.get(dataKey)?.get(leafId)) ?? 0;
         const cell = dataRow.getCell(index + 2);
         cell.value = value;
         cell.numFmt = '#,##0';
-        
+        cell.font = EXCEL_STYLE.fontData;
+        cell.alignment = { horizontal: 'right', vertical: 'middle' };
+        cell.border = excelBorder(EXCEL_STYLE.borderThin);
+
         rowTotalGk += value;
         if (paoMtsIdsForExcel.has(leafId)) {
           rowTotalPao += value;
         }
       });
-      
-      // Добавляем итоговые столбцы для каждой строки
+
       if (!allSelectedArePaoMts && totalGkCol > 0) {
         const rowGkCell = dataRow.getCell(totalGkCol);
         rowGkCell.value = rowTotalGk;
         rowGkCell.numFmt = '#,##0';
-        rowGkCell.font = { bold: true };
-        rowGkCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF3F3F3' } };
+        rowGkCell.font = { ...EXCEL_STYLE.fontData, bold: true };
+        rowGkCell.alignment = { horizontal: 'right', vertical: 'middle' };
+        rowGkCell.fill = EXCEL_STYLE.fillTotal;
+        rowGkCell.border = excelBorder(EXCEL_STYLE.borderThin);
       }
-      
-      // Столбец "Итого ПАО МТС" всегда отображается
+
       const rowPaoCell = dataRow.getCell(totalPaoCol);
       rowPaoCell.value = rowTotalPao;
       rowPaoCell.numFmt = '#,##0';
-      rowPaoCell.font = { bold: true };
-      rowPaoCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF3F3F3' } };
-      
+      rowPaoCell.font = { ...EXCEL_STYLE.fontData, bold: true };
+      rowPaoCell.alignment = { horizontal: 'right', vertical: 'middle' };
+      rowPaoCell.fill = EXCEL_STYLE.fillTotal;
+      rowPaoCell.border = excelBorder(EXCEL_STYLE.borderThin);
+
       currentRow++;
     }
 
-    // Настраиваем ширину столбцов
-    worksheet.getColumn(1).width = 60;
+    // Ширина столбцов
+    worksheet.getColumn(1).width = 58;
     for (let i = 0; i < numLeafCols; i++) {
-      worksheet.getColumn(i + 2).width = 20;
+      worksheet.getColumn(i + 2).width = 14;
     }
-    // Настраиваем ширину итоговых столбцов
     if (!allSelectedArePaoMts && totalGkCol > 0) {
-      worksheet.getColumn(totalGkCol).width = 20;
+      worksheet.getColumn(totalGkCol).width = 16;
     }
-    // Столбец "Итого ПАО МТС" всегда есть
-    worksheet.getColumn(totalPaoCol).width = 20;
+    worksheet.getColumn(totalPaoCol).width = 16;
+
+    // Закрепить заголовок и шапку таблицы при прокрутке
+    worksheet.views = [
+      {
+        state: 'frozen',
+        ySplit: headerStartRow + numHeaderRows,
+        activeCell: 'A1',
+        showGridLines: true,
+      },
+    ];
 
     // Генерируем буфер
     const buffer = await workbook.xlsx.writeBuffer();
