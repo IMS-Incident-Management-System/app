@@ -36,9 +36,7 @@ jobs:
              docker container prune -f; \
              docker image prune -f; \
              echo 'Starting deployment process...'; \
-             echo '=== Step 1: Login to Nexus Docker registry ==='; \
-             echo '${{ secrets.NEXUS_PASSWORD }}' | docker login nexus.code-generation.ru -u '${{ secrets.NEXUS_USER }}' --password-stdin; \
-             echo '=== Step 2: Ensure .env exists (secrets — вручную на сервере) ==='; \
+             echo '=== Step 1: Ensure .env exists (secrets — вручную на сервере) ==='; \
              if [ ! -f .env ]; then \
                echo 'Creating minimal .env (дозаполнить секреты на сервере)'; \
                echo 'NODE_ENV=production' > .env; \
@@ -46,7 +44,7 @@ jobs:
              else \
                echo '.env already exists'; \
              fi; \
-             echo '=== Step 3: Run deploy-cert.sh ==='; \
+             echo '=== Step 2: Run deploy-cert.sh ==='; \
              if [ -f scripts/deploy-cert.sh ]; then \
                chmod +x scripts/deploy-cert.sh; \
                bash scripts/deploy-cert.sh production; \
@@ -55,7 +53,7 @@ jobs:
                docker volume create certs 2>/dev/null || true; \
                docker volume create webroot 2>/dev/null || true; \
              fi; \
-             echo '=== Step 4: Build frontend ==='; \
+             echo '=== Step 3: Build frontend ==='; \
              curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash - || echo 'Node.js setup skipped'; \
              sudo apt-get install -y nodejs || echo 'Node.js already installed'; \
              cd frontend; \
@@ -71,6 +69,6 @@ jobs:
              echo 'Cleaning up node_modules after build...'; \
              rm -rf node_modules; \
              cd ..; \
-             echo '=== Step 5: Start all services ==='; \
+             echo '=== Step 4: Start all services ==='; \
              docker compose up -d --build; \
              echo 'Deployment completed successfully!'"
