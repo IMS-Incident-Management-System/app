@@ -28,6 +28,7 @@ import { updateEvent } from '../controllers/event/updateEvent.controller';
 import { deleteEvent } from '../controllers/event/deleteEvent.controller';
 import { getMyProfile, updateMyProfile, uploadProfilePhoto } from '../controllers/profile.controller';
 import { reportController } from '../controllers/report.controller';
+import { explanatoryNoteController } from '../controllers/explanatoryNote/explanatoryNote.controller';
 import { verifyToken } from '../middlewares/auth.middleware';
 import { upload } from '../middlewares/upload.middleware';
 
@@ -146,5 +147,14 @@ router.post('/reports/generate', reportController.generateReport);
 router.get('/reports/fields', reportController.getAvailableFields);
 router.post('/reports/table', reportController.getReportTable);
 router.post('/reports/export', reportController.exportReport);
+
+// Explanatory notes routes
+router.route('/explanatory-notes').get(explanatoryNoteController.getExplanatoryNotes).post(explanatoryNoteController.createExplanatoryNote);
+
+router
+  .route('/explanatory-notes/:id')
+  .get(explanatoryNoteController.getExplanatoryNote)
+  .put(explanatoryNoteController.updateExplanatoryNote)
+  .delete(explanatoryNoteController.deleteExplanatoryNote);
 
 export default router;

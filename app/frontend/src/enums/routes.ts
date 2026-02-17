@@ -25,5 +25,6 @@ export enum ERoutes {
   EVENT_VIEW_ID = "/events/view/:id",
   REPORTS = "/reports",
   REPORT_GENERATOR = "/reports/generator",
+  EXPLANATORY_NOTES_LIST = "/explanatory-notes",
 }
 

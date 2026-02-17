@@ -1,0 +1,32 @@
+.container {
+  padding: 24px;
+  max-width: 1600px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 50%, #f1f5f9 100%);
+}
+
+.filterCard {
+  margin-bottom: 24px;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(30, 60, 114, 0.06);
+  overflow: hidden;
+
+  :global(.ant-card-body) {
+    padding: 24px 28px;
+  }
+}
+
+.dateRangeContainer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  label {
+    font-weight: 500;
+  }
+}
+
+.table {
+  margin-top: 24px;
+}

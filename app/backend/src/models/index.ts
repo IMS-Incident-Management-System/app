@@ -20,6 +20,7 @@ import EventCriminalCase from './eventCriminalCase';
 import EventPunishment from './eventPunishment';
 import EventAdditionallyPerson from './eventAdditionallyPerson';
 import UserProfile from './userProfile';
+import ExplanatoryNote from './explanatoryNote';
 
 // IncidentEvent связи
 IncidentEvent.belongsTo(IncidentEventType, { 
@@ -194,6 +195,18 @@ Department.hasMany(Event, {
   onDelete: 'CASCADE'
 });
 
+// ExplanatoryNote связи
+ExplanatoryNote.belongsTo(Department, { 
+  foreignKey: 'department_id', 
+  as: 'department'
+});
+
+Department.hasMany(ExplanatoryNote, {
+  foreignKey: 'department_id',
+  as: 'explanatoryNotes',
+  onDelete: 'SET NULL'
+});
+
 Event.hasOne(EventCriminalCase, {
   foreignKey: 'event_id',
   as: 'criminal_case',
@@ -239,5 +252,6 @@ export {
   EventPunishment,
   EventAdditionallyPerson,
   UserProfile,
+  ExplanatoryNote,
   sequelize
 }; 
