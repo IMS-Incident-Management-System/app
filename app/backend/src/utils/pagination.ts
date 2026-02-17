@@ -43,8 +43,8 @@ export async function paginate<T extends Model>(
 }
 
 // Хелпер для преобразования результата пагинации в формат ITable
-export function paginatedResultToTable<T extends Model>(
-  result: PaginatedResult<T>,
+export function paginatedResultToTable<T>(
+  result: { items: T[]; total: number; page: number; limit: number; totalPages: number },
   columns: Array<{ key: string; title: string; dataIndex: string }>
 ) {
   return {

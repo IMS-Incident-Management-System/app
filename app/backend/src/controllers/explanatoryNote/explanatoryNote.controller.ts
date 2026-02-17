@@ -3,9 +3,11 @@ import { asyncErrorHandler } from '../../middlewares/errorHandler.middleware';
 import { CustomResponse } from '../../middlewares/responseHandler.middleware';
 import { explanatoryNoteService } from '../../services/explanatoryNote.service';
 import { getExplanatoryNotes } from './getExplanatoryNotes.controller';
+import { exportExplanatoryNotes } from './exportExplanatoryNotes.controller';
 
 export const explanatoryNoteController = {
   getExplanatoryNotes,
+  exportExplanatoryNotes,
   
   getExplanatoryNote: asyncErrorHandler(
     async (req: Request, res: CustomResponse) => {

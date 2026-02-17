@@ -150,6 +150,7 @@ router.post('/reports/export', reportController.exportReport);
 
 // Explanatory notes routes
 router.route('/explanatory-notes').get(explanatoryNoteController.getExplanatoryNotes).post(explanatoryNoteController.createExplanatoryNote);
+router.get('/explanatory-notes/export', explanatoryNoteController.exportExplanatoryNotes);
 
 router
   .route('/explanatory-notes/:id')
