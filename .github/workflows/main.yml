@@ -36,35 +36,17 @@ jobs:
              docker container prune -f; \
              docker image prune -f; \
              echo 'Starting deployment process...'; \
-             echo '=== Step 1: Create .env-files/.env-generator.env ==='; \
-             mkdir -p .env-files; \
-             echo 'VAULT_USER=${{ secrets.VAULT_USER }}' > .env-files/.env-generator.env; \
-             echo 'VAULT_PASS=${{ secrets.VAULT_PASSWORD }}' >> .env-files/.env-generator.env; \
-             echo 'VAULT_PATH=${{ secrets.VAULT_PATH }}' >> .env-files/.env-generator.env; \
-             echo '.env-generator.env created successfully'; \
-             echo '=== Step 2: Login to Nexus Docker registry ==='; \
+             echo '=== Step 1: Login to Nexus Docker registry ==='; \
              echo '${{ secrets.NEXUS_PASSWORD }}' | docker login nexus.code-generation.ru -u '${{ secrets.NEXUS_USER }}' --password-stdin; \
-             echo '=== Step 3: Run ims-env-generator ==='; \
-             echo 'Creating temporary volumes for docker-compose...'; \
-             docker volume create certs 2>/dev/null || echo 'Volume certs exists'; \
-             docker volume create webroot 2>/dev/null || echo 'Volume webroot exists'; \
-             echo 'Preparing .env file...'; \
-             rm -rf .env; \
-             touch .env; \
-             mkdir -p frontend && touch frontend/.env; \
-             docker compose --profile ims-env-generator up ims-env-generator --pull always; \
-             docker compose --profile ims-env-generator down; \
-             docker logout nexus.code-generation.ru; \
-             echo 'Checking .env file creation:'; \
-             if [ -f .env ]; then \
-               echo '.env file created successfully'; \
-               head -5 .env; \
-             else \
-               echo 'ERROR: .env not created, creating minimal version'; \
+             echo '=== Step 2: Ensure .env exists (secrets — вручную на сервере) ==='; \
+             if [ ! -f .env ]; then \
+               echo 'Creating minimal .env (дозаполнить секреты на сервере)'; \
                echo 'NODE_ENV=production' > .env; \
                echo 'NGINX_CONTAINER_NAME=ims-nginx' >> .env; \
+             else \
+               echo '.env already exists'; \
              fi; \
-             echo '=== Step 4: Run deploy-cert.sh ==='; \
+             echo '=== Step 3: Run deploy-cert.sh ==='; \
              if [ -f scripts/deploy-cert.sh ]; then \
                chmod +x scripts/deploy-cert.sh; \
                bash scripts/deploy-cert.sh production; \
@@ -73,7 +55,7 @@ jobs:
                docker volume create certs 2>/dev/null || true; \
                docker volume create webroot 2>/dev/null || true; \
              fi; \
-             echo '=== Step 5: Build frontend ==='; \
+             echo '=== Step 4: Build frontend ==='; \
              curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash - || echo 'Node.js setup skipped'; \
              sudo apt-get install -y nodejs || echo 'Node.js already installed'; \
              cd frontend; \
@@ -89,6 +71,6 @@ jobs:
              echo 'Cleaning up node_modules after build...'; \
              rm -rf node_modules; \
              cd ..; \
-             echo '=== Step 6: Start all services ==='; \
+             echo '=== Step 5: Start all services ==='; \
              docker compose up -d --build; \
              echo 'Deployment completed successfully!'"
