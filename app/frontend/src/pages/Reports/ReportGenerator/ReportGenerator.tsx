@@ -16,6 +16,7 @@ import {
 } from "antd";
 import {
   DownloadOutlined,
+  BarChartOutlined,
   CalendarOutlined,
   ArrowLeftOutlined,
   CheckSquareOutlined,
@@ -24,7 +25,7 @@ import {
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "../../../components/PageHeader";
-import { getReportTableData, exportReportToExcel } from "../../../api/reports/reports";
+import { getReportTableData, exportReportToExcel, exportDashboardToExcel } from "../../../api/reports/reports";
 import { useQuery } from "react-query";
 import { useGetDepartments } from "../../../services/requests/departments/getDepartments";
 import dayjs, { Dayjs } from "dayjs";
@@ -638,6 +639,29 @@ export const ReportGenerator: React.FC = () => {
     }
   };
 
+  const [isDashboardExporting, setIsDashboardExporting] = useState(false);
+  const handleExportDashboard = async () => {
+    if (selectedFields.size === 0 || selectedDepartments.size === 0) {
+      message.warning("Выберите хотя бы один показатель и один департамент");
+      return;
+    }
+    setIsDashboardExporting(true);
+    try {
+      await exportDashboardToExcel({
+        dateFrom: dateRange[0].format("YYYY-MM-DD"),
+        dateTo: dateRange[1].format("YYYY-MM-DD"),
+        departmentIds: Array.from(selectedDepartments),
+        fieldKeys: Array.from(selectedFields),
+      });
+      message.success("Дашборд выгружен");
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      message.error(err?.response?.data?.message || "Ошибка при выгрузке дашборда");
+    } finally {
+      setIsDashboardExporting(false);
+    }
+  };
+
   return (
     <div className={styles.container}>
       <div className={styles.topBar}>
@@ -739,6 +763,15 @@ export const ReportGenerator: React.FC = () => {
                 disabled={selectedFields.size === 0 || selectedDepartments.size === 0}
               >
                 Выгрузить в Excel
+              </Button>
+              <Button
+                size="large"
+                icon={<BarChartOutlined />}
+                onClick={handleExportDashboard}
+                loading={isDashboardExporting}
+                disabled={selectedFields.size === 0 || selectedDepartments.size === 0}
+              >
+                Выгрузить дашборд
               </Button>
               <Space split={<span className={styles.toolbarDivider}>|</span>}>
                 <Tag color="blue">

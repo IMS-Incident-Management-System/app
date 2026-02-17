@@ -161,6 +161,41 @@ export const exportReportToExcel = async (data: ExportReportRequest) => {
   window.URL.revokeObjectURL(url);
 };
 
+export const exportDashboardToExcel = async (data: ExportReportRequest) => {
+  const response = await axiosGatewayBackend.post("/reports/export-dashboard", data, {
+    responseType: 'blob',
+  });
+
+  let blob: Blob;
+  if (response instanceof Blob) {
+    blob = response;
+  } else if (response.data instanceof Blob) {
+    blob = response.data;
+  } else {
+    blob = new Blob([response.data || response], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  }
+
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+
+  const headers = (response as any).headers || {};
+  const contentDisposition = headers['content-disposition'] || headers['Content-Disposition'];
+  let fileName = 'dashboard.xlsx';
+  if (contentDisposition) {
+    const fileNameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+    if (fileNameMatch && fileNameMatch[1]) {
+      fileName = decodeURIComponent(fileNameMatch[1].replace(/['"]/g, ''));
+    }
+  }
+
+  link.setAttribute('download', fileName);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+};
+
 export const generateReport = async (data: GenerateReportRequest) => {
   const response = await axiosGatewayBackend.post("/reports/generate", data, {
     responseType: 'blob',
