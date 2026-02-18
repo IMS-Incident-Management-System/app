@@ -11,8 +11,12 @@ const QUICKCHART_MAX_HEIGHT = 2400;
 /** Макс. число серий в столбчатом графике — при большем QuickChart возвращает 400 (лимит размера запроса). */
 const COLUMN_CHART_MAX_DATASETS = 80;
 
-/** Получить PNG графика через QuickChart API (Chart.js config). */
-async function getChartPng(config: { type: string; data: unknown; options?: unknown }, width = 520, height = 320): Promise<Buffer> {
+/** Получить PNG графика через QuickChart API (Chart.js config; при formatter — config как строка). */
+async function getChartPng(
+  config: { type: string; data: unknown; options?: unknown } | string,
+  width = 520,
+  height = 320
+): Promise<Buffer> {
   const w = Math.min(width, QUICKCHART_MAX_WIDTH);
   const h = Math.min(height, QUICKCHART_MAX_HEIGHT);
   try {
@@ -1092,24 +1096,37 @@ export const reportService = {
     for (const { label, data } of pieDataByField) {
       const fields = Object.keys(data[label] || {});
       if (fields.length === 0) continue;
-      const pieConfig = {
+      let pieLabels: string[];
+      let pieValues: number[];
+      const values = fields.map((f) => data[label][f] ?? 0);
+      const total = values.reduce((a, b) => a + b, 0);
+      if (total === 0) {
+        pieLabels = ['Нет данных'];
+        pieValues = [1];
+      } else {
+        pieLabels = fields;
+        pieValues = values;
+      }
+      // Конфиг строкой — чтобы formatter (проценты) работал в QuickChart
+      const pieConfigStr = `{
         type: 'pie',
-        data: {
-          labels: fields,
-          datasets: [{ data: fields.map((f) => data[label][f] ?? 0) }],
-        },
+        data: { labels: ${JSON.stringify(pieLabels)}, datasets: [{ data: ${JSON.stringify(pieValues)} }] },
         options: {
-          title: { display: true, text: label, font: { size: 14 } },
+          title: { display: true, text: ${JSON.stringify(label)}, font: { size: 14 } },
           legend: { display: true, labels: { font: { size: 13 } } },
           plugins: {
             datalabels: {
               color: '#ffffff',
               font: { weight: 'bold', size: 13 },
-            },
-          },
-        },
-      };
-      const piePng = await getChartPng(pieConfig, pieSize, pieSize);
+              formatter: function(value, ctx) {
+                var total = ctx.dataset.data.reduce(function(a,b){ return a+b; }, 0);
+                return total > 0 ? (value/total*100).toFixed(1) + '%' : '0%';
+              }
+            }
+          }
+        }
+      }`;
+      const piePng = await getChartPng(pieConfigStr, pieSize, pieSize);
       const pieImageId = workbook.addImage({ base64: piePng.toString('base64'), extension: 'png' });
       sheet.addImage(pieImageId, {
         tl: { col: colPos * colStep, row: rowPos },
