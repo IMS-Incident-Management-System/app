@@ -29,9 +29,10 @@ export const useForm = ({
       period_to: formValues.period?.[1]
         ? dayjs(formValues.period[1]).format("YYYY-MM-DD")
         : undefined,
-      entry_date: formValues.entry_date
-        ? dayjs(formValues.entry_date).format("YYYY-MM-DD")
-        : undefined,
+      // Дата внесения: если пользователь не выбрал вручную — подставляем сегодняшнюю дату
+      entry_date: dayjs(
+        formValues.entry_date ? formValues.entry_date : dayjs()
+      ).format("YYYY-MM-DD"),
     };
     
     // Убираем временное поле period
@@ -51,12 +52,15 @@ export const useForm = ({
 
   useEffect(() => {
     if (operationalActivity) {
-      // Преобразуем данные операционной деятельности для формы
+      // Преобразуем данные операционной деятельности для формы (режим редактирования)
       const formValues: any = {
         department_id: operationalActivity.department_id,
-        period: 
+        period:
           operationalActivity.period_from && operationalActivity.period_to
-            ? [dayjs(operationalActivity.period_from), dayjs(operationalActivity.period_to)]
+            ? [
+                dayjs(operationalActivity.period_from),
+                dayjs(operationalActivity.period_to),
+              ]
             : undefined,
         direction: operationalActivity.direction,
         entry_date: operationalActivity.entry_date
@@ -79,13 +83,21 @@ export const useForm = ({
               "department",
             ].includes(key)
           ) {
-            acc[key] = operationalActivity[key as keyof OperationalActivityWithRelations];
+            acc[key] =
+              operationalActivity[
+                key as keyof OperationalActivityWithRelations
+              ];
           }
           return acc;
         }, {}),
       };
 
       form.setFieldsValue(formValues);
+    } else {
+      // Новый объект: по умолчанию заполняем дату внесения текущим днём
+      form.setFieldsValue({
+        entry_date: dayjs(),
+      } as any);
     }
   }, [operationalActivity, form]);
 

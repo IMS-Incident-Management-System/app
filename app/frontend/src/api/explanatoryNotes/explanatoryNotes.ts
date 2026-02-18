@@ -35,6 +35,8 @@ export interface ExplanatoryNoteRegisterRow {
   additional_income: number;
   vat_deducted: number;
   source_id?: number;
+  incident_id?: number;
+  event_id?: number;
 }
 
 /** @deprecated Используйте ExplanatoryNoteRegisterRow. Старый формат для обратной совместимости. */

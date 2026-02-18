@@ -4,10 +4,10 @@ import { IUseGetRequest } from "../../../interfaces/common/common";
 import { EQueryKeys } from "../../../enums/query";
 
 export const useGetExplanatoryNotes = (filter: IUseGetRequest<ExplanatoryNoteFilter>) => {
-  const { data, isLoading } = useQuery(
+  const { data, isLoading, isFetching, refetch } = useQuery(
     [EQueryKeys.GET_ALL_EXPLANATORY_NOTES, filter],
     () => getExplanatoryNotes(filter),
   );
 
-  return { data, isLoading };
+  return { data, isLoading, isFetching, refetch };
 };

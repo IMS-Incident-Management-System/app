@@ -1,12 +1,11 @@
 import { useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import {
   ReloadOutlined,
   ArrowLeftOutlined,
   DownloadOutlined,
 } from "@ant-design/icons";
-import type { TablePaginationConfig } from "antd/es/table";
-import { DatePicker, Card, Button, Select, Table as AntTable } from "antd";
+import { DatePicker, Card, Button, Select, Tooltip, Table as AntTable } from "antd";
 import dayjs, { Dayjs } from "dayjs";
 import "dayjs/locale/ru";
 import localeData from "dayjs/plugin/localeData";
@@ -17,11 +16,8 @@ import { useGetExplanatoryNotes } from "../../services/requests/explanatoryNotes
 import { ExplanatoryNoteFilter, ExplanatoryNoteFilterOptions, exportExplanatoryNotesToExcel } from "../../api/explanatoryNotes/explanatoryNotes";
 import { IUseGetRequest } from "../../interfaces/common/common";
 import { ERoutes } from "../../enums/routes";
-import { queryClient } from "../../plugins/query";
-import { EQueryKeys } from "../../enums/query";
 import { Table } from "../../components/Table/Table";
 import { PageHeader } from "../../components/PageHeader";
-import { IconButton } from "../../components/IconButton";
 import { ColumnsType } from "antd/es/table";
 import styles from "./ExplanatoryNotesList.module.scss";
 
@@ -38,10 +34,10 @@ export const ExplanatoryNotesList = () => {
       period_from: dateRange[0].format("YYYY-MM-DD"),
       period_to: dateRange[1].format("YYYY-MM-DD"),
     },
-    pagination: { page: 1, limit: 10 },
+    pagination: { page: 1, limit: 999999 },
   });
   
-  const { data, isLoading } = useGetExplanatoryNotes(filter);
+  const { data, isLoading, isFetching, refetch } = useGetExplanatoryNotes(filter);
   const [isExporting, setIsExporting] = useState(false);
 
   const handleDateRangeChange = (dates: [Dayjs | null, Dayjs | null] | null) => {
@@ -68,17 +64,6 @@ export const ExplanatoryNotesList = () => {
     }
   };
 
-  const handleReload = () => {
-    queryClient.invalidateQueries({
-      predicate: (query) => {
-        const queryKey = query.queryKey;
-        return (
-          Array.isArray(queryKey) &&
-          queryKey[0] === EQueryKeys.GET_ALL_EXPLANATORY_NOTES
-        );
-      },
-    });
-  };
 
   const filterOptions: ExplanatoryNoteFilterOptions = (data as { filterOptions?: ExplanatoryNoteFilterOptions })?.filterOptions ?? {
     kc_r: [],
@@ -95,21 +80,6 @@ export const ExplanatoryNotesList = () => {
     }));
   };
 
-  const handleTableChange = (pagination: TablePaginationConfig) => {
-    if (
-      typeof pagination.current === "number" &&
-      typeof pagination.pageSize === "number"
-    ) {
-      const page = pagination.current;
-      const limit = pagination.pageSize;
-
-      setFilter((prev) => ({
-        ...prev,
-        pagination: { page, limit },
-      }));
-    }
-  };
-
   const columns: ColumnsType<Record<string, unknown>> = useMemo(() => [
     {
       title: "№",
@@ -122,6 +92,19 @@ export const ExplanatoryNotesList = () => {
       dataIndex: "display_id",
       key: "display_id",
       width: 70,
+      render: (displayId: string, record: Record<string, unknown>) => {
+        const eventId = record.event_id as number | undefined;
+        const incidentId = record.incident_id as number | undefined;
+        const href = eventId
+          ? `${ERoutes.EVENT_VIEW}/${eventId}`
+          : incidentId
+            ? `${ERoutes.INCIDENT_VIEW}/${incidentId}`
+            : null;
+        if (href) {
+          return <Link to={href}>{displayId}</Link>;
+        }
+        return displayId;
+      },
     },
     {
       title: "КЦ/Р",
@@ -298,12 +281,15 @@ export const ExplanatoryNotesList = () => {
       <PageHeader
         title="Пояснительная записка"
         actions={
-          <IconButton
-            buttonStyle="glass"
-            icon={<ReloadOutlined />}
-            onClick={handleReload}
-            tooltip="Обновить"
-          />
+          <Tooltip title="Обновить данные">
+            <Button
+              icon={<ReloadOutlined />}
+              onClick={() => refetch()}
+              loading={isFetching}
+            >
+              Обновить
+            </Button>
+          </Tooltip>
         }
       />
       <Card className={styles.filterCard}>
@@ -383,14 +369,9 @@ export const ExplanatoryNotesList = () => {
         dataSource={data?.dataSource ?? []}
         columns={columns}
         className={styles.table}
-        pagination={{
-          current: filter.pagination.page,
-          pageSize: filter.pagination.limit,
-          total: data?.total ?? 0,
-        }}
-        onChange={(pagination) => handleTableChange(pagination)}
+        pagination={false}
         loading={isLoading}
-        scroll={{ x: "max-content" }}
+        scroll={{ x: "max-content", y: 560 }}
         rowKey={(record) => `${record.type}-${record.id}`}
         summary={() => {
           const t = (data as { totals?: Record<string, number> })?.totals;

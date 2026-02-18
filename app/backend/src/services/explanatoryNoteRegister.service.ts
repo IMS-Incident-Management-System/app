@@ -16,11 +16,25 @@ import { PaginatedQuery } from '../utils/pagination';
 
 export type RegisterRecordType = 'incident' | 'event' | 'additionally';
 
-/** Тип инцидента — из событий инцидента (Кражи, Пожары и т.д.), не направление */
-function getIncidentTypeTitles(incident: { events?: Array<{ event_type?: { title?: string } }> }): string {
+/** Тип инцидента — из событий инцидента, с иерархией родитель/дочерний, без дублей */
+function getIncidentTypeTitles(incident: {
+  events?: Array<{ event_type?: { event_type_id?: number; title?: string; parent?: { title?: string } } }>;
+}): string {
   const events = incident.events || [];
-  const titles = [...new Set(events.map(e => e.event_type?.title).filter(Boolean) as string[])];
-  return titles.join(', ') || '';
+  const seenIds = new Set<number>();
+  const labels: string[] = [];
+  for (const e of events) {
+    const et = e.event_type;
+    if (!et) continue;
+    const id = et.event_type_id;
+    if (id == null || seenIds.has(id)) continue;
+    seenIds.add(id);
+    const title = et.title;
+    if (!title) continue;
+    const parentTitle = et.parent?.title;
+    labels.push(parentTitle ? `${parentTitle} / ${title}` : title);
+  }
+  return labels.join(', ') || '';
 }
 
 export interface ExplanatoryNoteRegisterRow {
@@ -228,7 +242,16 @@ export const explanatoryNoteRegisterService = {
         where: incidentWhere,
         include: [
           { model: Department, as: 'department' },
-          { model: IncidentEvent, as: 'events', required: false, include: [{ model: IncidentEventType, as: 'event_type' }] },
+          {
+            model: IncidentEvent,
+            as: 'events',
+            required: false,
+            include: [{
+              model: IncidentEventType,
+              as: 'event_type',
+              include: [{ model: IncidentEventType, as: 'parent', attributes: ['event_type_id', 'title'] }],
+            }],
+          },
         ],
         order: [['id', 'DESC']],
       });
@@ -290,7 +313,16 @@ export const explanatoryNoteRegisterService = {
           where: filters?.department_id ? { department_id: filters.department_id } : undefined,
           include: [
             { model: Department, as: 'department' },
-            { model: IncidentEvent, as: 'events', required: false, include: [{ model: IncidentEventType, as: 'event_type' }] },
+            {
+              model: IncidentEvent,
+              as: 'events',
+              required: false,
+              include: [{
+                model: IncidentEventType,
+                as: 'event_type',
+                include: [{ model: IncidentEventType, as: 'parent', attributes: ['event_type_id', 'title'] }],
+              }],
+            },
           ],
         },
         { model: Punishment, as: 'punishment', required: false },
@@ -598,3 +630,4 @@ export const explanatoryNoteRegisterService = {
     return (await workbook.xlsx.writeBuffer()) as ExcelJS.Buffer;
   },
 };
+
