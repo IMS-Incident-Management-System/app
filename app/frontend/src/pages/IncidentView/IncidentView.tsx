@@ -106,6 +106,30 @@ export const IncidentView = () => {
               <Descriptions.Item label="Направление">
                 <Tag color="green">{getDirectionText(incident.direction)}</Tag>
               </Descriptions.Item>
+              <Descriptions.Item label="Тип инцидента">
+                {incident.events && incident.events.length > 0 ? (() => {
+                  const seenIds = new Set<number>();
+                  const items: { id: number; label: string }[] = [];
+                  for (const e of incident.events) {
+                    const et = (e as any).event_type;
+                    if (!et || !et.title) continue;
+                    const id = et.event_type_id ?? et.title;
+                    if (seenIds.has(id as number)) continue;
+                    seenIds.add(id as number);
+                    const parentTitle = et.parent?.title;
+                    items.push({ id: id as number, label: parentTitle ? `${parentTitle} / ${et.title}` : et.title });
+                  }
+                  return (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                      {items.map(({ id, label }) => (
+                        <Tag key={id} color="orange">{label}</Tag>
+                      ))}
+                    </div>
+                  );
+                })() : (
+                  <span style={{ color: '#999', fontStyle: 'italic' }}>Не указано</span>
+                )}
+              </Descriptions.Item>
               <Descriptions.Item label="Типы объектов">
                 {incident.object_types && incident.object_types.length > 0 ? (
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>

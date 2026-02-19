@@ -1,0 +1,68 @@
+.container {
+  padding: 24px;
+  max-width: 1600px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 50%, #f1f5f9 100%);
+}
+
+.topBar {
+  margin-bottom: 8px;
+}
+
+.backBtn {
+  color: #64748b;
+  font-weight: 500;
+  padding-left: 0;
+
+  &:hover {
+    color: #1e3c72;
+  }
+
+  :global(.anticon) {
+    margin-right: 6px;
+  }
+}
+
+.filterCard {
+  margin-bottom: 24px;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(30, 60, 114, 0.06);
+  overflow: hidden;
+
+  :global(.ant-card-body) {
+    padding: 24px 28px;
+  }
+}
+
+.filtersRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: flex-end;
+}
+
+.dateRangeContainer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  label {
+    font-weight: 500;
+  }
+}
+
+.filterItem {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  label {
+    font-weight: 500;
+    font-size: 13px;
+  }
+}
+
+.table {
+  margin-top: 24px;
+}

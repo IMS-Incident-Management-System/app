@@ -136,35 +136,16 @@ export const useForm = ({
           if (!incident.events || incident.events.length === 0) {
             return undefined;
           }
-          
-          // События отсортированы по id ASC
-          // Основные события создаются первыми (Promise.all) и имеют уникальные event_type_id
-          // События для дополнений создаются после и могут повторять первый event_type_id или иметь null
-          // Стратегия: собираем уникальные event_type_id последовательно до первого повторения или null
-          const seenTypes = new Set<number>();
-          const mainEventTypeIds: number[] = [];
-          
-          for (const event of incident.events) {
-            const eventTypeId = event.event_type_id;
-            
-            // Если встретили null - это событие для дополнения, прекращаем сбор
-            if (eventTypeId === null || eventTypeId === undefined) {
-              break;
-            }
-            
-            // Если встретили повторение типа события - это начало событий для дополнений
-            // (события для дополнений используют первый event_type_id из основных)
-            if (seenTypes.has(eventTypeId)) {
-              break;
-            }
-            
-            // Добавляем в набор уникальных типов и в результат
-            seenTypes.add(eventTypeId);
-            mainEventTypeIds.push(eventTypeId);
-          }
-          
+          // Все уникальные типы из всех событий (и основных, и дополнений), чтобы тип инцидента можно было менять при наличии дополнений
+          const mainEventTypeIds = Array.from(
+            new Set(
+              incident.events
+                .map((e) => e.event_type_id)
+                .filter((id): id is number => id !== null && id !== undefined),
+            ),
+          );
           return {
-            event_type_ids: mainEventTypeIds.length > 0 ? mainEventTypeIds : [],
+            event_type_ids: mainEventTypeIds,
             date: incident.events[0].date ? dayjs(incident.events[0].date) : undefined,
             entry_date: incident.events[0].entry_date ? dayjs(incident.events[0].entry_date) : dayjs(),
             sub_type_id: incident.events[0].sub_type_id,

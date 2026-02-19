@@ -47,9 +47,18 @@ export const usePrepareTableData = (data: ITable<IncidentWithRelations>) => {
         ...column,
         title: "Тип инцидента", // Изменяем заголовок колонки
         render: (value: any, record: any) => {
-          // Теперь у нас массив событий
           if (record.events && record.events.length > 0) {
-            // Цвета для разных типов событий
+            const seenIds = new Set<number>();
+            const items: { id: number; label: string }[] = [];
+            for (const event of record.events) {
+              const et = event.event_type;
+              if (!et || !et.title) continue;
+              const id = et.event_type_id ?? et.title;
+              if (seenIds.has(id as number)) continue;
+              seenIds.add(id as number);
+              const parentTitle = et.parent?.title;
+              items.push({ id: id as number, label: parentTitle ? `${parentTitle} / ${et.title}` : et.title });
+            }
             const getEventTypeColor = (eventTypeId: number) => {
               const colors = ['blue', 'green', 'orange', 'purple', 'red', 'cyan', 'magenta', 'volcano', 'gold', 'lime'];
               return colors[eventTypeId % colors.length];
@@ -63,10 +72,10 @@ export const usePrepareTableData = (data: ITable<IncidentWithRelations>) => {
                 maxWidth: '200px',
                 alignItems: 'flex-start'
               }}>
-                {record.events.map((event: any, index: number) => (
+                {items.map(({ id, label }) => (
                   <Tag
-                    key={event.id || `${event.event_type?.event_type_id}-${event.event_type?.title}-${index}`}
-                    color={getEventTypeColor(event.event_type?.event_type_id || index)}
+                    key={id}
+                    color={getEventTypeColor(id)}
                     className={classes.tag}
                     style={{
                       margin: '2px 0',
@@ -77,10 +86,10 @@ export const usePrepareTableData = (data: ITable<IncidentWithRelations>) => {
                       boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
                     }}
                   >
-                    {event.event_type?.title}
+                    {label}
                   </Tag>
                 ))}
-                {record.events.length > 3 && (
+                {items.length > 3 && (
                   <Tag
                     color="default"
                     style={{
@@ -92,7 +101,7 @@ export const usePrepareTableData = (data: ITable<IncidentWithRelations>) => {
                       background: '#fafafa'
                     }}
                   >
-                    +{record.events.length - 3} еще
+                    +{items.length - 3} еще
                   </Tag>
                 )}
               </div>

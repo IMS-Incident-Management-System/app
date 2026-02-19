@@ -20,7 +20,12 @@ export interface PaginatedQuery<TFilter = any> {
 
 export async function paginate<T extends Model>(
   model: ModelStatic<T>,
-  options: FindOptions<T['_attributes']> & { pagination: PaginationOptions }
+  options: (FindOptions<T['_attributes']> & {
+    pagination: PaginationOptions;
+    // Дополнительно разрешаем distinct/col для корректного подсчёта total при join'ах
+    distinct?: boolean;
+    col?: string;
+  })
 ): Promise<PaginatedResult<T>> {
   const { pagination, ...findOptions } = options;
   const { page, limit } = pagination;
@@ -43,8 +48,8 @@ export async function paginate<T extends Model>(
 }
 
 // Хелпер для преобразования результата пагинации в формат ITable
-export function paginatedResultToTable<T extends Model>(
-  result: PaginatedResult<T>,
+export function paginatedResultToTable<T>(
+  result: { items: T[]; total: number; page: number; limit: number; totalPages: number },
   columns: Array<{ key: string; title: string; dataIndex: string }>
 ) {
   return {

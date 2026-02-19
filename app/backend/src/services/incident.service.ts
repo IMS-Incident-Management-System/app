@@ -121,6 +121,9 @@ export const incidentService = {
 
     const result = await paginate(Incident, {
       where,
+      // Включаем distinct, чтобы корректно считать total при join'ах с событиями
+      distinct: true,
+      col: 'id',
       include: [
         {
           model: Department,
@@ -139,7 +142,11 @@ export const incidentService = {
           as: 'events',
           required: false,
           include: [
-            { model: IncidentEventType, as: 'event_type' },
+            {
+              model: IncidentEventType,
+              as: 'event_type',
+              include: [{ model: IncidentEventType, as: 'parent', attributes: ['event_type_id', 'title'] }],
+            },
           ]
         }
       ],
@@ -174,7 +181,11 @@ export const incidentService = {
           separate: true,
           order: [['id', 'ASC']],
           include: [
-            'event_type',
+            {
+              model: IncidentEventType,
+              as: 'event_type',
+              include: [{ model: IncidentEventType, as: 'parent', attributes: ['event_type_id', 'title'] }],
+            },
             {
               model: IncidentEventAttachment,
               as: 'attachments'

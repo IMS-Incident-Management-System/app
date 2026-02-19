@@ -81,8 +81,10 @@ export const MainInfo = () => {
               >
                 <DatePicker
                   style={{ width: "100%" }}
-                  placeholder="Выберите дату внесения"
+                  placeholder="Дата проставляется автоматически"
                   format="YYYY-MM-DD"
+                  disabled
+                  inputReadOnly
                 />
               </Form.Item>
             </Col>

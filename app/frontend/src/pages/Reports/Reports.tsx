@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, Row, Col, Typography, Button } from 'antd';
 import { useNavigate } from 'react-router-dom';
-import { FileTextOutlined, RightOutlined } from '@ant-design/icons';
+import { FileTextOutlined, RightOutlined, TableOutlined } from '@ant-design/icons';
 import { ERoutes } from '../../enums/routes';
 import styles from './Reports.module.scss';
 import { PageHeader } from '../../components/PageHeader';
@@ -25,6 +25,14 @@ const reportsData: ReportItem[] = [
     icon: <FileTextOutlined />,
     route: ERoutes.REPORTS + '/generator',
     color: '#1890ff'
+  },
+  {
+    id: 'explanatory-notes',
+    title: 'Пояснительная записка',
+    description: 'Реестр пояснительной записки к отчету по форме 2-ДБ по Группе МТС с возможностью фильтрации по периодам.',
+    icon: <TableOutlined />,
+    route: ERoutes.EXPLANATORY_NOTES_LIST,
+    color: '#52c41a'
   }
 ];
 
