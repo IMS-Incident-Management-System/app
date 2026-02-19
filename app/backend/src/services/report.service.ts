@@ -1,8 +1,48 @@
 import { Op } from 'sequelize';
+import axios from 'axios';
 import ExcelJS from 'exceljs';
 import { Incident, Event, OperationalActivity, Department } from '../models';
 import { REPORT_FIELDS } from '../constants/reportFields';
 import { computeFieldValueByRule } from './reportCalculator';
+
+const QUICKCHART_URL = 'https://quickchart.io/chart';
+const QUICKCHART_MAX_WIDTH = 4000;
+const QUICKCHART_MAX_HEIGHT = 2400;
+/** Макс. число серий в столбчатом графике — при большем QuickChart возвращает 400 (лимит размера запроса). */
+const COLUMN_CHART_MAX_DATASETS = 80;
+
+/** Получить PNG графика через QuickChart API (Chart.js config; при formatter — config как строка). */
+async function getChartPng(
+  config: { type: string; data: unknown; options?: unknown } | string,
+  width = 520,
+  height = 320
+): Promise<Buffer> {
+  const w = Math.min(width, QUICKCHART_MAX_WIDTH);
+  const h = Math.min(height, QUICKCHART_MAX_HEIGHT);
+  try {
+    const res = await axios.post(
+      QUICKCHART_URL,
+      { chart: config, width: w, height: h, format: 'png', backgroundColor: 'white' },
+      { responseType: 'arraybuffer', timeout: 60000 }
+    );
+    return Buffer.from(res.data);
+  } catch (err: unknown) {
+    const axiosError = err as { response?: { status: number; data?: unknown }; message?: string };
+    const body = axiosError.response?.data;
+    let msg = '';
+    if (body != null) {
+      if (typeof body === 'string') msg = body;
+      else {
+        const buf = Buffer.isBuffer(body) ? body : Buffer.from(body as ArrayBuffer);
+        const s = buf.toString('utf8');
+        if (/^[\x20-\x7e\u0400-\u04ff\s]+$/.test(s) && s.length < 500) msg = s;
+      }
+    }
+    if (!msg) msg = axiosError.message ?? '';
+    console.error('[getChartPng] QuickChart error:', axiosError.response?.status, msg.slice(0, 300));
+    throw new Error(`Ошибка построения графика: ${axiosError.response?.status === 400 ? 'некорректные данные или превышен лимит размера' : axiosError.response?.status ?? 'сеть'}. ${msg.slice(0, 150)}`);
+  }
+}
 
 /** Стили для Excel-отчёта: строго и читаемо */
 const EXCEL_STYLE = {
@@ -163,6 +203,33 @@ export function buildReportHeaderStructure(
   headerRows.push(leafPaths.map((p) => ({ label: p.leafTitle, span: 1 })));
 
   return { headerRows, leafDepartmentIds: leafIds };
+}
+
+/**
+ * Собирает для каждого выбранного листа путь от корня до родителя (path[0]=root).
+ * Для группировки круговых: уровень 2 везде, где есть; где всего 2 уровня — уровень 1.
+ */
+function getLeafPaths(
+  forest: DeptTreeNode[],
+  selectedLeafIds: Set<number>
+): Array<{ leafId: number; path: string[] }> {
+  const result: Array<{ leafId: number; path: string[] }> = [];
+  function traverse(node: DeptTreeNode, pathFromRoot: string[]): void {
+    if (node.children.length === 0) {
+      if (!selectedLeafIds.has(node.departmentId)) return;
+      const path = pathFromRoot.length > 0 ? pathFromRoot : [node.title];
+      result.push({ leafId: node.departmentId, path });
+    } else {
+      const childPath = pathFromRoot.concat(node.title);
+      for (const child of node.children) {
+        traverse(child, childPath);
+      }
+    }
+  }
+  for (const root of forest) {
+    traverse(root, []);
+  }
+  return result;
 }
 
 /** Верхний уровень дерева отчёта: только эти корни; всё под ФО (Москва, Центр, СЗ, …) — внутри ФО, не отдельно. */
@@ -805,5 +872,276 @@ export const reportService = {
       departmentIds,
       fieldKeys: validKeys,
     });
+  },
+
+  /**
+   * Выгрузка дашборда в Excel: один столбчатый график (месяцы × показатели) + N круговых (по одному на показатель, группировка по 2-му уровню департаментов).
+   * Таблицу в файл не включаем.
+   */
+  async exportDashboard(request: ExportRequest): Promise<Buffer> {
+    const { dateFrom, dateTo, departmentIds, fieldKeys } = request;
+    const validKeys = fieldKeys.filter((k) => REPORT_FIELDS.some((f) => f.key === k));
+    if (validKeys.length === 0) {
+      throw new Error('Не найдено полей для выгрузки');
+    }
+
+    const departments = await Department.findAll({
+      where: { department_id: { [Op.in]: departmentIds } },
+    });
+    const allDepartmentsForCalc = await Department.findAll();
+    const getAllDescendants = (parentId: number): number[] => {
+      const result = [parentId];
+      const children = allDepartmentsForCalc.filter((d) => d.parent_id === parentId);
+      for (const child of children) {
+        result.push(...getAllDescendants(child.department_id));
+      }
+      return result;
+    };
+    const getLeafDescendants = (parentId: number): number[] => {
+      const children = allDepartmentsForCalc.filter((d) => d.parent_id === parentId);
+      if (children.length === 0) return [parentId];
+      const result: number[] = [];
+      for (const child of children) {
+        result.push(...getLeafDescendants(child.department_id));
+      }
+      return result;
+    };
+
+    const paoMtsNameToId = new Map<string, number>();
+    for (const name of PAO_MTS_DEPARTMENT_NAMES) {
+      const dept = allDepartmentsForCalc.find((d) => d.title === name);
+      if (dept) {
+        paoMtsNameToId.set(name, dept.department_id);
+      }
+    }
+    const sortedDepartments = [...departments].sort((a, b) => {
+      const aIndex = PAO_MTS_DEPARTMENT_NAMES.findIndex((name) => {
+        const id = paoMtsNameToId.get(name);
+        return id != null && (a.department_id === id || getAllDescendants(id).includes(a.department_id));
+      });
+      const bIndex = PAO_MTS_DEPARTMENT_NAMES.findIndex((name) => {
+        const id = paoMtsNameToId.get(name);
+        return id != null && (b.department_id === id || getAllDescendants(id).includes(b.department_id));
+      });
+      if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+      if (aIndex !== -1) return -1;
+      if (bIndex !== -1) return 1;
+      return a.title.localeCompare(b.title);
+    });
+
+    const allDeptsForTree = allDepartmentsForCalc.map((d) => ({
+      department_id: d.department_id,
+      title: d.title,
+      parent_id: d.parent_id,
+    }));
+    const selectedLeafIds = new Set(
+      sortedDepartments.flatMap((d) => getLeafDescendants(d.department_id))
+    );
+    const rootDepts = STANDARD_ROOT_NAMES.map((name) => allDeptsForTree.find((d) => d.title === name))
+      .filter((d): d is NonNullable<typeof d> => d != null)
+      .map((d) => ({ department_id: d.department_id, title: d.title }));
+    const childOrder = (
+      a: { department_id: number; title: string },
+      b: { department_id: number; title: string }
+    ) => {
+      const ai = PAO_MTS_DEPARTMENT_NAMES.indexOf(a.title);
+      const bi = PAO_MTS_DEPARTMENT_NAMES.indexOf(b.title);
+      if (ai !== -1 && bi !== -1) return ai - bi;
+      if (ai !== -1) return -1;
+      if (bi !== -1) return 1;
+      return (a.title || '').localeCompare(b.title || '');
+    };
+    const forest = buildDepartmentForest(rootDepts, allDeptsForTree, childOrder);
+    const { leafDepartmentIds: excelLeafIds } = buildReportHeaderStructure(forest, selectedLeafIds);
+
+    const defs = validKeys
+      .map((k) => REPORT_FIELDS.find((f) => f.key === k))
+      .filter((f): f is NonNullable<typeof f> => f != null);
+    const monthNames = [
+      'январь', 'февраль', 'март', 'апрель', 'май', 'июнь',
+      'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь',
+    ];
+
+    // Месяцы в диапазоне
+    const months: Array<{ label: string; dateFrom: Date; dateTo: Date }> = [];
+    const from = new Date(dateFrom);
+    const to = new Date(dateTo);
+    let y = from.getFullYear();
+    let m = from.getMonth();
+    const endY = to.getFullYear();
+    const endM = to.getMonth();
+    while (y < endY || (y === endY && m <= endM)) {
+      const monthStart = new Date(y, m, 1);
+      const monthEnd = new Date(y, m + 1, 0, 23, 59, 59, 999);
+      months.push({
+        label: `${monthNames[m]} ${y}`,
+        dateFrom: monthStart,
+        dateTo: monthEnd,
+      });
+      m++;
+      if (m > 11) {
+        m = 0;
+        y++;
+      }
+    }
+
+    // Данные для столбчатого графика: по месяцам, суммы по каждому показателю
+    const columnData: Record<string, Record<string, number>> = {};
+    for (const month of months) {
+      const row: Record<string, number> = {};
+      for (const def of defs) {
+        let sum = 0;
+        for (const leafId of excelLeafIds) {
+          const v = await computeFieldValueByRule(def, leafId, month.dateFrom, month.dateTo, undefined);
+          sum += v;
+        }
+        row[def.label] = sum;
+      }
+      columnData[month.label] = row;
+    }
+
+    // Данные для круговых: полный период по листьям, затем группировка по 2-му уровню (или 1-му при двух уровнях)
+    const leafPaths = getLeafPaths(forest, selectedLeafIds);
+    const leafToGroup = new Map<number, string>();
+    for (const { leafId, path } of leafPaths) {
+      const groupLabel = path.length >= 2 ? path[1] : path[0];
+      leafToGroup.set(leafId, groupLabel);
+    }
+
+    const fieldDataByLeaf = new Map<string, Map<number, number>>();
+    const dateToEnd = new Date(dateTo);
+    dateToEnd.setHours(23, 59, 59, 999);
+    for (const def of defs) {
+      const dataMap = new Map<number, number>();
+      for (const leafId of excelLeafIds) {
+        const value = await computeFieldValueByRule(def, leafId, dateFrom, dateToEnd, undefined);
+        dataMap.set(leafId, value);
+      }
+      fieldDataByLeaf.set(def.key, dataMap);
+    }
+
+    const pieDataByField: Array<{ label: string; data: Record<string, Record<string, number>> }> = [];
+    for (const def of defs) {
+      const groupSums: Record<string, number> = {};
+      for (const leafId of excelLeafIds) {
+        const groupLabel = leafToGroup.get(leafId) ?? 'Прочее';
+        const value = fieldDataByLeaf.get(def.key)?.get(leafId) ?? 0;
+        groupSums[groupLabel] = (groupSums[groupLabel] ?? 0) + value;
+      }
+      pieDataByField.push({
+        label: def.label,
+        data: { [def.label]: groupSums },
+      });
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet('Дашборд', { properties: { defaultRowHeight: 15 } });
+
+    const rowHeight = 15;
+    const gapRows = 2;
+    let rowPos = 0;
+
+    // Ограничиваем число показателей в столбчатом графике, иначе QuickChart 400 (лимит запроса)
+    const columnDefs = defs.length > COLUMN_CHART_MAX_DATASETS ? defs.slice(0, COLUMN_CHART_MAX_DATASETS) : defs;
+    const columnDefsNote = defs.length > COLUMN_CHART_MAX_DATASETS ? ` (показаны первые ${COLUMN_CHART_MAX_DATASETS} из ${defs.length})` : '';
+
+    // Динамические размеры: по ширине — под много месяцев и показателей, по высоте — под легенду вниз
+    const columnChartBaseWidth = 1000;
+    const columnChartBaseHeight = 480;
+    const columnChartWidth = Math.min(
+      QUICKCHART_MAX_WIDTH,
+      columnChartBaseWidth
+        + Math.max(0, months.length - 12) * 90
+        + Math.max(0, columnDefs.length - 25) * 28
+    );
+    const columnChartHeight = Math.min(QUICKCHART_MAX_HEIGHT, columnChartBaseHeight + Math.max(0, columnDefs.length - 25) * 22);
+
+    // Столбчатый график (месяцы × показатели)
+    const columnChartConfig = {
+      type: 'bar',
+      data: {
+        labels: months.map((m) => m.label),
+        datasets: columnDefs.map((d) => ({
+          label: d.label,
+          data: months.map((m) => columnData[m.label]?.[d.label] ?? 0),
+        })),
+      },
+      options: {
+        title: {
+          display: true,
+          text: (months.length ? `Суммы за период ${months[0].label} — ${months[months.length - 1].label}` : 'По месяцам') + columnDefsNote,
+          font: { size: 16 },
+        },
+        legend: { display: true, labels: { font: { size: 12 } } },
+        scales: {
+          xAxes: [{ stacked: false, ticks: { font: { size: 11 }, maxRotation: 45 } }],
+          yAxes: [{ stacked: false, ticks: { font: { size: 11 } } }],
+        },
+      },
+    };
+    const columnPng = await getChartPng(columnChartConfig, columnChartWidth, columnChartHeight);
+    const columnImageId = workbook.addImage({ base64: columnPng.toString('base64'), extension: 'png' });
+    sheet.addImage(columnImageId, {
+      tl: { col: 0, row: rowPos },
+      ext: { width: columnChartWidth, height: columnChartHeight },
+      editAs: 'oneCell',
+    });
+    rowPos += columnChartHeight / rowHeight + gapRows;
+
+    // Круговые диаграммы — по 4 в строку с небольшим отступом, фиксированный размер
+    const pieSize = 420;
+    const piesPerRow = 4;
+    const colStep = 9.2;
+    let colPos = 0;
+    for (const { label, data } of pieDataByField) {
+      const fields = Object.keys(data[label] || {});
+      if (fields.length === 0) continue;
+      let pieLabels: string[];
+      let pieValues: number[];
+      const values = fields.map((f) => data[label][f] ?? 0);
+      const total = values.reduce((a, b) => a + b, 0);
+      if (total === 0) {
+        pieLabels = ['Нет данных'];
+        pieValues = [1];
+      } else {
+        pieLabels = fields;
+        pieValues = values;
+      }
+      // Конфиг строкой — чтобы formatter (проценты) работал в QuickChart
+      const pieConfigStr = `{
+        type: 'pie',
+        data: { labels: ${JSON.stringify(pieLabels)}, datasets: [{ data: ${JSON.stringify(pieValues)} }] },
+        options: {
+          title: { display: true, text: ${JSON.stringify(label)}, font: { size: 14 } },
+          legend: { display: true, labels: { font: { size: 13 } } },
+          plugins: {
+            datalabels: {
+              color: '#ffffff',
+              font: { weight: 'bold', size: 13 },
+              formatter: function(value, ctx) {
+                var total = ctx.dataset.data.reduce(function(a,b){ return a+b; }, 0);
+                return total > 0 ? (value/total*100).toFixed(1) + '%' : '0%';
+              }
+            }
+          }
+        }
+      }`;
+      const piePng = await getChartPng(pieConfigStr, pieSize, pieSize);
+      const pieImageId = workbook.addImage({ base64: piePng.toString('base64'), extension: 'png' });
+      sheet.addImage(pieImageId, {
+        tl: { col: colPos * colStep, row: rowPos },
+        ext: { width: pieSize, height: pieSize },
+        editAs: 'oneCell',
+      });
+      colPos++;
+      if (colPos >= piesPerRow) {
+        colPos = 0;
+        rowPos += pieSize / rowHeight + gapRows;
+      }
+    }
+
+    sheet.getColumn(1).width = 24;
+    const buffer = await workbook.xlsx.writeBuffer();
+    return Buffer.from(buffer as ArrayBuffer);
   },
 };

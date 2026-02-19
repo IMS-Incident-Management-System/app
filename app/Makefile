@@ -95,8 +95,13 @@ seed-report-auto: ## Заполнить базу тестовыми данным
 	docker exec ims-backend npm run seed:report
 	@echo "✅ Данные успешно добавлены!"
 
-install-backend: ## Установить зависимости backend
+install-backend: ## Установить зависимости backend (локально)
 	cd backend && npm install
+
+install-backend-docker: ## Установить зависимости backend внутри контейнера (нужно после добавления новых пакетов в package.json)
+	@echo "📦 Установка зависимостей backend в контейнере..."
+	docker exec ims-backend npm install
+	@echo "✅ Готово! Перезапустите backend: make restart"
 
 install-frontend: ## Установить зависимости frontend
 	cd frontend && npm install

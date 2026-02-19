@@ -147,6 +147,7 @@ router.post('/reports/generate', reportController.generateReport);
 router.get('/reports/fields', reportController.getAvailableFields);
 router.post('/reports/table', reportController.getReportTable);
 router.post('/reports/export', reportController.exportReport);
+router.post('/reports/export-dashboard', reportController.exportDashboard);
 
 // Explanatory notes routes
 router.route('/explanatory-notes').get(explanatoryNoteController.getExplanatoryNotes).post(explanatoryNoteController.createExplanatoryNote);
