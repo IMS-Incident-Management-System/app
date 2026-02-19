@@ -25,9 +25,31 @@ CREATE TABLE IF NOT EXISTS explanatory_notes (
     vat_deducted INTEGER DEFAULT 0,
     department_id INTEGER,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_explanatory_note_department FOREIGN KEY (department_id) REFERENCES departments(department_id) ON DELETE SET NULL
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Добавляем внешний ключ на departments, только если таблица departments существует
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM information_schema.tables
+    WHERE table_schema = 'public' AND table_name = 'departments'
+  ) THEN
+    BEGIN
+      ALTER TABLE explanatory_notes
+        ADD CONSTRAINT fk_explanatory_note_department
+        FOREIGN KEY (department_id)
+        REFERENCES departments(department_id)
+        ON DELETE SET NULL;
+    EXCEPTION
+      WHEN duplicate_object THEN
+        -- Ограничение уже существует – ничего не делаем
+        NULL;
+    END;
+  END IF;
+END
+$$;
 
 COMMENT ON TABLE explanatory_notes IS 'Пояснительная записка к отчету по форме 2-ДБ по Группе МТС';
 COMMENT ON COLUMN explanatory_notes.number IS '№';
