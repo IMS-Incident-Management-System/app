@@ -108,6 +108,14 @@ export const updateIncident = asyncErrorHandler(
     if (!data.department_id || !data.direction) {
       throw ApiError.badRequest('Missing required fields');
     }
+    if (!data.event || !Array.isArray(data.event.event_type_ids)) {
+      throw ApiError.badRequest('Отсутствует блок event или event_type_ids');
+    }
+    const eventTypeIds = (data.event.event_type_ids as number[]).filter((id) => id != null);
+    if (eventTypeIds.length === 0) {
+      throw ApiError.badRequest('Укажите хотя бы один тип инцидента');
+    }
+    const additionallyList = Array.isArray(data.additionally) ? data.additionally : [];
 
     const result = await sequelize.transaction(async (transaction) => {
       // 1. Обновляем инцидент
@@ -202,14 +210,14 @@ export const updateIncident = asyncErrorHandler(
       
       // Создаем события для каждого типа события (только основные события)
       const events = await Promise.all(
-        data.event.event_type_ids.map((event_type_id) =>
+        eventTypeIds.map((event_type_id) =>
           incidentEventService.createIncidentEvent(
             {
               incident_id: Number(id),
               event_type_id: event_type_id,
-              sub_type_id: data.event.sub_type_id,
-              date: data.event.date,
-              entry_date: data.event.entry_date,
+              sub_type_id: data.event!.sub_type_id,
+              date: data.event!.date,
+              entry_date: data.event!.entry_date,
             },
             { transaction }
           )
@@ -243,9 +251,9 @@ export const updateIncident = asyncErrorHandler(
       // 5. Удаляем старые дополнения (события остаются благодаря ON DELETE SET NULL в миграции 024)
       // (existingEventIdMap уже создана выше, содержит мапу old_additionally_id -> incident_event_id)
       await additionallyService.deleteAdditionallyByIncidentId(Number(id), { transaction });
-      
-      if (data.additionally.length) {
-        for (const additionallyData of data.additionally) {
+
+      if (additionallyList.length > 0) {
+        for (const additionallyData of additionallyList) {
           const { id: additionallyId, criminal_case, punishment, persons, ...additionallyDataWithout} = additionallyData as any;
           
           // Проверяем, есть ли существующее событие для этого дополнения по старому ID
@@ -259,14 +267,12 @@ export const updateIncident = asyncErrorHandler(
             if (!additionEvent) {
               console.log(`Event ${existingEventId} not found, creating new event`);
               // Если события нет, создаем новое
-              const event_type_id = data.event.event_type_ids && data.event.event_type_ids.length > 0 
-                ? data.event.event_type_ids[0] 
-                : null;
+              const event_type_id = eventTypeIds.length > 0 ? eventTypeIds[0] : null;
               additionEvent = await incidentEventService.createIncidentEvent(
                 {
                   incident_id: Number(id),
                   event_type_id: event_type_id,
-                  date: data.event.date,
+                  date: data.event!.date,
                   entry_date: additionallyData.addition_date || new Date(),
                 },
                 { transaction }
@@ -275,14 +281,12 @@ export const updateIncident = asyncErrorHandler(
           } else {
             // Создаем новое событие для дополнения
             console.log(`Creating new event for addition ID ${additionallyId || 'new'}`);
-            const event_type_id = data.event.event_type_ids && data.event.event_type_ids.length > 0 
-              ? data.event.event_type_ids[0] 
-              : null;
+            const event_type_id = eventTypeIds.length > 0 ? eventTypeIds[0] : null;
             additionEvent = await incidentEventService.createIncidentEvent(
               {
                 incident_id: Number(id),
                 event_type_id: event_type_id,
-                date: data.event.date,
+                date: data.event!.date,
                 entry_date: additionallyData.addition_date || new Date(),
               },
               { transaction }
@@ -338,7 +342,7 @@ export const updateIncident = asyncErrorHandler(
       return {
         incident,
         events,
-        additionallys: data.additionally ?? [],
+        additionallys: additionallyList,
         addresses: data.addresses ?? [],
         persons: data.persons ?? [],
       };

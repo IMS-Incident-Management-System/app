@@ -34,7 +34,7 @@ export const ExplanatoryNotesList = () => {
       period_from: dateRange[0].format("YYYY-MM-DD"),
       period_to: dateRange[1].format("YYYY-MM-DD"),
     },
-    pagination: { page: 1, limit: 999999 },
+    pagination: { page: 1, limit: 20000 },
   });
   
   const { data, isLoading, isFetching, refetch } = useGetExplanatoryNotes(filter);

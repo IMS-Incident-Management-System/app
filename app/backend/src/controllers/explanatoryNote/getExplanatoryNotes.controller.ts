@@ -7,7 +7,9 @@ import { paginatedResultToTable } from '../../utils/pagination';
 export const getExplanatoryNotes = asyncErrorHandler(
   async (req: Request, res: CustomResponse) => {
     const page = Number(req.query.page) || 1;
-    const limit = Number(req.query.limit) || 10;
+    const requestedLimit = Number(req.query.limit) || 10;
+    const REGISTER_MAX_LIMIT = 20000;
+    const limit = Math.min(requestedLimit, REGISTER_MAX_LIMIT);
 
     const filters =
       req.query.department_id ||

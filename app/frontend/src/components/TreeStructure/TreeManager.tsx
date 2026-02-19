@@ -54,7 +54,8 @@ const TreeManager: React.FC<TreeManagerProps> = ({ config, mutations, customizat
     async () => {
       const response = await axiosGatewayBackend.get(config.apiEndpoint);
       return response.data;
-    }
+    },
+    { refetchOnMount: 'always', staleTime: 0 }
   );
 
   const treeData = useMemo(() => {
