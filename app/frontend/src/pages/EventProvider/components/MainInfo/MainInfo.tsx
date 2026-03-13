@@ -136,7 +136,7 @@ export const MainInfo = () => {
                 min={0}
                 className={styles.formInput}
                 formatter={(value) => {
-                  if (value === null || value === undefined || value === "") return "0";
+                  if (value === null || value === undefined) return "0";
                   const str = String(value).replace(/\./g, ",");
                   const [rawIntPart, rawDecimalPart] = str.split(",");
                   const digitsInt = rawIntPart.replace(/\D/g, "") || "0";
@@ -168,7 +168,7 @@ export const MainInfo = () => {
                 min={0}
                 className={styles.formInput}
                 formatter={(value) => {
-                  if (value === null || value === undefined || value === "") return "0";
+                  if (value === null || value === undefined) return "0";
                   const str = String(value).replace(/\./g, ",");
                   const [rawIntPart, rawDecimalPart] = str.split(",");
                   const digitsInt = rawIntPart.replace(/\D/g, "") || "0";
@@ -200,7 +200,7 @@ export const MainInfo = () => {
                 min={0}
                 className={styles.formInput}
                 formatter={(value) => {
-                  if (value === null || value === undefined || value === "") return "0";
+                  if (value === null || value === undefined) return "0";
                   const str = String(value).replace(/\./g, ",");
                   const [rawIntPart, rawDecimalPart] = str.split(",");
                   const digitsInt = rawIntPart.replace(/\D/g, "") || "0";
@@ -232,7 +232,7 @@ export const MainInfo = () => {
                 min={0}
                 className={styles.formInput}
                 formatter={(value) => {
-                  if (value === null || value === undefined || value === "") return "0";
+                  if (value === null || value === undefined) return "0";
                   const str = String(value).replace(/\./g, ",");
                   const [rawIntPart, rawDecimalPart] = str.split(",");
                   const digitsInt = rawIntPart.replace(/\D/g, "") || "0";
@@ -264,7 +264,7 @@ export const MainInfo = () => {
                 min={0}
                 className={styles.formInput}
                 formatter={(value) => {
-                  if (value === null || value === undefined || value === "") return "0";
+                  if (value === null || value === undefined) return "0";
                   const str = String(value).replace(/\./g, ",");
                   const [rawIntPart, rawDecimalPart] = str.split(",");
                   const digitsInt = rawIntPart.replace(/\D/g, "") || "0";
@@ -296,7 +296,7 @@ export const MainInfo = () => {
                 min={0}
                 className={styles.formInput}
                 formatter={(value) => {
-                  if (value === null || value === undefined || value === "") return "0";
+                  if (value === null || value === undefined) return "0";
                   const str = String(value).replace(/\./g, ",");
                   const [rawIntPart, rawDecimalPart] = str.split(",");
                   const digitsInt = rawIntPart.replace(/\D/g, "") || "0";
