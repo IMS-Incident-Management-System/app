@@ -19,6 +19,7 @@ import { PrimaryButton } from "../../components/PrimaryButton";
 import { usePrepareEventsTableData } from "./hooks/usePrepareEventsTableData";
 import styles from "./EventsList.module.scss";
 import { FilterForm } from "./components/FilterForm/FilterForm";
+import { EventWithRelations } from "../../interfaces/requests/event";
 
 export const EventsList = () => {
   const navigate = useNavigate();
@@ -104,7 +105,7 @@ export const EventsList = () => {
       {isFilterFormOpen && (
         <FilterForm filter={filter.filter} onFilter={handleFilter} />
       )}
-      <Table
+      <Table<EventWithRelations>
         dataSource={dataSource}
         columns={columns}
         className={styles.table}
@@ -115,7 +116,7 @@ export const EventsList = () => {
         }}
         onChange={(pagination) => handleTableChange(pagination)}
         loading={isLoading}
-        scroll={{ x: 'max-content' }}
+        scroll={{ x: "max-content" }}
       />
     </div>
   );
