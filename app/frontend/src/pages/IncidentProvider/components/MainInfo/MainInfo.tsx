@@ -382,12 +382,25 @@ export const MainInfo = () => {
             >
               <InputNumber<number>
                 style={{ width: "100%" }}
-                formatter={(value) =>
-                  `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, " ")
-                }
+                formatter={(value) => {
+                  if (value === null || value === undefined || value === "") return "0";
+                  const str = String(value).replace(/\./g, ",");
+                  const [rawIntPart, rawDecimalPart] = str.split(",");
+                  const digitsInt = rawIntPart.replace(/\D/g, "") || "0";
+                  const withSpaces = digitsInt.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+                  return rawDecimalPart !== undefined && rawDecimalPart !== ""
+                    ? `${withSpaces},${rawDecimalPart}`
+                    : withSpaces;
+                }}
                 parser={(value) => {
-                  const cleaned = value?.replace(/\s?|(,*)/g, "") || "";
-                  return parseFloat(cleaned) || 0;
+                  if (!value) return 0;
+                  const normalized = value
+                    .toString()
+                    .replace(/\s/g, "")
+                    .replace(/,/g, ".");
+                  const result = parseFloat(normalized);
+                  if (Number.isNaN(result)) return 0;
+                  return Math.round(result * 100) / 100;
                 }}
                 placeholder="0"
                 className={styles.formInput}
@@ -403,12 +416,25 @@ export const MainInfo = () => {
             >
               <InputNumber<number>
                 style={{ width: "100%" }}
-                formatter={(value) =>
-                  `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, " ")
-                }
+                formatter={(value) => {
+                  if (value === null || value === undefined || value === "") return "0";
+                  const str = String(value).replace(/\./g, ",");
+                  const [rawIntPart, rawDecimalPart] = str.split(",");
+                  const digitsInt = rawIntPart.replace(/\D/g, "") || "0";
+                  const withSpaces = digitsInt.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+                  return rawDecimalPart !== undefined && rawDecimalPart !== ""
+                    ? `${withSpaces},${rawDecimalPart}`
+                    : withSpaces;
+                }}
                 parser={(value) => {
-                  const cleaned = value?.replace(/\s?|(,*)/g, "") || "";
-                  return parseFloat(cleaned) || 0;
+                  if (!value) return 0;
+                  const normalized = value
+                    .toString()
+                    .replace(/\s/g, "")
+                    .replace(/,/g, ".");
+                  const result = parseFloat(normalized);
+                  if (Number.isNaN(result)) return 0;
+                  return Math.round(result * 100) / 100;
                 }}
                 placeholder="0"
                 className={styles.formInput}
@@ -424,12 +450,25 @@ export const MainInfo = () => {
             >
               <InputNumber<number>
                 style={{ width: "100%" }}
-                formatter={(value) =>
-                  `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, " ")
-                }
+                formatter={(value) => {
+                  if (value === null || value === undefined || value === "") return "0";
+                  const str = String(value).replace(/\./g, ",");
+                  const [rawIntPart, rawDecimalPart] = str.split(",");
+                  const digitsInt = rawIntPart.replace(/\D/g, "") || "0";
+                  const withSpaces = digitsInt.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+                  return rawDecimalPart !== undefined && rawDecimalPart !== ""
+                    ? `${withSpaces},${rawDecimalPart}`
+                    : withSpaces;
+                }}
                 parser={(value) => {
-                  const cleaned = value?.replace(/\s?|(,*)/g, "") || "";
-                  return parseFloat(cleaned) || 0;
+                  if (!value) return 0;
+                  const normalized = value
+                    .toString()
+                    .replace(/\s/g, "")
+                    .replace(/,/g, ".");
+                  const result = parseFloat(normalized);
+                  if (Number.isNaN(result)) return 0;
+                  return Math.round(result * 100) / 100;
                 }}
                 placeholder="0"
                 className={styles.formInput}
@@ -445,12 +484,25 @@ export const MainInfo = () => {
             >
               <InputNumber<number>
                 style={{ width: "100%" }}
-                formatter={(value) =>
-                  `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, " ")
-                }
+                formatter={(value) => {
+                  if (value === null || value === undefined || value === "") return "0";
+                  const str = String(value).replace(/\./g, ",");
+                  const [rawIntPart, rawDecimalPart] = str.split(",");
+                  const digitsInt = rawIntPart.replace(/\D/g, "") || "0";
+                  const withSpaces = digitsInt.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+                  return rawDecimalPart !== undefined && rawDecimalPart !== ""
+                    ? `${withSpaces},${rawDecimalPart}`
+                    : withSpaces;
+                }}
                 parser={(value) => {
-                  const cleaned = value?.replace(/\s?|(,*)/g, "") || "";
-                  return parseFloat(cleaned) || 0;
+                  if (!value) return 0;
+                  const normalized = value
+                    .toString()
+                    .replace(/\s/g, "")
+                    .replace(/,/g, ".");
+                  const result = parseFloat(normalized);
+                  if (Number.isNaN(result)) return 0;
+                  return Math.round(result * 100) / 100;
                 }}
                 placeholder="0"
                 className={styles.formInput}
@@ -466,12 +518,25 @@ export const MainInfo = () => {
             >
               <InputNumber<number>
                 style={{ width: "100%" }}
-                formatter={(value) =>
-                  `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, " ")
-                }
+                formatter={(value) => {
+                  if (value === null || value === undefined || value === "") return "0";
+                  const str = String(value).replace(/\./g, ",");
+                  const [rawIntPart, rawDecimalPart] = str.split(",");
+                  const digitsInt = rawIntPart.replace(/\D/g, "") || "0";
+                  const withSpaces = digitsInt.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+                  return rawDecimalPart !== undefined && rawDecimalPart !== ""
+                    ? `${withSpaces},${rawDecimalPart}`
+                    : withSpaces;
+                }}
                 parser={(value) => {
-                  const cleaned = value?.replace(/\s?|(,*)/g, "") || "";
-                  return parseFloat(cleaned) || 0;
+                  if (!value) return 0;
+                  const normalized = value
+                    .toString()
+                    .replace(/\s/g, "")
+                    .replace(/,/g, ".");
+                  const result = parseFloat(normalized);
+                  if (Number.isNaN(result)) return 0;
+                  return Math.round(result * 100) / 100;
                 }}
                 placeholder="0"
                 className={styles.formInput}

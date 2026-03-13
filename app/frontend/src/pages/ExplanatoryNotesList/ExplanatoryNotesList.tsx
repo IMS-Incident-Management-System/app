@@ -80,6 +80,20 @@ export const ExplanatoryNotesList = () => {
     }));
   };
 
+  const formatMoney = (value: unknown) => {
+    const num =
+      typeof value === "number"
+        ? value
+        : value !== null && value !== undefined
+        ? Number(value)
+        : 0;
+    if (Number.isNaN(num)) return "0,00";
+    return num.toLocaleString("ru-RU", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  };
+
   const columns: ColumnsType<Record<string, unknown>> = useMemo(() => [
     {
       title: "№",
@@ -213,58 +227,58 @@ export const ExplanatoryNotesList = () => {
       dataIndex: "detected_damage",
       key: "detected_damage",
       width: 150,
-      render: (value: number) => (value ?? 0).toLocaleString("ru-RU"),
+      render: (value: unknown) => formatMoney(value),
     },
     {
       title: "Возмещен ущерб, руб.",
       dataIndex: "recovered_damage",
       key: "recovered_damage",
       width: 150,
-      render: (value: number) => (value ?? 0).toLocaleString("ru-RU"),
+      render: (value: unknown) => formatMoney(value),
     },
     {
       title: "Возмещена ДЗ, руб.",
       dataIndex: "recovered_receivables",
       key: "recovered_receivables",
       width: 150,
-      render: (value: number) => (value ?? 0).toLocaleString("ru-RU"),
+      render: (value: unknown) => formatMoney(value),
     },
     {
       title: "Предотвращен ущерб, руб.",
       dataIndex: "prevented_damage",
       key: "prevented_damage",
       width: 170,
-      render: (value: number) => (value ?? 0).toLocaleString("ru-RU"),
+      render: (value: unknown) => formatMoney(value),
     },
     {
       title: "Снижена стоимость закупки, договора, доп.согл., руб.",
       dataIndex: "reduced_cost",
       key: "reduced_cost",
       width: 280,
-      render: (value: number) => (value ?? 0).toLocaleString("ru-RU"),
+      render: (value: unknown) => formatMoney(value),
     },
     {
       title: "Предотвращено необ. списание ДЗ, руб.",
       dataIndex: "prevented_writeoff_receivables",
       key: "prevented_writeoff_receivables",
       width: 240,
-      render: (value: number) => (value ?? 0).toLocaleString("ru-RU"),
+      render: (value: unknown) => formatMoney(value),
     },
     {
       title: "Получен доп. доход, руб.",
       dataIndex: "additional_income",
       key: "additional_income",
       width: 160,
-      render: (value: number) => (value ?? 0).toLocaleString("ru-RU"),
+      render: (value: unknown) => formatMoney(value),
     },
     {
       title: "Принят к вычету НДС, руб.",
       dataIndex: "vat_deducted",
       key: "vat_deducted",
       width: 160,
-      render: (value: number) => (value ?? 0).toLocaleString("ru-RU"),
+      render: (value: unknown) => formatMoney(value),
     },
-  ], []);
+  ], [formatMoney]);
 
   return (
     <div className={styles.container}>
@@ -376,7 +390,7 @@ export const ExplanatoryNotesList = () => {
         summary={() => {
           const t = (data as { totals?: Record<string, number> })?.totals;
           if (!t) return null;
-          const fmt = (v: number) => (v ?? 0).toLocaleString("ru-RU");
+          const fmt = (v: number) => formatMoney(v);
           return (
             <AntTable.Summary fixed>
               <AntTable.Summary.Row>

@@ -127,8 +127,11 @@ async function getDepartmentWithParent(departmentId: number): Promise<{ kc_r: st
   };
 }
 
-function toNum(v: number | null | undefined): number {
-  return v ?? 0;
+function toNum(v: number | string | null | undefined): number {
+  if (v === null || v === undefined) return 0;
+  if (typeof v === 'number') return v;
+  const n = Number(v);
+  return Number.isNaN(n) ? 0 : n;
 }
 
 export const explanatoryNoteRegisterService = {
