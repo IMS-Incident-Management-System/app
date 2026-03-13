@@ -1,6 +1,7 @@
 import { router } from "./routes/router";
 import { RouterProvider } from "react-router-dom";
 import { ConfigProvider } from "antd";
+import ruRU from "antd/locale/ru_RU";
 import { baseTheme } from "./theme/baseTheme";
 import { App as AntdApp } from "antd";
 import { Provider } from "react-redux";
@@ -14,7 +15,7 @@ import "./styles/index.scss";
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <ConfigProvider theme={baseTheme}>
+      <ConfigProvider theme={baseTheme} locale={ruRU}>
         <AntdApp>
           <Provider store={store}>
           <AuthProvider>
