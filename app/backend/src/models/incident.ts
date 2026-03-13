@@ -124,31 +124,31 @@ const Incident = sequelize.define<IncidentInstance>(
       comment: 'Должность источника информации'
     },
     detected_damage: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.DECIMAL(15, 2),
       allowNull: true,
       defaultValue: 0,
       comment: 'Выявлен ущерб (руб.)'
     },
     recovered_damage: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.DECIMAL(15, 2),
       allowNull: true,
       defaultValue: 0,
       comment: 'Возмещен ущерб (руб.)'
     },
     prevented_damage: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.DECIMAL(15, 2),
       allowNull: true,
       defaultValue: 0,
       comment: 'Предотвращен ущерб (руб.)'
     },
     additional_income: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.DECIMAL(15, 2),
       allowNull: true,
       defaultValue: 0,
       comment: 'Получен дополнительный доход (руб.)'
     },
     reduced_cost: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.DECIMAL(15, 2),
       allowNull: true,
       defaultValue: 0,
       comment: 'Снижена стоимость товаров, работ и услуг на сумму (руб.)'

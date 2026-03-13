@@ -72,31 +72,31 @@ const Additionally = sequelize.define<AdditionallyInstance>('additionally', {
     comment: 'Текстовое поле'
   },
   detected_damage: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.DECIMAL(15, 2),
     allowNull: true,
     defaultValue: 0,
     comment: 'Выявленный ущерб'
   },
   prevented_damage: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.DECIMAL(15, 2),
     allowNull: true,
     defaultValue: 0,
     comment: 'Предотвращенный ущерб'
   },
     recovered_damage: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.DECIMAL(15, 2),
       allowNull: true,
       defaultValue: 0,
       comment: 'Возмещенный ущерб'
     },
     additional_income: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.DECIMAL(15, 2),
       allowNull: true,
       defaultValue: 0,
       comment: 'Получен дополнительный доход (руб.)'
     },
     reduced_cost: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.DECIMAL(15, 2),
       allowNull: true,
       defaultValue: 0,
       comment: 'Снижена стоимость товаров, работ и услуг на сумму (руб.)'

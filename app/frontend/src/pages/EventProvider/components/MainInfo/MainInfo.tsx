@@ -131,10 +131,30 @@ export const MainInfo = () => {
               name="detected_damage"
               label="Выявлен ущерб (руб.)"
             >
-              <InputNumber 
-                style={{ width: "100%" }} 
-                min={0} 
+              <InputNumber<number>
+                style={{ width: "100%" }}
+                min={0}
                 className={styles.formInput}
+                formatter={(value) => {
+                  if (value === null || value === undefined || value === "") return "0";
+                  const str = String(value).replace(/\./g, ",");
+                  const [rawIntPart, rawDecimalPart] = str.split(",");
+                  const digitsInt = rawIntPart.replace(/\D/g, "") || "0";
+                  const withSpaces = digitsInt.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+                  return rawDecimalPart !== undefined && rawDecimalPart !== ""
+                    ? `${withSpaces},${rawDecimalPart}`
+                    : withSpaces;
+                }}
+                parser={(value) => {
+                  if (!value) return 0;
+                  const normalized = value
+                    .toString()
+                    .replace(/\s/g, "")
+                    .replace(/,/g, ".");
+                  const result = parseFloat(normalized);
+                  if (Number.isNaN(result)) return 0;
+                  return Math.round(result * 100) / 100;
+                }}
               />
             </Form.Item>
           </Col>
@@ -143,10 +163,30 @@ export const MainInfo = () => {
               name="recovered_damage"
               label="Возмещен ущерб (руб.)"
             >
-              <InputNumber 
-                style={{ width: "100%" }} 
-                min={0} 
+              <InputNumber<number>
+                style={{ width: "100%" }}
+                min={0}
                 className={styles.formInput}
+                formatter={(value) => {
+                  if (value === null || value === undefined || value === "") return "0";
+                  const str = String(value).replace(/\./g, ",");
+                  const [rawIntPart, rawDecimalPart] = str.split(",");
+                  const digitsInt = rawIntPart.replace(/\D/g, "") || "0";
+                  const withSpaces = digitsInt.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+                  return rawDecimalPart !== undefined && rawDecimalPart !== ""
+                    ? `${withSpaces},${rawDecimalPart}`
+                    : withSpaces;
+                }}
+                parser={(value) => {
+                  if (!value) return 0;
+                  const normalized = value
+                    .toString()
+                    .replace(/\s/g, "")
+                    .replace(/,/g, ".");
+                  const result = parseFloat(normalized);
+                  if (Number.isNaN(result)) return 0;
+                  return Math.round(result * 100) / 100;
+                }}
               />
             </Form.Item>
           </Col>
@@ -155,10 +195,30 @@ export const MainInfo = () => {
               name="prevented_damage"
               label="Предотвращен ущерб (руб.)"
             >
-              <InputNumber 
-                style={{ width: "100%" }} 
-                min={0} 
+              <InputNumber<number>
+                style={{ width: "100%" }}
+                min={0}
                 className={styles.formInput}
+                formatter={(value) => {
+                  if (value === null || value === undefined || value === "") return "0";
+                  const str = String(value).replace(/\./g, ",");
+                  const [rawIntPart, rawDecimalPart] = str.split(",");
+                  const digitsInt = rawIntPart.replace(/\D/g, "") || "0";
+                  const withSpaces = digitsInt.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+                  return rawDecimalPart !== undefined && rawDecimalPart !== ""
+                    ? `${withSpaces},${rawDecimalPart}`
+                    : withSpaces;
+                }}
+                parser={(value) => {
+                  if (!value) return 0;
+                  const normalized = value
+                    .toString()
+                    .replace(/\s/g, "")
+                    .replace(/,/g, ".");
+                  const result = parseFloat(normalized);
+                  if (Number.isNaN(result)) return 0;
+                  return Math.round(result * 100) / 100;
+                }}
               />
             </Form.Item>
           </Col>
@@ -167,10 +227,30 @@ export const MainInfo = () => {
               name="additional_income"
               label="Получен дополнительный доход (руб.)"
             >
-              <InputNumber 
-                style={{ width: "100%" }} 
-                min={0} 
+              <InputNumber<number>
+                style={{ width: "100%" }}
+                min={0}
                 className={styles.formInput}
+                formatter={(value) => {
+                  if (value === null || value === undefined || value === "") return "0";
+                  const str = String(value).replace(/\./g, ",");
+                  const [rawIntPart, rawDecimalPart] = str.split(",");
+                  const digitsInt = rawIntPart.replace(/\D/g, "") || "0";
+                  const withSpaces = digitsInt.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+                  return rawDecimalPart !== undefined && rawDecimalPart !== ""
+                    ? `${withSpaces},${rawDecimalPart}`
+                    : withSpaces;
+                }}
+                parser={(value) => {
+                  if (!value) return 0;
+                  const normalized = value
+                    .toString()
+                    .replace(/\s/g, "")
+                    .replace(/,/g, ".");
+                  const result = parseFloat(normalized);
+                  if (Number.isNaN(result)) return 0;
+                  return Math.round(result * 100) / 100;
+                }}
               />
             </Form.Item>
           </Col>
@@ -179,10 +259,30 @@ export const MainInfo = () => {
               name="reduced_cost"
               label="Снижена стоимость товаров, работ и услуг на сумму (руб.)"
             >
-              <InputNumber 
-                style={{ width: "100%" }} 
-                min={0} 
+              <InputNumber<number>
+                style={{ width: "100%" }}
+                min={0}
                 className={styles.formInput}
+                formatter={(value) => {
+                  if (value === null || value === undefined || value === "") return "0";
+                  const str = String(value).replace(/\./g, ",");
+                  const [rawIntPart, rawDecimalPart] = str.split(",");
+                  const digitsInt = rawIntPart.replace(/\D/g, "") || "0";
+                  const withSpaces = digitsInt.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+                  return rawDecimalPart !== undefined && rawDecimalPart !== ""
+                    ? `${withSpaces},${rawDecimalPart}`
+                    : withSpaces;
+                }}
+                parser={(value) => {
+                  if (!value) return 0;
+                  const normalized = value
+                    .toString()
+                    .replace(/\s/g, "")
+                    .replace(/,/g, ".");
+                  const result = parseFloat(normalized);
+                  if (Number.isNaN(result)) return 0;
+                  return Math.round(result * 100) / 100;
+                }}
               />
             </Form.Item>
           </Col>
@@ -191,10 +291,30 @@ export const MainInfo = () => {
               name="prevented_unnecessary_writeoff"
               label="Предотвращено необ. списание ДЗ, руб."
             >
-              <InputNumber 
-                style={{ width: "100%" }} 
-                min={0} 
+              <InputNumber<number>
+                style={{ width: "100%" }}
+                min={0}
                 className={styles.formInput}
+                formatter={(value) => {
+                  if (value === null || value === undefined || value === "") return "0";
+                  const str = String(value).replace(/\./g, ",");
+                  const [rawIntPart, rawDecimalPart] = str.split(",");
+                  const digitsInt = rawIntPart.replace(/\D/g, "") || "0";
+                  const withSpaces = digitsInt.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+                  return rawDecimalPart !== undefined && rawDecimalPart !== ""
+                    ? `${withSpaces},${rawDecimalPart}`
+                    : withSpaces;
+                }}
+                parser={(value) => {
+                  if (!value) return 0;
+                  const normalized = value
+                    .toString()
+                    .replace(/\s/g, "")
+                    .replace(/,/g, ".");
+                  const result = parseFloat(normalized);
+                  if (Number.isNaN(result)) return 0;
+                  return Math.round(result * 100) / 100;
+                }}
               />
             </Form.Item>
           </Col>
@@ -203,10 +323,30 @@ export const MainInfo = () => {
               name="vat_deducted"
               label="Принят к вычету НДС, руб."
             >
-              <InputNumber 
-                style={{ width: "100%" }} 
-                min={0} 
+              <InputNumber<number>
+                style={{ width: "100%" }}
+                min={0}
                 className={styles.formInput}
+                formatter={(value) => {
+                  if (value === null || value === undefined || value === "") return "0";
+                  const str = String(value).replace(/\./g, ",");
+                  const [rawIntPart, rawDecimalPart] = str.split(",");
+                  const digitsInt = rawIntPart.replace(/\D/g, "") || "0";
+                  const withSpaces = digitsInt.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+                  return rawDecimalPart !== undefined && rawDecimalPart !== ""
+                    ? `${withSpaces},${rawDecimalPart}`
+                    : withSpaces;
+                }}
+                parser={(value) => {
+                  if (!value) return 0;
+                  const normalized = value
+                    .toString()
+                    .replace(/\s/g, "")
+                    .replace(/,/g, ".");
+                  const result = parseFloat(normalized);
+                  if (Number.isNaN(result)) return 0;
+                  return Math.round(result * 100) / 100;
+                }}
               />
             </Form.Item>
           </Col>
