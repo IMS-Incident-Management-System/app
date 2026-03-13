@@ -19,6 +19,7 @@ import { ERoutes } from "../../enums/routes";
 import { Table } from "../../components/Table/Table";
 import { PageHeader } from "../../components/PageHeader";
 import { ColumnsType } from "antd/es/table";
+import { ExplanatoryNoteRegisterRow } from "../../api/explanatoryNotes/explanatoryNotes";
 import styles from "./ExplanatoryNotesList.module.scss";
 
 const { RangePicker } = DatePicker;
@@ -94,7 +95,7 @@ export const ExplanatoryNotesList = () => {
     });
   };
 
-  const columns: ColumnsType<Record<string, unknown>> = useMemo(() => [
+  const columns: ColumnsType<ExplanatoryNoteRegisterRow> = useMemo(() => [
     {
       title: "№",
       dataIndex: "number",
@@ -106,9 +107,9 @@ export const ExplanatoryNotesList = () => {
       dataIndex: "display_id",
       key: "display_id",
       width: 70,
-      render: (displayId: string, record: Record<string, unknown>) => {
-        const eventId = record.event_id as number | undefined;
-        const incidentId = record.incident_id as number | undefined;
+      render: (displayId: string, record: ExplanatoryNoteRegisterRow) => {
+        const eventId = (record as any).event_id as number | undefined;
+        const incidentId = (record as any).incident_id as number | undefined;
         const href = eventId
           ? `${ERoutes.EVENT_VIEW}/${eventId}`
           : incidentId
@@ -137,8 +138,8 @@ export const ExplanatoryNotesList = () => {
       dataIndex: "period",
       key: "period",
       width: 150,
-      render: (period: string, record: Record<string, unknown>) =>
-        period || `${record.period_from ?? ''} - ${record.period_to ?? ''}`,
+      render: (period: string, record: ExplanatoryNoteRegisterRow) =>
+        period || `${record.period_from ?? ""} - ${record.period_to ?? ""}`,
     },
     {
       title: "Дата",
