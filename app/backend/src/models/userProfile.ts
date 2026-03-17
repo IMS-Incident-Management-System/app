@@ -8,9 +8,11 @@ interface UserProfileAttributes {
   patronymic: string | null;
   personnel_number: string | null;
   photo_path: string | null;
+  display_name: string | null;
+  preferred_username: string | null;
 }
 
-type UserProfileCreationAttributes = Optional<UserProfileAttributes, 'id' | 'auth_provider' | 'patronymic' | 'personnel_number' | 'photo_path'>;
+type UserProfileCreationAttributes = Optional<UserProfileAttributes, 'id' | 'auth_provider' | 'patronymic' | 'personnel_number' | 'photo_path' | 'display_name' | 'preferred_username'>;
 
 class UserProfile extends Model<UserProfileAttributes, UserProfileCreationAttributes>
   implements UserProfileAttributes {
@@ -20,6 +22,8 @@ class UserProfile extends Model<UserProfileAttributes, UserProfileCreationAttrib
   public patronymic!: string | null;
   public personnel_number!: string | null;
   public photo_path!: string | null;
+  public display_name!: string | null;
+  public preferred_username!: string | null;
 }
 
 UserProfile.init(
@@ -48,6 +52,14 @@ UserProfile.init(
     },
     photo_path: {
       type: DataTypes.STRING,
+      allowNull: true,
+    },
+    display_name: {
+      type: DataTypes.STRING(512),
+      allowNull: true,
+    },
+    preferred_username: {
+      type: DataTypes.STRING(255),
       allowNull: true,
     },
   },

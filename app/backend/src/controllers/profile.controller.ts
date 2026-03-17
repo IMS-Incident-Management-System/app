@@ -18,9 +18,19 @@ export const getMyProfile: RequestHandler = async (req, res) => {
       return;
     }
 
-    const profile = await UserProfile.findOne({
-      where: { external_id: user.sub },
-    });
+    let profile = await UserProfile.findOne({ where: { external_id: user.sub } });
+    const displayName = user.name || [user.family_name, user.given_name].filter(Boolean).join(' ') || null;
+    const preferredUsername = user.preferred_username || null;
+    if (profile) {
+      await profile.update({ display_name: displayName, preferred_username: preferredUsername });
+    } else {
+      profile = await UserProfile.create({
+        external_id: user.sub,
+        auth_provider: 'keycloak',
+        display_name: displayName,
+        preferred_username: preferredUsername,
+      });
+    }
 
     res.json({
       keycloak: {

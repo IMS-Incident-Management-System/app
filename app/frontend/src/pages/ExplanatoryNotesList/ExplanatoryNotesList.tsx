@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useSelector } from "react-redux";
 import {
   ReloadOutlined,
   ArrowLeftOutlined,
@@ -21,11 +22,13 @@ import { PageHeader } from "../../components/PageHeader";
 import { ColumnsType } from "antd/es/table";
 import { ExplanatoryNoteRegisterRow } from "../../api/explanatoryNotes/explanatoryNotes";
 import styles from "./ExplanatoryNotesList.module.scss";
+import { selectCanExplanatoryNoteExport } from "../../store/features/permissions/selectors";
 
 const { RangePicker } = DatePicker;
 
 export const ExplanatoryNotesList = () => {
   const navigate = useNavigate();
+  const canExport = useSelector(selectCanExplanatoryNoteExport);
   const [dateRange, setDateRange] = useState<[Dayjs, Dayjs]>([
     dayjs().startOf("month"),
     dayjs().endOf("month"),
@@ -309,14 +312,16 @@ export const ExplanatoryNotesList = () => {
       />
       <Card className={styles.filterCard}>
         <div className={styles.filtersRow}>
-          <Button
-            type="primary"
-            icon={<DownloadOutlined />}
-            onClick={handleExport}
-            loading={isExporting}
-          >
-            Выгрузить в Excel
-          </Button>
+          {canExport && (
+            <Button
+              type="primary"
+              icon={<DownloadOutlined />}
+              onClick={handleExport}
+              loading={isExporting}
+            >
+              Выгрузить в Excel
+            </Button>
+          )}
           <div className={styles.dateRangeContainer}>
             <label>Период:</label>
             <RangePicker

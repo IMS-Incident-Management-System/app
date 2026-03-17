@@ -2,6 +2,8 @@ import React, { PropsWithChildren, useEffect, useState } from "react";
 import AuthService from "../../services/auth.service";
 import { useDispatch } from "../../store/store";
 import { signIn } from "../../store/features/user/userSlice";
+import { setPermissions } from "../../store/features/permissions/permissionsSlice";
+import { getMyPermissions } from "../../api/permissions/permissions";
 import styles from "./styles.module.scss";
 
 export const AuthProvider = ({ children }: PropsWithChildren) => {
@@ -14,10 +16,14 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     const initializeAuth = async () => {
       const authenticated = await authService.init();
       if (authenticated) {
-        // После успешной инициализации, получаем информацию о пользователе
         const userInfo = await authService.getUserInfo();
-
         dispatch(signIn(userInfo));
+        try {
+          const permissionsData = await getMyPermissions();
+          dispatch(setPermissions(permissionsData));
+        } catch {
+          // Права не загружены — пользователь увидит ограниченный интерфейс
+        }
       }
       setIsAuth(authenticated);
       setLoading(false);

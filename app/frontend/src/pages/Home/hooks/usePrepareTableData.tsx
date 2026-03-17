@@ -6,11 +6,16 @@ import { Modal, Tag } from "antd";
 import classes from "../Home.module.scss";
 import { DeleteOutlined, EditOutlined, EyeOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import { ERoutes } from "../../../enums/routes";
 import { useDeleteIncident } from "../../../services/requests/initiators/deleteIncident";
 import { IconButton } from "../../../components/IconButton";
+import { selectCanUpdateIncident, selectCanDeleteIncident } from "../../../store/features/permissions/selectors";
+
 export const usePrepareTableData = (data: ITable<IncidentWithRelations>) => {
   const navigate = useNavigate();
+  const canUpdateIncident = useSelector(selectCanUpdateIncident);
+  const canDeleteIncident = useSelector(selectCanDeleteIncident);
 
   const handleEditIncident = (id: string) => {
     navigate(ERoutes.INCIDENT_CREATE + `/${id}`);
@@ -301,14 +306,16 @@ export const usePrepareTableData = (data: ITable<IncidentWithRelations>) => {
               tooltip="Просмотреть инцидент"
             />
             <IconButton
-              onClick={() => handleEditIncident(record.id)}
+              onClick={() => canUpdateIncident && handleEditIncident(record.id)}
               icon={<EditOutlined />}
               tooltip="Редактировать инцидент"
+              disabled={!canUpdateIncident}
             />
             <IconButton
-              onClick={() => handleDeleteIncident(record.id)}
+              onClick={() => canDeleteIncident && handleDeleteIncident(record.id)}
               icon={<DeleteOutlined />}
               tooltip="Удалить инцидент"
+              disabled={!canDeleteIncident}
             />
           </div>
         );

@@ -8,6 +8,7 @@ import { errorHandler } from './src/middlewares/errorHandler.middleware';
 import { responseHandler } from './src/middlewares/responseHandler.middleware';
 import { runSeeders } from './src/seeders';
 import { runMigrations } from './src/utils/migrations';
+import { ensureFirstAdmin } from './src/scripts/ensureFirstAdmin';
 import https from 'https';
 import fs from 'fs';
 import path from 'path';
@@ -86,10 +87,12 @@ const startServer = async () => {
     // В продакшене используем sync без alter для избежания блокировок
     await sequelize.sync({ alter: false });
 
-
     // Запускаем сидеры
     await runSeeders();
     console.log('Seeders completed');
+
+    // Опционально: назначить первого админа по FIRST_ADMIN_EXTERNAL_ID (Keycloak sub)
+    await ensureFirstAdmin();
 
     // SSL configuration
     const sslOptions = process.env.NODE_ENV === 'production'

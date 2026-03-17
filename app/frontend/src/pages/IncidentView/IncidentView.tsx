@@ -1,5 +1,6 @@
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import { Card, Typography, Spin, Space, Divider, Row, Col, Tag, Descriptions } from "antd";
 import { ArrowLeftOutlined, EditOutlined } from "@ant-design/icons";
 import { useGetIncident } from "../../services/requests/initiators/getIncident";
@@ -10,6 +11,7 @@ import styles from "./IncidentView.module.scss";
 import { IncidentEventAttachmentsView } from "../IncidentProvider/components/IncidentEvents/IncidentEventAttachmentsView";
 import { IncidentAttachmentsView } from "../IncidentProvider/components/IncidentAttachments/IncidentAttachmentsView";
 import { PrimaryButton } from "../../components/PrimaryButton";
+import { selectCanUpdateIncident, selectCanIncidentAttachments, selectCanReadAdditionally } from "../../store/features/permissions/selectors";
 
 const { Title, Text } = Typography;
 
@@ -17,6 +19,9 @@ export const IncidentView = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { data: incident, isLoading } = useGetIncident(id);
+  const canUpdateIncident = useSelector(selectCanUpdateIncident);
+  const canIncidentAttachments = useSelector(selectCanIncidentAttachments);
+  const canReadAdditionally = useSelector(selectCanReadAdditionally);
 
   const handleBack = () => {
     navigate(ERoutes.INCIDENTS_LIST);
@@ -81,12 +86,14 @@ export const IncidentView = () => {
             <Title level={2} className={styles.title}>
               Инцидент {incident.code || `#${incident.id}`}
             </Title>
-            <PrimaryButton 
-              icon={<EditOutlined />}
-              onClick={handleEdit}
-            >
-              Редактировать
-            </PrimaryButton>
+            {canUpdateIncident && (
+              <PrimaryButton
+                icon={<EditOutlined />}
+                onClick={handleEdit}
+              >
+                Редактировать
+              </PrimaryButton>
+            )}
           </div>
         </div>
 
@@ -321,7 +328,7 @@ export const IncidentView = () => {
           )}
 
           {/* Дополнительная информация */}
-          {incident.additionally && incident.additionally?.length > 0 && (
+          {canReadAdditionally && incident.additionally && incident.additionally?.length > 0 && (
             <Card title="Дополнительная информация" className={styles.sectionCard}>
               {incident.additionally?.map((addition, index) => (
                 <div key={addition.id || index} className={styles.additionWrapper}>

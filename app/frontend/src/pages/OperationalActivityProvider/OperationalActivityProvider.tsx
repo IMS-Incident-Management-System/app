@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import { Form, Card, Spin, Typography } from "antd";
 import { EyeOutlined, SaveOutlined } from "@ant-design/icons";
 import { MainInfo } from "./components/MainInfo/MainInfo";
@@ -10,12 +11,15 @@ import styles from "./OperationalActivityProvider.module.scss";
 import { useUpdateOperationalActivity } from "../../services/requests/operationalActivities/updateOperationalActivity";
 import { ERoutes } from "../../enums/routes";
 import { PrimaryButton } from "../../components/PrimaryButton";
+import { selectCanCreateOperationalActivity, selectCanUpdateOperationalActivity } from "../../store/features/permissions/selectors";
 
 const { Title } = Typography;
 
 export const OperationalActivityProvider = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const canCreateOA = useSelector(selectCanCreateOperationalActivity);
+  const canUpdateOA = useSelector(selectCanUpdateOperationalActivity);
 
   const { data: operationalActivity, isLoading: isOperationalActivityLoading } = useGetOperationalActivity(id);
   const { mutate: createOperationalActivity, isLoading: isCreatingOperationalActivity } =
@@ -93,6 +97,7 @@ export const OperationalActivityProvider = () => {
                 onClick={handleSubmit}
                 loading={isCreatingOperationalActivity || isUpdatingOperationalActivity}
                 icon={<SaveOutlined />}
+                disabled={id ? !canUpdateOA : !canCreateOA}
               >
                 {id ? "Сохранить изменения" : "Создать операционную деятельность"}
               </PrimaryButton>

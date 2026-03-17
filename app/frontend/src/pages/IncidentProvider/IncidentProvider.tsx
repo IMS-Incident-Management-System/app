@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useSelector } from "react-redux";
 import {
   Checkbox,
   Form,
@@ -23,6 +24,7 @@ import styles from "./incidentProvider.module.scss";
 import { useUpdateIncident } from "../../services/requests/initiators/updateIncident";
 import { ERoutes } from "../../enums/routes";
 import { PrimaryButton } from "../../components/PrimaryButton";
+import { selectCanCreateIncident, selectCanUpdateIncident, selectCanIncidentAttachments, selectCanCreateAdditionally, selectCanUpdateAdditionally, selectCanDeleteAdditionally } from "../../store/features/permissions/selectors";
 
 const { Title } = Typography;
 
@@ -32,6 +34,12 @@ export const IncidentProvider = () => {
   const [activeTab, setActiveTab] = useState("main");
   const attachmentsRef = useRef<IncidentAttachmentsRef>(null);
   const additionallyRef = useRef<IncidentAdditionallyRef>(null);
+  const canCreateIncident = useSelector(selectCanCreateIncident);
+  const canUpdateIncident = useSelector(selectCanUpdateIncident);
+  const canIncidentAttachments = useSelector(selectCanIncidentAttachments);
+  const canCreateAdditionally = useSelector(selectCanCreateAdditionally);
+  const canUpdateAdditionally = useSelector(selectCanUpdateAdditionally);
+  const canDeleteAdditionally = useSelector(selectCanDeleteAdditionally);
 
   const { data: incident, isLoading: isIncidentLoading } = useGetIncident(id);
   const createIncidentMutation = useCreateIncident();
@@ -165,13 +173,14 @@ export const IncidentProvider = () => {
             <MainInfo />
             <IncidentAttachments ref={attachmentsRef} />
             {id && (
-              <IncidentAttachmentsView showDelete={true} />
+              <IncidentAttachmentsView showDelete={canIncidentAttachments} />
             )}
             <div className={styles.tabActions}>
               <PrimaryButton
                 size="large"
                 onClick={handleSubmit}
                 loading={createIncidentMutation.isLoading || updateIncidentMutation.isLoading}
+                disabled={id ? !canUpdateIncident : !canCreateIncident}
               >
                 {id ? "Сохранить изменения" : "Создать инцидент"}
               </PrimaryButton>
@@ -190,16 +199,21 @@ export const IncidentProvider = () => {
       disabled: !id,
             children: (
                 <div className={styles.tabContent}>
-                  <IncidentAdditionally 
+                  <IncidentAdditionally
                     ref={additionallyRef}
-                    incident={incident} 
-                    isLoading={isIncidentLoading} 
+                    incident={incident}
+                    isLoading={isIncidentLoading}
+                    showDeleteAttachments={canIncidentAttachments}
+                    canCreate={canCreateAdditionally}
+                    canUpdate={canUpdateAdditionally}
+                    canDelete={canDeleteAdditionally}
                   />
             <div className={styles.tabActions}>
               <PrimaryButton
                 size="large"
                 onClick={handleSubmit}
                 loading={createIncidentMutation.isLoading || updateIncidentMutation.isLoading}
+                disabled={!canUpdateIncident}
               >
                 Сохранить
               </PrimaryButton>

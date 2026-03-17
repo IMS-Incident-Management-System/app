@@ -5,13 +5,17 @@ import { Modal, Tag } from "antd";
 import classes from "../OperationalActivitiesList.module.scss";
 import { DeleteOutlined, EditOutlined, EyeOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import { ERoutes } from "../../../enums/routes";
 import { useDeleteOperationalActivity } from "../../../services/requests/operationalActivities/deleteOperationalActivity";
 import { OperationalActivityDirectionLabels } from "../../../enums/operationalActivity";
 import { IconButton } from "../../../components/IconButton";
+import { selectCanUpdateOperationalActivity, selectCanDeleteOperationalActivity } from "../../../store/features/permissions/selectors";
 
 export const usePrepareTableData = (data: ITable<OperationalActivityWithRelations>) => {
   const navigate = useNavigate();
+  const canUpdateOA = useSelector(selectCanUpdateOperationalActivity);
+  const canDeleteOA = useSelector(selectCanDeleteOperationalActivity);
 
   const handleEditOperationalActivity = (id: string) => {
     navigate(ERoutes.OPERATIONAL_ACTIVITY_EDIT.replace(':id', id));
@@ -165,14 +169,16 @@ export const usePrepareTableData = (data: ITable<OperationalActivityWithRelation
               tooltip="Просмотреть операционную деятельность"
             />
             <IconButton
-              onClick={() => handleEditOperationalActivity(record.id)}
+              onClick={() => canUpdateOA && handleEditOperationalActivity(record.id)}
               icon={<EditOutlined />}
               tooltip="Редактировать операционную деятельность"
+              disabled={!canUpdateOA}
             />
             <IconButton
-              onClick={() => handleDeleteOperationalActivity(record.id)}
+              onClick={() => canDeleteOA && handleDeleteOperationalActivity(record.id)}
               icon={<DeleteOutlined />}
               tooltip="Удалить операционную деятельность"
+              disabled={!canDeleteOA}
             />
           </div>
         );

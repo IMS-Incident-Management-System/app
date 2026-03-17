@@ -1,21 +1,36 @@
 import React, { useEffect, useState } from "react";
-import { Avatar as AntAvatar, Button, Form, Input, Typography, Upload, message, Space, Card } from "antd";
-import { UploadOutlined } from "@ant-design/icons";
+import {
+  Avatar as AntAvatar,
+  Button,
+  Card,
+  Descriptions,
+  Divider,
+  Form,
+  Input,
+  Typography,
+  message,
+  Spin,
+} from "antd";
+import { LogoutOutlined } from "@ant-design/icons";
 import { useSelector } from "react-redux";
 import { useDispatch } from "../../store/store";
 import { selectUserSelector } from "../../store/features/user/selectors";
 import { signIn } from "../../store/features/user/userSlice";
+import { clearPermissions } from "../../store/features/permissions/permissionsSlice";
+import { selectCanUpdateProfile } from "../../store/features/permissions/selectors";
 import AuthService from "../../services/auth.service";
-import { getMyProfile, updateMyProfile, uploadProfilePhoto, ProfileResponse } from "../../api/profile/profile";
+import { getMyProfile, updateMyProfile, ProfileResponse } from "../../api/profile/profile";
 
 const { Title, Text } = Typography;
 
 export const Profile = () => {
   const user = useSelector(selectUserSelector);
+  const canUpdateProfile = useSelector(selectCanUpdateProfile);
   const dispatch = useDispatch();
 
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const [keycloak, setKeycloak] = useState<ProfileResponse["keycloak"] | null>(null);
   const [profile, setProfile] = useState<ProfileResponse["profile"] | null>(null);
 
   useEffect(() => {
@@ -23,12 +38,11 @@ export const Profile = () => {
       setLoading(true);
       try {
         const data = await getMyProfile();
+        setKeycloak(data.keycloak);
         setProfile(data.profile);
         form.setFieldsValue({
-          family_name: data.keycloak.family_name,
-          given_name: data.keycloak.given_name,
-          patronymic: data.profile?.patronymic || "",
-          personnel_number: data.profile?.personnel_number || "",
+          patronymic: data.profile?.patronymic ?? "",
+          personnel_number: data.profile?.personnel_number ?? "",
         });
       } catch (error) {
         console.error("Ошибка загрузки профиля", error);
@@ -42,7 +56,7 @@ export const Profile = () => {
   }, [form]);
 
   const handleLogout = () => {
-    // очищаем данные пользователя в Redux
+    dispatch(clearPermissions());
     dispatch(
       signIn({
         given_name: "",
@@ -58,18 +72,16 @@ export const Profile = () => {
         error: null,
       }) as any
     );
-
-    // выходим из Keycloak
     const authService = AuthService.getInstance();
     authService.logout();
   };
 
-  const onFinish = async (values: any) => {
+  const onFinish = async (values: { patronymic?: string; personnel_number?: string }) => {
     setLoading(true);
     try {
       const updated = await updateMyProfile({
-        patronymic: values.patronymic,
-        personnel_number: values.personnel_number,
+        patronymic: values.patronymic || null,
+        personnel_number: values.personnel_number || null,
       });
       setProfile(updated);
       message.success("Профиль сохранён");
@@ -81,90 +93,108 @@ export const Profile = () => {
     }
   };
 
-  const handleUpload = async (options: any) => {
-    const { file, onSuccess, onError } = options;
+  const fullName = [keycloak?.family_name, keycloak?.given_name, profile?.patronymic].filter(Boolean).join(" ") || user.name || "Пользователь";
+  const avatarLetter = (keycloak?.preferred_username || keycloak?.given_name || user.preferred_username)?.[0]?.toUpperCase() || "?";
 
-    try {
-      const updated = await uploadProfilePhoto(file as File);
-      setProfile(updated);
-      message.success("Фото обновлено");
-      onSuccess?.(updated);
-    } catch (error) {
-      console.error("Ошибка загрузки фото", error);
-      message.error("Не удалось загрузить фото");
-      onError?.(error);
-    }
-  };
-
-  const avatarLetter = user.preferred_username?.[0]?.toUpperCase() || user.name?.[0]?.toUpperCase() || "";
+  if (loading && !profile && !keycloak) {
+    return (
+      <div style={{ display: "flex", justifyContent: "center", padding: 48 }}>
+        <Spin size="large" />
+      </div>
+    );
+  }
 
   return (
-    <div style={{ maxWidth: 600, margin: "0 auto", padding: 24 }}>
-      <Card>
-        <Space direction="vertical" size="large" style={{ width: "100%" }}>
-          <Space align="center" style={{ width: "100%", justifyContent: "space-between" }}>
-            <Space align="center">
-              <AntAvatar
-                size={64}
-                src={profile?.photo_path ? profile.photo_path : undefined}
-              >
-                {avatarLetter}
-              </AntAvatar>
-              <div>
-                <Title level={4} style={{ marginBottom: 0 }}>
-                  {user.family_name} {user.given_name}
-                </Title>
-                <Text type="secondary">{user.preferred_username}</Text>
-              </div>
-            </Space>
-
-            <Button danger onClick={handleLogout}>
-              Выйти
-            </Button>
-          </Space>
-
-          <Upload
-            customRequest={handleUpload}
-            showUploadList={false}
-            accept="image/*"
+    <div style={{ maxWidth: 560, margin: "0 auto", padding: "24px 0" }}>
+      <Card
+        bordered={false}
+        style={{
+          boxShadow: "0 1px 2px rgba(0,0,0,0.03), 0 6px 16px rgba(0,0,0,0.08)",
+          borderRadius: 12,
+          overflow: "hidden",
+        }}
+        styles={{ body: { padding: "32px 40px" } }}
+      >
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+            <AntAvatar
+              size={72}
+              style={{
+                backgroundColor: "#1a365d",
+                fontSize: 28,
+                fontWeight: 600,
+              }}
+            >
+              {avatarLetter}
+            </AntAvatar>
+            <div>
+              <Title level={4} style={{ margin: 0, fontWeight: 600, color: "#1a202c" }}>
+                {fullName}
+              </Title>
+              {(keycloak?.preferred_username || keycloak?.email) && (
+                <Text type="secondary" style={{ fontSize: 13 }}>
+                  {keycloak.preferred_username}
+                  {keycloak.email && keycloak.preferred_username !== keycloak.email ? ` · ${keycloak.email}` : ""}
+                </Text>
+              )}
+            </div>
+          </div>
+          <Button
+            type="text"
+            danger
+            icon={<LogoutOutlined />}
+            onClick={handleLogout}
+            style={{ fontWeight: 500 }}
           >
-            <Button icon={<UploadOutlined />}>Загрузить новое фото</Button>
-          </Upload>
+            Выйти
+          </Button>
+        </div>
 
-          <Form
-            form={form}
-            layout="vertical"
-            onFinish={onFinish}
-            initialValues={{
-              family_name: user.family_name,
-              given_name: user.given_name,
-              patronymic: "",
-              personnel_number: "",
-            }}
-          >
-            <Form.Item label="Фамилия" name="family_name">
-              <Input disabled />
-            </Form.Item>
+        <Divider style={{ margin: "24px 0" }} />
 
-            <Form.Item label="Имя" name="given_name">
-              <Input disabled />
-            </Form.Item>
+        <Title level={5} style={{ marginBottom: 16, fontWeight: 600, color: "#2d3748" }}>
+          Основные данные
+        </Title>
+        <Descriptions
+          column={1}
+          size="small"
+          labelStyle={{ color: "#718096", fontWeight: 500, width: 140 }}
+          contentStyle={{ color: "#2d3748" }}
+          style={{ marginBottom: 28 }}
+        >
+          <Descriptions.Item label="Фамилия">{keycloak?.family_name ?? "—"}</Descriptions.Item>
+          <Descriptions.Item label="Имя">{keycloak?.given_name ?? "—"}</Descriptions.Item>
+          <Descriptions.Item label="Отчество">{profile?.patronymic ?? "—"}</Descriptions.Item>
+          {keycloak?.email && (
+            <Descriptions.Item label="Email">{keycloak.email}</Descriptions.Item>
+          )}
+          <Descriptions.Item label="Логин">{keycloak?.preferred_username ?? "—"}</Descriptions.Item>
+        </Descriptions>
 
-            <Form.Item label="Отчество" name="patronymic">
-              <Input placeholder="Введите отчество" />
-            </Form.Item>
-
-            <Form.Item label="Табельный номер" name="personnel_number">
-              <Input placeholder="Введите табельный номер" />
-            </Form.Item>
-
-            <Form.Item>
-              <Button type="primary" htmlType="submit" loading={loading}>
-                Сохранить
+        <Title level={5} style={{ marginBottom: 16, fontWeight: 600, color: "#2d3748" }}>
+          Дополнительные данные
+        </Title>
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={onFinish}
+          requiredMark={false}
+          style={{ maxWidth: 360 }}
+        >
+          <Form.Item name="patronymic" label="Отчество">
+            <Input placeholder="Введите отчество" disabled={!canUpdateProfile} />
+          </Form.Item>
+          <Form.Item name="personnel_number" label="Табельный номер">
+            <Input placeholder="Введите табельный номер" disabled={!canUpdateProfile} />
+          </Form.Item>
+          {canUpdateProfile && (
+            <Form.Item style={{ marginBottom: 0, marginTop: 24 }}>
+              <Button type="primary" htmlType="submit" loading={loading} size="middle">
+                Сохранить изменения
               </Button>
             </Form.Item>
-          </Form>
-        </Space>
+          )}
+        </Form>
       </Card>
     </div>
   );

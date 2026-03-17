@@ -24,6 +24,7 @@ import {
   ReloadOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import { PageHeader } from "../../../components/PageHeader";
 import { getReportTableData, exportReportToExcel, exportDashboardToExcel } from "../../../api/reports/reports";
 import { useQuery } from "react-query";
@@ -31,6 +32,7 @@ import { useGetDepartments } from "../../../services/requests/departments/getDep
 import dayjs, { Dayjs } from "dayjs";
 import styles from "./ReportGenerator.module.scss";
 import { ERoutes } from "../../../enums/routes";
+import { selectCanReportExport, selectCanReportDashboard } from "../../../store/features/permissions/selectors";
 
 const { RangePicker } = DatePicker;
 
@@ -271,6 +273,8 @@ function buildDepartmentColumns(
 
 export const ReportGenerator: React.FC = () => {
   const navigate = useNavigate();
+  const canExport = useSelector(selectCanReportExport);
+  const canDashboard = useSelector(selectCanReportDashboard);
   const [dateRange, setDateRange] = useState<[Dayjs, Dayjs]>([
     dayjs().startOf("month"),
     dayjs().endOf("month"),
@@ -754,25 +758,29 @@ export const ReportGenerator: React.FC = () => {
         <Card className={styles.tableCard} variant="borderless">
           <div className={styles.toolbar}>
             <Space wrap>
-              <Button
-                type="primary"
-                size="large"
-                icon={<DownloadOutlined />}
-                onClick={handleExport}
-                loading={isExporting}
-                disabled={selectedFields.size === 0 || selectedDepartments.size === 0}
-              >
-                Выгрузить в Excel
-              </Button>
-              <Button
-                size="large"
-                icon={<BarChartOutlined />}
-                onClick={handleExportDashboard}
-                loading={isDashboardExporting}
-                disabled={selectedFields.size === 0 || selectedDepartments.size === 0}
-              >
-                Выгрузить дашборд
-              </Button>
+              {canExport && (
+                <Button
+                  type="primary"
+                  size="large"
+                  icon={<DownloadOutlined />}
+                  onClick={handleExport}
+                  loading={isExporting}
+                  disabled={selectedFields.size === 0 || selectedDepartments.size === 0}
+                >
+                  Выгрузить в Excel
+                </Button>
+              )}
+              {canDashboard && (
+                <Button
+                  size="large"
+                  icon={<BarChartOutlined />}
+                  onClick={handleExportDashboard}
+                  loading={isDashboardExporting}
+                  disabled={selectedFields.size === 0 || selectedDepartments.size === 0}
+                >
+                  Выгрузить дашборд
+                </Button>
+              )}
               <Space split={<span className={styles.toolbarDivider}>|</span>}>
                 <Tag color="blue">
                   Показателей: {selectedFields.size}

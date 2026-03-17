@@ -217,9 +217,11 @@ const TreeManager: React.FC<TreeManagerProps> = ({ config, mutations, customizat
               onClick={() => setIsStatsVisible(!isStatsVisible)}
               tooltip={isStatsVisible ? "Скрыть статистику" : "Показать статистику"}
             />
-            <PrimaryButton icon={<PlusOutlined />} onClick={() => handleAdd()}>
-              {config.addButtonText}
-            </PrimaryButton>
+            {(config.canCreate !== false) && (
+              <PrimaryButton icon={<PlusOutlined />} onClick={() => handleAdd()}>
+                {config.addButtonText}
+              </PrimaryButton>
+            )}
           </>
         }
       />
@@ -272,6 +274,9 @@ const TreeManager: React.FC<TreeManagerProps> = ({ config, mutations, customizat
         onAdd={handleAdd}
         onEdit={handleEdit}
         onDelete={handleDelete}
+        canCreate={config.canCreate !== false}
+        canUpdate={config.canUpdate !== false}
+        canDelete={config.canDelete !== false}
       />
 
       <Modal

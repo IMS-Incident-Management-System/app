@@ -11,6 +11,9 @@ interface TreeVisualizationProps {
   onAdd: (node?: TreeNode) => void;
   onEdit: (node: TreeNode) => void;
   onDelete: (node: TreeNode) => void;
+  canCreate?: boolean;
+  canUpdate?: boolean;
+  canDelete?: boolean;
 }
 
 interface TreeNodeItemProps {
@@ -22,6 +25,9 @@ interface TreeNodeItemProps {
   onAdd: (node?: TreeNode) => void;
   onEdit: (node: TreeNode) => void;
   onDelete: (node: TreeNode) => void;
+  canCreate?: boolean;
+  canUpdate?: boolean;
+  canDelete?: boolean;
 }
 
 const TreeNodeItem: React.FC<TreeNodeItemProps> = ({
@@ -33,6 +39,9 @@ const TreeNodeItem: React.FC<TreeNodeItemProps> = ({
   onAdd,
   onEdit,
   onDelete,
+  canCreate = true,
+  canUpdate = true,
+  canDelete = true,
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const hasChildren = node.children && node.children.length > 0;
@@ -76,33 +85,39 @@ const TreeNodeItem: React.FC<TreeNodeItemProps> = ({
           </div>
           <div className={styles.nodeTitle}>{node.title}</div>
           <div className={styles.nodeActions}>
-            <IconButton
-              icon={<PlusOutlined />}
-              onClick={(e) => {
-                e?.stopPropagation();
-                onAdd(node);
-              }}
-              tooltip="Добавить дочерний"
-              size="small"
-            />
-            <IconButton
-              icon={<EditOutlined />}
-              onClick={(e) => {
-                e?.stopPropagation();
-                onEdit(node);
-              }}
-              tooltip="Редактировать"
-              size="small"
-            />
-            <IconButton
-              icon={<DeleteOutlined />}
-              onClick={(e) => {
-                e?.stopPropagation();
-                onDelete(node);
-              }}
-              tooltip="Удалить"
-              size="small"
-            />
+            {canCreate && (
+              <IconButton
+                icon={<PlusOutlined />}
+                onClick={(e) => {
+                  e?.stopPropagation();
+                  onAdd(node);
+                }}
+                tooltip="Добавить дочерний"
+                size="small"
+              />
+            )}
+            {canUpdate && (
+              <IconButton
+                icon={<EditOutlined />}
+                onClick={(e) => {
+                  e?.stopPropagation();
+                  onEdit(node);
+                }}
+                tooltip="Редактировать"
+                size="small"
+              />
+            )}
+            {canDelete && (
+              <IconButton
+                icon={<DeleteOutlined />}
+                onClick={(e) => {
+                  e?.stopPropagation();
+                  onDelete(node);
+                }}
+                tooltip="Удалить"
+                size="small"
+              />
+            )}
           </div>
         </div>
         {hasChildren && (
@@ -131,6 +146,9 @@ const TreeNodeItem: React.FC<TreeNodeItemProps> = ({
                   onAdd={onAdd}
                   onEdit={onEdit}
                   onDelete={onDelete}
+                  canCreate={canCreate}
+                  canUpdate={canUpdate}
+                  canDelete={canDelete}
                 />
               </div>
             ))}
@@ -147,6 +165,9 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({
   onAdd,
   onEdit,
   onDelete,
+  canCreate = true,
+  canUpdate = true,
+  canDelete = true,
 }) => {
   return (
     <div className={styles.treeContainer}>
@@ -161,6 +182,9 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({
           onAdd={onAdd}
           onEdit={onEdit}
           onDelete={onDelete}
+          canCreate={canCreate}
+          canUpdate={canUpdate}
+          canDelete={canDelete}
         />
       ))}
     </div>

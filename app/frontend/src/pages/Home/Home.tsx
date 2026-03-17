@@ -1,6 +1,7 @@
 import { useSelector } from "react-redux";
 import { useGetInitiators } from "../../services/requests/initiators/getInitiators";
 import { selectUserSelector } from "../../store/features/user/selectors";
+import { selectCanCreateIncident } from "../../store/features/permissions/selectors";
 import type { TablePaginationConfig } from "antd/es/table";
 import styles from "./Home.module.scss";
 import { useNavigate } from "react-router-dom";
@@ -34,6 +35,7 @@ export const Home = () => {
   const { columns, dataSource } = usePrepareTableData(
     data ?? { dataSource: [], columns: [] },
   );
+  const canCreateIncident = useSelector(selectCanCreateIncident);
 
   const handleAddIncident = () => {
     navigate(ERoutes.INCIDENT_CREATE);
@@ -92,12 +94,14 @@ export const Home = () => {
               onClick={handleReload}
               tooltip="Обновить"
             />
-            <PrimaryButton
-              onClick={handleAddIncident}
-              icon={<PlusOutlined />}
-            >
-              Добавить инцидент
-            </PrimaryButton>
+            {canCreateIncident && (
+              <PrimaryButton
+                onClick={handleAddIncident}
+                icon={<PlusOutlined />}
+              >
+                Добавить инцидент
+              </PrimaryButton>
+            )}
           </>
         }
       />

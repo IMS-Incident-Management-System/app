@@ -13,6 +13,11 @@ const { Text } = Typography;
 interface IncidentAdditionallyProps {
   incident?: any;
   isLoading?: boolean;
+  /** Показывать кнопку удаления у вложений событий (право incident.attachments) */
+  showDeleteAttachments?: boolean;
+  canCreate?: boolean;
+  canUpdate?: boolean;
+  canDelete?: boolean;
 }
 
 export interface IncidentAdditionallyRef {
@@ -20,7 +25,7 @@ export interface IncidentAdditionallyRef {
 }
 
 export const IncidentAdditionally = forwardRef<IncidentAdditionallyRef, IncidentAdditionallyProps>(
-  ({ incident, isLoading }, ref) => {
+  ({ incident, isLoading, showDeleteAttachments = false, canCreate = true, canUpdate = true, canDelete = true }, ref) => {
   const [expandedItems, setExpandedItems] = useState<Record<number, boolean>>({});
   const form = Form.useFormInstance();
   const eventAttachmentsRefs = useRef<Record<number, IncidentEventAttachmentsRef>>({});
@@ -131,16 +136,18 @@ export const IncidentAdditionally = forwardRef<IncidentAdditionallyRef, Incident
         className={styles.sectionCard} 
         title="Дополнения к инциденту"
         extra={
-          <Form.List name="additionally">
-            {(fields, { add }) => (
-              <PrimaryButton
-                onClick={() => add()}
-                icon={<PlusOutlined />}
-              >
-                Добавить дополнение
-              </PrimaryButton>
-            )}
-          </Form.List>
+          canCreate && (
+            <Form.List name="additionally">
+              {(_, { add }) => (
+                <PrimaryButton
+                  onClick={() => add()}
+                  icon={<PlusOutlined />}
+                >
+                  Добавить дополнение
+                </PrimaryButton>
+              )}
+            </Form.List>
+          )
         }
       >
         <Form.List name="additionally">
@@ -179,21 +186,24 @@ export const IncidentAdditionally = forwardRef<IncidentAdditionallyRef, Incident
                                   );
                                 }}
                               </Form.Item>
-                              <Button
-                                type="text"
-                                danger
-                                icon={<DeleteOutlined />}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  remove(field.name);
-                                }}
-                                className={styles.deleteButton}
-                              >
-                                Удалить дополнение
-                              </Button>
+                              {canDelete && (
+                                <Button
+                                  type="text"
+                                  danger
+                                  icon={<DeleteOutlined />}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    remove(field.name);
+                                  }}
+                                  className={styles.deleteButton}
+                                >
+                                  Удалить дополнение
+                                </Button>
+                              )}
                             </div>
                           ),
                           children: (
+                            <fieldset disabled={!canUpdate} style={{ border: 'none', margin: 0, padding: 0 }}>
                             <div className={styles.additionallyContent}>
 
                     {/* Основные данные дополнения */}
@@ -821,7 +831,7 @@ export const IncidentAdditionally = forwardRef<IncidentAdditionallyRef, Incident
                               <IncidentEventAttachmentsView
                                 key={`attachments-view-${eventId}`}
                                 incidentEventId={eventId}
-                                showDelete={true}
+                                showDelete={showDeleteAttachments}
                               />
                             </>
                           );
@@ -829,6 +839,7 @@ export const IncidentAdditionally = forwardRef<IncidentAdditionallyRef, Incident
                       </Form.Item>
                     </Card>
                             </div>
+                            </fieldset>
                           ),
                         },
                       ]}

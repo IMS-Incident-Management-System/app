@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
 import {
   Form,
   Card,
@@ -21,6 +22,7 @@ import { PrimaryButton } from "../../components/PrimaryButton";
 import { MainInfo } from "./components/MainInfo/MainInfo";
 import { EventCriminalCase } from "./components/EventCriminalCase/EventCriminalCase";
 import { EventPunishment } from "./components/EventPunishment/EventPunishment";
+import { selectCanCreateEvent, selectCanUpdateEvent } from "../../store/features/permissions/selectors";
 
 const { Title } = Typography;
 
@@ -28,6 +30,8 @@ export const EventProvider = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("main");
+  const canCreateEvent = useSelector(selectCanCreateEvent);
+  const canUpdateEvent = useSelector(selectCanUpdateEvent);
 
   const { data: event, isLoading: isEventLoading } = useGetEvent(id);
   const { mutate: createEvent, isLoading: isCreatingEvent } =
@@ -86,6 +90,7 @@ export const EventProvider = () => {
               size="large"
               onClick={handleSubmit}
               loading={isCreatingEvent || isUpdatingEvent}
+              disabled={id ? !canUpdateEvent : !canCreateEvent}
             >
               {id ? "Сохранить изменения" : "Создать событие"}
             </PrimaryButton>

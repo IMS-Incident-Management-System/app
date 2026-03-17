@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import {
   FilterOutlined,
   PlusOutlined,
@@ -20,9 +21,11 @@ import { usePrepareEventsTableData } from "./hooks/usePrepareEventsTableData";
 import styles from "./EventsList.module.scss";
 import { FilterForm } from "./components/FilterForm/FilterForm";
 import { EventWithRelations } from "../../interfaces/requests/event";
+import { selectCanCreateEvent } from "../../store/features/permissions/selectors";
 
 export const EventsList = () => {
   const navigate = useNavigate();
+  const canCreateEvent = useSelector(selectCanCreateEvent);
   const [isFilterFormOpen, setIsFilterFormOpen] = useState(false);
   const [filter, setFilter] = useState<IUseGetRequest<TEventFilter>>({
     filter: {},
@@ -93,12 +96,14 @@ export const EventsList = () => {
               onClick={handleReload}
               tooltip="Обновить"
             />
-            <PrimaryButton
-              onClick={handleAddEvent}
-              icon={<PlusOutlined />}
-            >
-              Добавить событие
-            </PrimaryButton>
+            {canCreateEvent && (
+              <PrimaryButton
+                onClick={handleAddEvent}
+                icon={<PlusOutlined />}
+              >
+                Добавить событие
+              </PrimaryButton>
+            )}
           </>
         }
       />

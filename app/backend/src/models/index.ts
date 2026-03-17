@@ -20,6 +20,9 @@ import EventCriminalCase from './eventCriminalCase';
 import EventPunishment from './eventPunishment';
 import EventAdditionallyPerson from './eventAdditionallyPerson';
 import UserProfile from './userProfile';
+import Role from './role';
+import RolePermission from './rolePermission';
+import UserRole from './userRole';
 import ExplanatoryNote from './explanatoryNote';
 
 // IncidentEvent связи
@@ -195,6 +198,12 @@ Department.hasMany(Event, {
   onDelete: 'CASCADE'
 });
 
+// Role — RolePermission — UserRole
+Role.hasMany(RolePermission, { foreignKey: 'role_id', as: 'permissions' });
+RolePermission.belongsTo(Role, { foreignKey: 'role_id', as: 'role' });
+Role.hasMany(UserRole, { foreignKey: 'role_id', as: 'userRoles' });
+UserRole.belongsTo(Role, { foreignKey: 'role_id', as: 'role' });
+
 // ExplanatoryNote связи
 ExplanatoryNote.belongsTo(Department, { 
   foreignKey: 'department_id', 
@@ -252,6 +261,9 @@ export {
   EventPunishment,
   EventAdditionallyPerson,
   UserProfile,
+  Role,
+  RolePermission,
+  UserRole,
   ExplanatoryNote,
   sequelize
 }; 

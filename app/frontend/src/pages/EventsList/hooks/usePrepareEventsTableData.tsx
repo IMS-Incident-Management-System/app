@@ -4,12 +4,16 @@ import { EventWithRelations } from "../../../interfaces/requests/event";
 import { Modal } from "antd";
 import { DeleteOutlined, EditOutlined, EyeOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import { ERoutes } from "../../../enums/routes";
 import { useDeleteEvent } from "../../../services/requests/events/deleteEvent";
 import { IconButton } from "../../../components/IconButton";
+import { selectCanUpdateEvent, selectCanDeleteEvent } from "../../../store/features/permissions/selectors";
 
 export const usePrepareEventsTableData = (data: ITable<EventWithRelations>) => {
   const navigate = useNavigate();
+  const canUpdateEvent = useSelector(selectCanUpdateEvent);
+  const canDeleteEvent = useSelector(selectCanDeleteEvent);
 
   const handleEditEvent = (id: string) => {
     navigate(ERoutes.EVENT_CREATE + `/${id}`);
@@ -53,14 +57,16 @@ export const usePrepareEventsTableData = (data: ITable<EventWithRelations>) => {
             />
             <IconButton
               icon={<EditOutlined />}
-              onClick={() => handleEditEvent(record.id.toString())}
+              onClick={() => canUpdateEvent && handleEditEvent(record.id.toString())}
               tooltip="Редактировать"
+              disabled={!canUpdateEvent}
             />
             <IconButton
               icon={<DeleteOutlined />}
-              onClick={() => handleDeleteEvent(record.id)}
+              onClick={() => canDeleteEvent && handleDeleteEvent(record.id)}
               tooltip="Удалить"
               danger
+              disabled={!canDeleteEvent}
             />
           </div>
         ),

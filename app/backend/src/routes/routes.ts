@@ -27,136 +27,176 @@ import { createEvent } from '../controllers/event/createEvent.controller';
 import { updateEvent } from '../controllers/event/updateEvent.controller';
 import { deleteEvent } from '../controllers/event/deleteEvent.controller';
 import { getMyProfile, updateMyProfile, uploadProfilePhoto } from '../controllers/profile.controller';
+import { getMyPermissions } from '../controllers/permissions.controller';
+import {
+  listRoles,
+  getRole,
+  createRole,
+  updateRole,
+  deleteRole,
+  listUsers,
+  setUserRoles,
+  listPermissionCodes,
+} from '../controllers/accessManagement.controller';
 import { reportController } from '../controllers/report.controller';
 import { explanatoryNoteController } from '../controllers/explanatoryNote/explanatoryNote.controller';
 import { verifyToken } from '../middlewares/auth.middleware';
 import { upload } from '../middlewares/upload.middleware';
+import { allowAccessManagement } from '../middlewares/accessManagement.middleware';
+import { requirePermission } from '../middlewares/permission.middleware';
+import { Permission } from '../enums/permissions';
 
 const router = Router();
 
-// Departments routes
+// Все API требуют аутентификации (Keycloak JWT)
+router.use(verifyToken);
+
+// Departments
 router
   .route('/departments')
-  .get(departmentController.getDepartments)
-  .post(departmentController.createDepartment);
+  .get(requirePermission([Permission.DEPARTMENT_LIST]), departmentController.getDepartments)
+  .post(requirePermission([Permission.DEPARTMENT_CREATE]), departmentController.createDepartment);
 
 router
   .route('/departments/:id')
-  .get(departmentController.getDepartment)
-  .put(departmentController.updateDepartment)
-  .delete(departmentController.deleteDepartment);
+  .get(requirePermission([Permission.DEPARTMENT_READ]), departmentController.getDepartment)
+  .put(requirePermission([Permission.DEPARTMENT_UPDATE]), departmentController.updateDepartment)
+  .delete(requirePermission([Permission.DEPARTMENT_DELETE]), departmentController.deleteDepartment);
 
-// Incidents routes
-router.route('/incidents').get(getIncidents).post(createIncident);
+// Incidents
+router
+  .route('/incidents')
+  .get(requirePermission([Permission.INCIDENT_LIST]), getIncidents)
+  .post(requirePermission([Permission.INCIDENT_CREATE]), createIncident);
 
 router
   .route('/incidents/:id')
-  .get(getIncident)
-  .put(updateIncident)
-  .delete(deleteIncident);
+  .get(requirePermission([Permission.INCIDENT_READ]), getIncident)
+  .put(requirePermission([Permission.INCIDENT_UPDATE]), updateIncident)
+  .delete(requirePermission([Permission.INCIDENT_DELETE]), deleteIncident);
 
-// Incident attachments routes
+// Incident attachments
 router
   .route('/incidents/:id/attachments')
-  .get(getIncidentAttachments)
-  .post(upload.array('files', 10), uploadIncidentAttachments);
+  .get(requirePermission([Permission.INCIDENT_ATTACHMENTS]), getIncidentAttachments)
+  .post(requirePermission([Permission.INCIDENT_ATTACHMENTS]), upload.array('files', 10), uploadIncidentAttachments);
 
 router
   .route('/incidents/:id/attachments/:attachmentId/download')
-  .get(downloadIncidentAttachment);
+  .get(requirePermission([Permission.INCIDENT_ATTACHMENTS]), downloadIncidentAttachment);
 
 router
   .route('/incidents/:id/attachments/:attachmentId')
-  .delete(deleteIncidentAttachment);
+  .delete(requirePermission([Permission.INCIDENT_ATTACHMENTS]), deleteIncidentAttachment);
 
-// Incident event attachments routes
+// Incident event attachments
 router
   .route('/incident-events/:incidentEventId/attachments')
-  .get(getIncidentEventAttachments)
-  .post(upload.array('files', 10), uploadIncidentEventAttachments);
+  .get(requirePermission([Permission.INCIDENT_ATTACHMENTS]), getIncidentEventAttachments)
+  .post(requirePermission([Permission.INCIDENT_ATTACHMENTS]), upload.array('files', 10), uploadIncidentEventAttachments);
 
 router
   .route('/incident-events/:incidentEventId/attachments/:attachmentId/download')
-  .get(downloadIncidentEventAttachment);
+  .get(requirePermission([Permission.INCIDENT_ATTACHMENTS]), downloadIncidentEventAttachment);
 
 router
   .route('/incident-events/:incidentEventId/attachments/:attachmentId')
-  .delete(deleteIncidentEventAttachment);
+  .delete(requirePermission([Permission.INCIDENT_ATTACHMENTS]), deleteIncidentEventAttachment);
 
-// Operational activities routes
-router.route('/operational-activities').get(getOperationalActivities).post(createOperationalActivity);
+// Operational activities
+router
+  .route('/operational-activities')
+  .get(requirePermission([Permission.OPERATIONAL_ACTIVITY_LIST]), getOperationalActivities)
+  .post(requirePermission([Permission.OPERATIONAL_ACTIVITY_CREATE]), createOperationalActivity);
 
 router
   .route('/operational-activities/:id')
-  .get(getOperationalActivity)
-  .put(updateOperationalActivity)
-  .delete(deleteOperationalActivity);
+  .get(requirePermission([Permission.OPERATIONAL_ACTIVITY_READ]), getOperationalActivity)
+  .put(requirePermission([Permission.OPERATIONAL_ACTIVITY_UPDATE]), updateOperationalActivity)
+  .delete(requirePermission([Permission.OPERATIONAL_ACTIVITY_DELETE]), deleteOperationalActivity);
 
-// Incident event types routes
+// Event types (типы событий инцидентов)
 router
   .route('/event-types')
-  .get(incidentEventTypeController.getIncidentEventTypes)
-  .post(incidentEventTypeController.createIncidentEventType);
+  .get(requirePermission([Permission.EVENT_TYPE_LIST]), incidentEventTypeController.getIncidentEventTypes)
+  .post(requirePermission([Permission.EVENT_TYPE_CREATE]), incidentEventTypeController.createIncidentEventType);
 
 router
   .route('/event-types/:id')
-  .get(incidentEventTypeController.getIncidentEventType)
-  .put(incidentEventTypeController.updateIncidentEventType)
-  .delete(incidentEventTypeController.deleteIncidentEventType);
+  .get(requirePermission([Permission.EVENT_TYPE_READ]), incidentEventTypeController.getIncidentEventType)
+  .put(requirePermission([Permission.EVENT_TYPE_UPDATE]), incidentEventTypeController.updateIncidentEventType)
+  .delete(requirePermission([Permission.EVENT_TYPE_DELETE]), incidentEventTypeController.deleteIncidentEventType);
 
-// Object types routes
+// Object types
 router
   .route('/object-types')
-  .get(objectTypeController.getObjectTypes)
-  .post(objectTypeController.createObjectType);
+  .get(requirePermission([Permission.OBJECT_TYPE_LIST]), objectTypeController.getObjectTypes)
+  .post(requirePermission([Permission.OBJECT_TYPE_CREATE]), objectTypeController.createObjectType);
 
 router
   .route('/object-types/:id')
-  .get(objectTypeController.getObjectType)
-  .put(objectTypeController.updateObjectType)
-  .delete(objectTypeController.deleteObjectType);
+  .get(requirePermission([Permission.OBJECT_TYPE_READ]), objectTypeController.getObjectType)
+  .put(requirePermission([Permission.OBJECT_TYPE_UPDATE]), objectTypeController.updateObjectType)
+  .delete(requirePermission([Permission.OBJECT_TYPE_DELETE]), objectTypeController.deleteObjectType);
 
-// Objects routes
+// Objects
 router
   .route('/objects')
-  .get(objectsController.getObjects)
-  .post(objectsController.createObject);
+  .get(requirePermission([Permission.OBJECT_LIST]), objectsController.getObjects)
+  .post(requirePermission([Permission.OBJECT_CREATE]), objectsController.createObject);
 
 router
   .route('/objects/:id')
-  .get(objectsController.getObject)
-  .put(objectsController.updateObject)
-  .delete(objectsController.deleteObject);
+  .get(requirePermission([Permission.OBJECT_READ]), objectsController.getObject)
+  .put(requirePermission([Permission.OBJECT_UPDATE]), objectsController.updateObject)
+  .delete(requirePermission([Permission.OBJECT_DELETE]), objectsController.deleteObject);
 
-// Events routes
-router.route('/events').get(getEvents).post(createEvent);
+// Events
+router
+  .route('/events')
+  .get(requirePermission([Permission.EVENT_LIST]), getEvents)
+  .post(requirePermission([Permission.EVENT_CREATE]), createEvent);
 
 router
   .route('/events/:id')
-  .get(getEvent)
-  .put(updateEvent)
-  .delete(deleteEvent);
+  .get(requirePermission([Permission.EVENT_READ]), getEvent)
+  .put(requirePermission([Permission.EVENT_UPDATE]), updateEvent)
+  .delete(requirePermission([Permission.EVENT_DELETE]), deleteEvent);
 
-// Profile routes (требуют аутентификации через Keycloak)
-router.get('/profile/me', verifyToken, getMyProfile);
-router.put('/profile/me', verifyToken, updateMyProfile);
-router.post('/profile/photo', verifyToken, upload.single('file'), uploadProfilePhoto);
+// Профиль — по правам profile.read / profile.update; список своих прав — всем аутентифицированным
+router.get('/profile/me', getMyProfile);
+router.put('/profile/me', requirePermission([Permission.PROFILE_UPDATE]), updateMyProfile);
+router.post('/profile/photo', requirePermission([Permission.PROFILE_UPDATE]), upload.single('file'), uploadProfilePhoto);
+router.get('/profile/me/permissions', getMyPermissions);
 
-// Report routes
-router.post('/reports/generate', reportController.generateReport);
-router.get('/reports/fields', reportController.getAvailableFields);
-router.post('/reports/table', reportController.getReportTable);
-router.post('/reports/export', reportController.exportReport);
-router.post('/reports/export-dashboard', reportController.exportDashboard);
+// Access management (bootstrap: если ни у кого нет права — доступ разрешён)
+router.get('/access/permissions', allowAccessManagement, listPermissionCodes);
+router.get('/access/roles', allowAccessManagement, listRoles);
+router.get('/access/roles/:id', allowAccessManagement, getRole);
+router.post('/access/roles', allowAccessManagement, createRole);
+router.put('/access/roles/:id', allowAccessManagement, updateRole);
+router.delete('/access/roles/:id', allowAccessManagement, deleteRole);
+router.get('/access/users', allowAccessManagement, listUsers);
+router.put('/access/users/:external_id/roles', allowAccessManagement, setUserRoles);
 
-// Explanatory notes routes
-router.route('/explanatory-notes').get(explanatoryNoteController.getExplanatoryNotes).post(explanatoryNoteController.createExplanatoryNote);
-router.get('/explanatory-notes/export', explanatoryNoteController.exportExplanatoryNotes);
+// Reports
+router.post('/reports/generate', requirePermission([Permission.REPORT_GENERATE]), reportController.generateReport);
+router.get('/reports/fields', requirePermission([Permission.REPORT_TABLE, Permission.REPORT_GENERATE]), reportController.getAvailableFields);
+router.post('/reports/table', requirePermission([Permission.REPORT_TABLE]), reportController.getReportTable);
+router.post('/reports/export', requirePermission([Permission.REPORT_EXPORT]), reportController.exportReport);
+router.post('/reports/export-dashboard', requirePermission([Permission.REPORT_DASHBOARD]), reportController.exportDashboard);
+
+// Explanatory notes
+router
+  .route('/explanatory-notes')
+  .get(requirePermission([Permission.EXPLANATORY_NOTE_LIST]), explanatoryNoteController.getExplanatoryNotes)
+  .post(requirePermission([Permission.EXPLANATORY_NOTE_CREATE]), explanatoryNoteController.createExplanatoryNote);
+router.get('/explanatory-notes/export', requirePermission([Permission.EXPLANATORY_NOTE_EXPORT]), explanatoryNoteController.exportExplanatoryNotes);
 
 router
   .route('/explanatory-notes/:id')
-  .get(explanatoryNoteController.getExplanatoryNote)
-  .put(explanatoryNoteController.updateExplanatoryNote)
-  .delete(explanatoryNoteController.deleteExplanatoryNote);
+  .get(requirePermission([Permission.EXPLANATORY_NOTE_READ]), explanatoryNoteController.getExplanatoryNote)
+  .put(requirePermission([Permission.EXPLANATORY_NOTE_UPDATE]), explanatoryNoteController.updateExplanatoryNote)
+  .delete(requirePermission([Permission.EXPLANATORY_NOTE_DELETE]), explanatoryNoteController.deleteExplanatoryNote);
 
 export default router;

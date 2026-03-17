@@ -1,8 +1,9 @@
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import { useDispatch as useAppDispatch } from "react-redux";
 import { userReducer } from "./features/user/userSlice";
+import { permissionsReducer } from "./features/permissions/permissionsSlice";
 
-const rootReducer: any = combineReducers({ user: userReducer });
+const rootReducer: any = combineReducers({ user: userReducer, permissions: permissionsReducer });
 export const store = configureStore({ reducer: rootReducer });
 
 // Infer the `RootState` and `AppDispatch` types from the store itself

@@ -1,5 +1,6 @@
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import { Card, Typography, Spin, Row, Col, Tag, Descriptions } from "antd";
 import { ArrowLeftOutlined, EditOutlined } from "@ant-design/icons";
 import { useGetEvent } from "../../services/requests/events/getEvent";
@@ -7,6 +8,7 @@ import { ERoutes } from "../../enums/routes";
 import dayjs from "dayjs";
 import styles from "./EventView.module.scss";
 import { PrimaryButton } from "../../components/PrimaryButton";
+import { selectCanUpdateEvent } from "../../store/features/permissions/selectors";
 
 const { Title, Text } = Typography;
 
@@ -14,6 +16,7 @@ export const EventView = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { data: event, isLoading } = useGetEvent(id);
+  const canUpdateEvent = useSelector(selectCanUpdateEvent);
 
   const handleBack = () => {
     navigate(ERoutes.EVENTS_LIST);
@@ -59,12 +62,14 @@ export const EventView = () => {
             <Title level={2} className={styles.title}>
               Событие {event.code || `#${event.id}`}
             </Title>
-            <PrimaryButton 
-              icon={<EditOutlined />}
-              onClick={handleEdit}
-            >
-              Редактировать
-            </PrimaryButton>
+            {canUpdateEvent && (
+              <PrimaryButton
+                icon={<EditOutlined />}
+                onClick={handleEdit}
+              >
+                Редактировать
+              </PrimaryButton>
+            )}
           </div>
         </div>
 

@@ -20,6 +20,7 @@ import { EventView } from "../pages/EventView/EventView";
 import { Reports } from "../pages/Reports/Reports";
 import { ReportGenerator } from "../pages/Reports/ReportGenerator/ReportGenerator";
 import { ExplanatoryNotesList } from "../pages/ExplanatoryNotesList/ExplanatoryNotesList";
+import { Settings } from "../pages/Settings/Settings";
 
 export const router = createBrowserRouter([
   {
@@ -69,6 +70,10 @@ export const router = createBrowserRouter([
       {
         path: ERoutes.PROFILE,
         element: <Profile />,
+      },
+      {
+        path: ERoutes.SETTINGS,
+        element: <Settings />,
       },
       {
         path: ERoutes.INCIDENT_EVENTS,

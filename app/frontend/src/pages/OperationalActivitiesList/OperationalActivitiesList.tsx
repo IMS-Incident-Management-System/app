@@ -1,6 +1,7 @@
 import type { TablePaginationConfig } from "antd/es/table";
 import styles from "./OperationalActivitiesList.module.scss";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import {
   FilterOutlined,
   PlusOutlined,
@@ -19,9 +20,11 @@ import { useGetOperationalActivities } from "../../services/requests/operational
 import { PageHeader } from "../../components/PageHeader";
 import { IconButton } from "../../components/IconButton";
 import { PrimaryButton } from "../../components/PrimaryButton";
+import { selectCanCreateOperationalActivity } from "../../store/features/permissions/selectors";
 
 export const OperationalActivitiesList = () => {
   const navigate = useNavigate();
+  const canCreateOA = useSelector(selectCanCreateOperationalActivity);
   const [filter, setFilter] = useState<IUseGetRequest<TOperationalActivityFilter>>({
     filter: {},
     pagination: { page: 1, limit: 10 },
@@ -89,12 +92,14 @@ export const OperationalActivitiesList = () => {
               onClick={handleReload}
               tooltip="Обновить"
             />
-            <PrimaryButton
-              onClick={handleAddOperationalActivity}
-              icon={<PlusOutlined />}
-            >
-              Добавить операционную деятельность
-            </PrimaryButton>
+            {canCreateOA && (
+              <PrimaryButton
+                onClick={handleAddOperationalActivity}
+                icon={<PlusOutlined />}
+              >
+                Добавить операционную деятельность
+              </PrimaryButton>
+            )}
           </>
         }
       />

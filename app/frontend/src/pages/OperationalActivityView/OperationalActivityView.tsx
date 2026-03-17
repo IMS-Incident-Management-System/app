@@ -1,5 +1,6 @@
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import {
   Card,
   Typography,
@@ -17,6 +18,7 @@ import {
 import dayjs from "dayjs";
 import styles from "./OperationalActivityView.module.scss";
 import { PrimaryButton } from "../../components/PrimaryButton";
+import { selectCanUpdateOperationalActivity } from "../../store/features/permissions/selectors";
 
 const { Title } = Typography;
 
@@ -24,6 +26,7 @@ export const OperationalActivityView = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { data: operationalActivity, isLoading } = useGetOperationalActivity(id);
+  const canUpdateOA = useSelector(selectCanUpdateOperationalActivity);
 
   const handleBack = () => {
     navigate(ERoutes.OPERATIONAL_ACTIVITIES_LIST);
@@ -460,12 +463,14 @@ export const OperationalActivityView = () => {
             <Title level={2} className={styles.title}>
               Операционная деятельность {operationalActivity.code || `#${operationalActivity.id}`}
             </Title>
-            <PrimaryButton
-              icon={<EditOutlined />}
-              onClick={handleEdit}
-            >
-              Редактировать
-            </PrimaryButton>
+            {canUpdateOA && (
+              <PrimaryButton
+                icon={<EditOutlined />}
+                onClick={handleEdit}
+              >
+                Редактировать
+              </PrimaryButton>
+            )}
           </div>
         </div>
 

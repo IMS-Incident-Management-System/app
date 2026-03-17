@@ -1,3 +1,4 @@
+import { useSelector } from 'react-redux';
 import TreeManager from '../../components/TreeStructure/TreeManager';
 import {
   TreeConfig,
@@ -7,11 +8,15 @@ import {
   useUpdateIncidentEventType,
   useDeleteIncidentEventType,
 } from "../../services/requests/incidentEventTypes/mutations";
+import { selectCanCreateEventType, selectCanUpdateEventType, selectCanDeleteEventType } from '../../store/features/permissions/selectors';
 
 export const EventTypes = () => {
   const createMutation = useCreateIncidentEventType();
   const updateMutation = useUpdateIncidentEventType();
   const deleteMutation = useDeleteIncidentEventType();
+  const canCreate = useSelector(selectCanCreateEventType);
+  const canUpdate = useSelector(selectCanUpdateEventType);
+  const canDelete = useSelector(selectCanDeleteEventType);
 
   const treeConfig: TreeConfig = {
     title: 'Типы инцидентов',
@@ -20,6 +25,9 @@ export const EventTypes = () => {
     editModalTitle: 'Редактировать тип инцидента',
     deleteModalTitle: 'Удалить тип инцидента',
     idField: 'event_type_id',
+    canCreate,
+    canUpdate,
+    canDelete,
     addFormConfig: {
       title: 'Добавить тип инцидента',
       fields: [

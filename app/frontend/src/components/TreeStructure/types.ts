@@ -52,6 +52,10 @@ export interface TreeConfig {
   idField: string;
   addFormConfig?: FormConfig;
   editFormConfig?: FormConfig;
+  /** Права: если не заданы, действия разрешены */
+  canCreate?: boolean;
+  canUpdate?: boolean;
+  canDelete?: boolean;
 }
 
 export interface TreeMutations {

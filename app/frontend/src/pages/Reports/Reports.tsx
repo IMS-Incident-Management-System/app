@@ -1,10 +1,12 @@
 import React from 'react';
 import { Card, Row, Col, Typography, Button } from 'antd';
 import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import { FileTextOutlined, RightOutlined, TableOutlined } from '@ant-design/icons';
 import { ERoutes } from '../../enums/routes';
 import styles from './Reports.module.scss';
 import { PageHeader } from '../../components/PageHeader';
+import { selectCanReportGenerate, selectCanReportTable, selectCan } from '../../store/features/permissions/selectors';
 
 const { Title, Paragraph } = Typography;
 
@@ -15,6 +17,8 @@ interface ReportItem {
   icon: React.ReactNode;
   route: string;
   color: string;
+  /** Показывать карточку только если есть хотя бы одно из прав */
+  permissionCheck?: (state: { canGenerate: boolean; canTable: boolean; canListNote: boolean }) => boolean;
 }
 
 const reportsData: ReportItem[] = [
@@ -24,7 +28,8 @@ const reportsData: ReportItem[] = [
     description: 'Создание и выгрузка отчетов по инцидентам, событиям и операционной деятельности с возможностью фильтрации по периодам и департаментам.',
     icon: <FileTextOutlined />,
     route: ERoutes.REPORTS + '/generator',
-    color: '#1890ff'
+    color: '#1890ff',
+    permissionCheck: (p) => p.canGenerate || p.canTable,
   },
   {
     id: 'explanatory-notes',
@@ -32,12 +37,21 @@ const reportsData: ReportItem[] = [
     description: 'Реестр пояснительной записки к отчету по форме 2-ДБ по Группе МТС с возможностью фильтрации по периодам.',
     icon: <TableOutlined />,
     route: ERoutes.EXPLANATORY_NOTES_LIST,
-    color: '#52c41a'
+    color: '#52c41a',
+    permissionCheck: (p) => p.canListNote,
   }
 ];
 
 export const Reports: React.FC = () => {
   const navigate = useNavigate();
+  const canGenerate = useSelector(selectCanReportGenerate);
+  const canTable = useSelector(selectCanReportTable);
+  const canListNote = useSelector(selectCan('explanatory_note', 'list'));
+  const permissionState = { canGenerate, canTable, canListNote };
+
+  const visibleReports = reportsData.filter(
+    (r) => !r.permissionCheck || r.permissionCheck(permissionState)
+  );
 
   const handleNavigate = (route: string) => {
     navigate(route);
@@ -55,7 +69,7 @@ export const Reports: React.FC = () => {
 
       <div className={styles.content}>
         <Row gutter={[24, 24]}>
-          {reportsData.map((report) => (
+          {visibleReports.map((report) => (
             <Col xs={24} sm={12} lg={8} key={report.id}>
               <Card
                 className={styles.reportCard}

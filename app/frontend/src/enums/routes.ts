@@ -13,6 +13,7 @@ export enum ERoutes {
   OPERATIONAL_ACTIVITY_VIEW_ID = "/operational-activities/view/:id",
   OPERATIONAL_ACTIVITIES_LIST = "/operational-activities",
   PROFILE = "/profile",
+  SETTINGS = "/settings",
   DEPARTMENTS = "/departments",
   INCIDENT_EVENTS = "/incident-events",
   OBJECT_TYPES = "/object-types",

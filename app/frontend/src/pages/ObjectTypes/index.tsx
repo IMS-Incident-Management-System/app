@@ -1,3 +1,4 @@
+import { useSelector } from 'react-redux';
 import TreeManager from '../../components/TreeStructure/TreeManager';
 import {
   TreeConfig,
@@ -7,11 +8,15 @@ import {
   useUpdateObjectType,
   useDeleteObjectType,
 } from "../../services/requests/objectTypes/mutations";
+import { selectCanCreateObjectType, selectCanUpdateObjectType, selectCanDeleteObjectType } from '../../store/features/permissions/selectors';
 
 export const ObjectTypes = () => {
   const createMutation = useCreateObjectType();
   const updateMutation = useUpdateObjectType();
   const deleteMutation = useDeleteObjectType();
+  const canCreate = useSelector(selectCanCreateObjectType);
+  const canUpdate = useSelector(selectCanUpdateObjectType);
+  const canDelete = useSelector(selectCanDeleteObjectType);
 
   const treeConfig: TreeConfig = {
     title: 'Типы объектов',
@@ -20,6 +25,9 @@ export const ObjectTypes = () => {
     editModalTitle: 'Редактировать тип объекта',
     deleteModalTitle: 'Удалить тип объекта',
     idField: 'object_type_id',
+    canCreate,
+    canUpdate,
+    canDelete,
     addFormConfig: {
       title: 'Добавить тип объекта',
       fields: [

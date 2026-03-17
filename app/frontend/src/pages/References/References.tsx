@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card, Row, Col, Typography, Space, Button } from 'antd';
 import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import { 
   PartitionOutlined, 
   TagsOutlined, 
@@ -10,6 +11,7 @@ import {
 import { ERoutes } from '../../enums/routes';
 import styles from './References.module.scss';
 import { PageHeader } from '../../components/PageHeader';
+import { selectCan } from '../../store/features/permissions/selectors';
 
 const { Title, Paragraph } = Typography;
 
@@ -20,6 +22,7 @@ interface ReferenceItem {
   icon: React.ReactNode;
   route: string;
   color: string;
+  entity: string;
 }
 
 const referencesData: ReferenceItem[] = [
@@ -29,7 +32,8 @@ const referencesData: ReferenceItem[] = [
     description: 'Организационная структура компании. Управление подразделениями и их иерархией.',
     icon: <PartitionOutlined />,
     route: ERoutes.DEPARTMENTS,
-    color: '#1890ff'
+    color: '#1890ff',
+    entity: 'department',
   },
   {
     id: 'event-types',
@@ -37,7 +41,8 @@ const referencesData: ReferenceItem[] = [
     description: 'Классификация событий и инцидентов безопасности. Настройка типов событий для системы.',
     icon: <TagsOutlined />,
     route: ERoutes.INCIDENT_EVENTS,
-    color: '#52c41a'
+    color: '#52c41a',
+    entity: 'event_type',
   },
   {
     id: 'object-types',
@@ -45,12 +50,22 @@ const referencesData: ReferenceItem[] = [
     description: 'Категоризация объектов защиты. Настройка классификации объектов информационной безопасности.',
     icon: <AppstoreOutlined />,
     route: ERoutes.OBJECT_TYPES,
-    color: '#fa8c16'
+    color: '#fa8c16',
+    entity: 'object_type',
   }
 ];
 
 export const References: React.FC = () => {
   const navigate = useNavigate();
+  const canDepartmentList = useSelector(selectCan('department', 'list'));
+  const canEventTypeList = useSelector(selectCan('event_type', 'list'));
+  const canObjectTypeList = useSelector(selectCan('object_type', 'list'));
+  const visibleReferences = referencesData.filter((ref) => {
+    if (ref.entity === 'department') return canDepartmentList;
+    if (ref.entity === 'event_type') return canEventTypeList;
+    if (ref.entity === 'object_type') return canObjectTypeList;
+    return true;
+  });
 
   const handleNavigate = (route: string) => {
     navigate(route);
@@ -68,7 +83,7 @@ export const References: React.FC = () => {
 
       <div className={styles.content}>
         <Row gutter={[24, 24]}>
-          {referencesData.map((reference) => (
+          {visibleReferences.map((reference) => (
             <Col xs={24} sm={12} lg={8} key={reference.id}>
               <Card
                 className={styles.referenceCard}
