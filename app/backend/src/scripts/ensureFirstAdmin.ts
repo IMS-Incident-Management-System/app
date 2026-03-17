@@ -12,6 +12,7 @@ export async function ensureFirstAdmin(): Promise<void> {
   if (!externalId) {
     return;
   }
+  console.log(`ensureFirstAdmin: FIRST_ADMIN_EXTERNAL_ID=${externalId}`);
 
   try {
     const adminRole = await Role.findOne({ where: { code: ADMIN_ROLE_CODE } });
@@ -26,6 +27,8 @@ export async function ensureFirstAdmin(): Promise<void> {
     });
     if (created) {
       console.log(`✅ Первый администратор назначен: external_id=${externalId}`);
+    } else {
+      console.log(`ensureFirstAdmin: пользователь external_id=${externalId} уже имеет роль administrator.`);
     }
   } catch (err) {
     console.error('ensureFirstAdmin error:', err);
