@@ -112,7 +112,7 @@ services:
     networks:
       - ims-base-network
     healthcheck:
-      test: ["CMD", "pg_isready", "-h", "localhost", "-p", "5432"]
+      test: ["CMD", "pg_isready", "-q"]
       interval: 3s
       timeout: 5s
       retries: 15
