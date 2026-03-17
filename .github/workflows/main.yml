@@ -31,11 +31,7 @@ jobs:
              mkdir -p ~/ims; \
              cd ~/ims; \
              export COMPOSE_PROJECT_NAME=ims; \
-             echo 'Stopping containers (volumes НЕ трогаем — иначе потеряются БД и загрузки)...'; \
-             docker compose down 2>/dev/null || true; \
-             echo 'Cleaning up old containers (не volumes!)...'; \
-             docker container prune -f; \
-             docker image prune -f; \
+             echo 'Deploy: не делаем docker compose down — postgres не пересоздаём, том с БД не трогаем. См. app/docs/DEPLOY_DATABASE_ANALYSIS.md'; \
              echo 'Starting deployment process...'; \
              echo '=== Step 1: Ensure .env exists (secrets — вручную на сервере) ==='; \
              if [ ! -f .env ]; then \

@@ -97,7 +97,7 @@ services:
       - ims-base-network
 
   ims-postgres:
-    image: postgres
+    image: postgres:17-alpine
     restart: unless-stopped
     container_name: ims-postgres
     environment:
@@ -106,9 +106,8 @@ services:
       - POSTGRES_USER=${BACKEND_POSTGRES_USER}
       - POSTGRES_HOST=${BACKEND_POSTGRES_HOST}
       - POSTGRES_PORT=${BACKEND_POSTGRES_PORT}
-      # - PGDATA=${BACKEND_POSTGRES_PGDATA}
     volumes:
-      - ims-db-data:/var/lib/postgresql
+      - ims-db-data:/var/lib/postgresql/data
     networks:
       - ims-base-network
 
@@ -128,6 +127,7 @@ services:
   #   depends_on:
   #     - ims-postgres
 
+# Тома: docker compose down (без -v) их НЕ удаляет. Никогда не запускать down -v на проде — иначе потеряются БД и загрузки.
 volumes:
   keycloak-db-data:
   # Фиксированное имя тома — данные БД не теряются при деплое из другого каталога или с другим project name
