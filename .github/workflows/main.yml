@@ -30,9 +30,10 @@ jobs:
             "set -e; \
              mkdir -p ~/ims; \
              cd ~/ims; \
-             echo 'Stopping all containers...'; \
+             export COMPOSE_PROJECT_NAME=ims; \
+             echo 'Stopping containers (volumes НЕ трогаем — иначе потеряются БД и загрузки)...'; \
              docker compose down 2>/dev/null || true; \
-             echo 'Cleaning up old containers...'; \
+             echo 'Cleaning up old containers (не volumes!)...'; \
              docker container prune -f; \
              docker image prune -f; \
              echo 'Starting deployment process...'; \
