@@ -112,11 +112,11 @@ services:
     networks:
       - ims-base-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      test: ["CMD", "pg_isready", "-h", "localhost", "-p", "5432"]
       interval: 3s
       timeout: 5s
-      retries: 10
-      start_period: 10s
+      retries: 15
+      start_period: 15s
 
   # ims-pgadmin:
   #   image: dpage/pgadmin4
