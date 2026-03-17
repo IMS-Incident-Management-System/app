@@ -130,7 +130,9 @@ services:
 
 volumes:
   keycloak-db-data:
+  # Фиксированное имя тома — данные БД не теряются при деплое из другого каталога или с другим project name
   ims-db-data:
+    name: ims_ims-db-data
   pgadmin-data:
   empty_volume:  # Пустой volume для production (когда не нужны dev volumes)
   node_modules_volume:  # Для development node_modules
