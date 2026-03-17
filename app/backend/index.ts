@@ -51,15 +51,21 @@ const createApp = () => {
   return app;
 };
 
-const testDbConnection = async () => {
-  try {
-    await sequelize.authenticate();
-    console.log('Database connection has been established successfully.');
-    return true;
-  } catch (error) {
-    console.error('Unable to connect to the database:', error);
-    return false;
+const testDbConnection = async (retries = 12, delayMs = 5000): Promise<boolean> => {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      await sequelize.authenticate();
+      console.log('Database connection has been established successfully.');
+      return true;
+    } catch (error) {
+      console.error(`Unable to connect to the database (attempt ${attempt}/${retries}):`, (error as Error).message);
+      if (attempt < retries) {
+        console.log(`Retrying in ${delayMs / 1000}s...`);
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+      }
+    }
   }
+  return false;
 };
 
 const startServer = async () => {
