@@ -54,7 +54,8 @@ services:
     ports:
       - 8091:8091
     depends_on:
-      - ims-postgres
+      ims-postgres:
+        condition: service_healthy
     networks:
       - ims-base-network
 
@@ -110,6 +111,12 @@ services:
       - ims-db-data:/var/lib/postgresql/data
     networks:
       - ims-base-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 3s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
 
   # ims-pgadmin:
   #   image: dpage/pgadmin4
