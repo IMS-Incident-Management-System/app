@@ -13,7 +13,8 @@ const ALLOWED_AUDIENCES: string[] = (process.env.KEYCLOAK_CLIENT_ID_FE || 'ims_c
   .map((s) => s.trim())
   .filter(Boolean);
 
-const jwksUri = `${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/certs`;
+// JWKS запрашиваем по URL issuer (публичный), чтобы совпадал hostname с сертификатом (ims-mts.ru, а не ims-keycloak)
+const jwksUri = `${KEYCLOAK_URL_ISSUER}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/certs`;
 
 const client = jwksClient({
   jwksUri,
@@ -57,7 +58,7 @@ export const verifyToken = (req: any, res: any, next: any) => {
         console.error('JWT verification error:', err.message);
         if (isKeycloakUnreachable(err)) {
           return res.status(503).json({
-            message: 'Keycloak недоступен. Запустите Keycloak и проверьте KEYCLOAK_URL (сейчас используется для JWKS: ' + jwksUri + ').',
+            message: 'Keycloak недоступен. Запустите Keycloak и проверьте KEYCLOAK_URL_ISSUER (сейчас используется для JWKS: ' + jwksUri + ').',
             error: err.message,
           });
         }
