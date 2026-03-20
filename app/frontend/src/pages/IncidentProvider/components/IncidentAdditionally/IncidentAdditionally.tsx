@@ -55,6 +55,13 @@ export const IncidentAdditionally = forwardRef<IncidentAdditionallyRef, Incident
       
       // Проходим по всем дополнениям в форме и пытаемся найти файлы в refs
       formAdditionally.forEach((add: any, index: number) => {
+        const pendingFilesForNewAddition = pendingFilesByIndex.current[index] || [];
+        if (pendingFilesForNewAddition.length > 0) {
+          filesByIndex.push({ index, files: pendingFilesForNewAddition });
+          console.log(`Added ${pendingFilesForNewAddition.length} pending files for new addition at index ${index}`);
+          return;
+        }
+
         // Пытаемся найти eventId для этого дополнения через старый incident
         if (incident?.additionally) {
           const oldAdditionally = incident.additionally.find((a: any) => a.id === add.id);
@@ -118,6 +125,7 @@ export const IncidentAdditionally = forwardRef<IncidentAdditionallyRef, Incident
             queryKey: ["incidentEventAttachments", newEventId],
             exact: true,
           });
+          delete pendingFilesByIndex.current[index];
         } catch (error: any) {
           console.error(`Error uploading files for addition at index ${index} (event ${newEventId}):`, error);
           // Не бросаем ошибку, чтобы другие файлы могли загрузиться
@@ -805,9 +813,12 @@ export const IncidentAdditionally = forwardRef<IncidentAdditionallyRef, Incident
                           // Если дополнение еще не сохранено (нет ID), показываем сообщение
                           if (!additionallyId || !incident?.id) {
                             return (
-                              <div style={{ padding: '16px', textAlign: 'center', color: '#999' }}>
-                                Сохраните дополнение, чтобы добавить вложения
-                              </div>
+                              <IncidentEventAttachments
+                                incidentEventId={0}
+                                onFilesChange={(files) => {
+                                  pendingFilesByIndex.current[index] = files;
+                                }}
+                              />
                             );
                           }
                           
@@ -829,6 +840,9 @@ export const IncidentAdditionally = forwardRef<IncidentAdditionallyRef, Incident
                               <IncidentEventAttachments 
                                 key={`attachments-${eventId}`}
                                 incidentEventId={eventId}
+                                onFilesChange={(files) => {
+                                  pendingFilesByIndex.current[index] = files;
+                                }}
                                 ref={(el) => {
                                   if (el) {
                                     eventAttachmentsRefs.current[eventId] = el;

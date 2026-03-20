@@ -126,6 +126,13 @@ export const IncidentEventAttachments = forwardRef<IncidentEventAttachmentsRef, 
     newFileList = newFileList.slice(0, MAX_FILES);
 
     setFileList(newFileList);
+
+    if (onFilesChange) {
+      const pending = newFileList
+        .filter((file) => !!file.originFileObj)
+        .map((file) => file.originFileObj as File);
+      onFilesChange(pending);
+    }
   };
 
   return (
@@ -149,9 +156,9 @@ export const IncidentEventAttachments = forwardRef<IncidentEventAttachmentsRef, 
             type="primary"
             onClick={handleUpload}
             loading={uploading}
-            disabled={uploading}
+            disabled={uploading || !incidentEventId}
           >
-            Загрузить файлы
+            {incidentEventId ? "Загрузить файлы" : "Файлы загрузятся после сохранения"}
           </Button>
         )}
 

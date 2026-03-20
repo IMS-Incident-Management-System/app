@@ -1,3 +1,4 @@
+import React from "react";
 import { Card, List, Button, message, Space, Typography, Image } from "antd";
 import { DeleteOutlined, DownloadOutlined, FileOutlined, EyeOutlined, FilePdfOutlined, FileImageOutlined, FileWordOutlined, FileExcelOutlined, FileTextOutlined } from "@ant-design/icons";
 import { IncidentAttachmentAttributes } from "../../../../interfaces/requests/incident";
@@ -7,7 +8,7 @@ import {
 } from "../../../../api/incidents/incidentAttachments";
 import { useParams } from "react-router-dom";
 import { useQueryClient, useQuery } from "react-query";
-import { axiosGatewayBackendUrl, axiosGatewayBackend } from "../../../../plugins/axios";
+import { axiosGatewayBackend } from "../../../../plugins/axios";
 import styles from "./IncidentAttachmentsView.module.scss";
 
 const { Text } = Typography;
@@ -17,6 +18,47 @@ interface IncidentAttachmentsViewProps {
   onDelete?: (id: number) => void;
   showDelete?: boolean;
 }
+
+const AttachmentPreviewImage = ({ incidentId, attachmentId, filename }: { incidentId: number; attachmentId: number; filename: string }) => {
+  const [src, setSrc] = React.useState<string>("");
+
+  React.useEffect(() => {
+    let objectUrl = "";
+    let isCancelled = false;
+
+    const loadPreview = async () => {
+      try {
+        const response = await axiosGatewayBackend.get(
+          `/incidents/${incidentId}/attachments/${attachmentId}/download`,
+          { responseType: "blob" }
+        );
+
+        const blob: Blob = response instanceof Blob ? response : response.data;
+        objectUrl = URL.createObjectURL(blob);
+        if (!isCancelled) {
+          setSrc(objectUrl);
+        }
+      } catch {
+        if (!isCancelled) {
+          setSrc("");
+        }
+      }
+    };
+
+    loadPreview();
+
+    return () => {
+      isCancelled = true;
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
+  }, [incidentId, attachmentId]);
+
+  if (!src) return null;
+
+  return <Image src={src} alt={filename} preview={false} style={{ width: "100%", height: 200, objectFit: "cover" }} />;
+};
 
 export const IncidentAttachmentsView = ({ 
   attachments: attachmentsProp, 
@@ -139,12 +181,13 @@ export const IncidentAttachmentsView = ({
                 cover={
                   isImage(attachment.mime_type) ? (
                     <div className={styles.imagePreview}>
-                      <Image
-                        src={`${axiosGatewayBackendUrl}/incidents/${id}/attachments/${attachment.id}/download`}
-                        alt={attachment.filename}
-                        preview={false}
-                        style={{ width: "100%", height: 200, objectFit: "cover" }}
-                      />
+                      {id ? (
+                        <AttachmentPreviewImage
+                          incidentId={Number(id)}
+                          attachmentId={attachment.id}
+                          filename={attachment.filename}
+                        />
+                      ) : null}
                     </div>
                   ) : null
                 }
