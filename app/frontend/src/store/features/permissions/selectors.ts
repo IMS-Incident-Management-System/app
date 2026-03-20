@@ -75,6 +75,10 @@ export const selectCanUpdateObject = (state: RootState) =>
 export const selectCanDeleteObject = (state: RootState) =>
   Boolean(state.permissions.byEntity.object?.delete);
 
+// Справочники
+export const selectCanReferencesList = (state: RootState) =>
+  Boolean(state.permissions.byEntity.references?.list);
+
 // Отчёты
 export const selectCanReportGenerate = (state: RootState) =>
   Boolean(state.permissions.byEntity.report?.generate);

@@ -11,7 +11,7 @@ import {
 import { ERoutes } from '../../enums/routes';
 import styles from './References.module.scss';
 import { PageHeader } from '../../components/PageHeader';
-import { selectCan } from '../../store/features/permissions/selectors';
+import { selectCan, selectCanReferencesList } from '../../store/features/permissions/selectors';
 
 const { Title, Paragraph } = Typography;
 
@@ -57,6 +57,7 @@ const referencesData: ReferenceItem[] = [
 
 export const References: React.FC = () => {
   const navigate = useNavigate();
+  const canReferencesList = useSelector(selectCanReferencesList);
   const canDepartmentList = useSelector(selectCan('department', 'list'));
   const canEventTypeList = useSelector(selectCan('event_type', 'list'));
   const canObjectTypeList = useSelector(selectCan('object_type', 'list'));
@@ -70,6 +71,17 @@ export const References: React.FC = () => {
   const handleNavigate = (route: string) => {
     navigate(route);
   };
+
+  if (!canReferencesList) {
+    return (
+      <div className={styles.container}>
+        <PageHeader title="Справочники" />
+        <Card>
+          <Typography.Text type="secondary">Нет доступа к разделу.</Typography.Text>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.container}>

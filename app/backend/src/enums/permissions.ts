@@ -60,6 +60,9 @@ export const Permission = {
   OBJECT_UPDATE: 'object.update',
   OBJECT_DELETE: 'object.delete',
 
+  // Справочники (вход в раздел)
+  REFERENCES_LIST: 'references.list',
+
   // Отчёты
   REPORT_GENERATE: 'report.generate',
   REPORT_TABLE: 'report.table',
@@ -168,6 +171,10 @@ export const PERMISSION_GROUPS: Record<string, { label: string; permissions: Per
       Permission.OBJECT_UPDATE,
       Permission.OBJECT_DELETE,
     ],
+  },
+  references: {
+    label: 'Справочники',
+    permissions: [Permission.REFERENCES_LIST],
   },
   report: {
     label: 'Отчёты',

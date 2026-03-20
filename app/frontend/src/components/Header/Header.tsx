@@ -6,7 +6,7 @@ import { useSelector } from "react-redux";
 import Icon from "@ant-design/icons/lib/components/Icon";
 import Logo from "../../assets/svg/logo.svg";
 import { selectUserSelector } from "../../store/features/user/selectors";
-import { selectCan, selectCanReportGenerate, selectCanReportTable } from "../../store/features/permissions/selectors";
+import { selectCan, selectCanReferencesList, selectCanReportGenerate, selectCanReportTable } from "../../store/features/permissions/selectors";
 import { ERoutes } from "../../enums/routes";
 import styles from "./Header.module.scss";
 import { NotificationOutlined, BookOutlined, CalendarOutlined, HomeOutlined, FileTextOutlined, BarChartOutlined } from "@ant-design/icons";
@@ -18,9 +18,7 @@ export const Header = () => {
   const canEventList = useSelector(selectCan("event", "list"));
   const canReportGenerate = useSelector(selectCanReportGenerate);
   const canReportTable = useSelector(selectCanReportTable);
-  const canDeptList = useSelector(selectCan("department", "list"));
-  const canEventTypeList = useSelector(selectCan("event_type", "list"));
-  const canObjectTypeList = useSelector(selectCan("object_type", "list"));
+  const canReferencesList = useSelector(selectCanReferencesList);
 
   const menuItems = useMemo(() => {
     const items: MenuProps["items"] = [
@@ -38,11 +36,11 @@ export const Header = () => {
     if (canReportGenerate || canReportTable) {
       items.push({ label: "Отчетность", key: ERoutes.REPORTS, icon: <BarChartOutlined /> });
     }
-    if (canDeptList || canEventTypeList || canObjectTypeList) {
+    if (canReferencesList) {
       items.push({ label: "Справочники", key: ERoutes.REFERENCES, icon: <BookOutlined /> });
     }
     return items;
-  }, [canIncidentList, canOAList, canEventList, canReportGenerate, canReportTable, canDeptList, canEventTypeList, canObjectTypeList]);
+  }, [canIncidentList, canOAList, canEventList, canReportGenerate, canReportTable, canReferencesList]);
 
   const location = useLocation();
   const navigate = useNavigate();
