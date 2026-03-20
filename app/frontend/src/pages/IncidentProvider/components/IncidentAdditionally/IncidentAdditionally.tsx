@@ -29,6 +29,7 @@ export const IncidentAdditionally = forwardRef<IncidentAdditionallyRef, Incident
   const [expandedItems, setExpandedItems] = useState<Record<number, boolean>>({});
   const form = Form.useFormInstance();
   const eventAttachmentsRefs = useRef<Record<number, IncidentEventAttachmentsRef>>({});
+  const canEditAdditionallyFields = canCreate || canUpdate;
   // Сохраняем файлы по индексу дополнения для загрузки после обновления
   const pendingFilesByIndex = useRef<Record<number, File[]>>({});
 
@@ -203,7 +204,7 @@ export const IncidentAdditionally = forwardRef<IncidentAdditionallyRef, Incident
                             </div>
                           ),
                           children: (
-                            <fieldset disabled={!canUpdate} style={{ border: 'none', margin: 0, padding: 0 }}>
+                            <fieldset disabled={!canEditAdditionallyFields} style={{ border: 'none', margin: 0, padding: 0 }}>
                             <div className={styles.additionallyContent}>
 
                     {/* Основные данные дополнения */}

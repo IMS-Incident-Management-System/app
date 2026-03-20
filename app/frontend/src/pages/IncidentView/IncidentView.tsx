@@ -2,7 +2,7 @@ import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { Card, Typography, Spin, Space, Divider, Row, Col, Tag, Descriptions } from "antd";
-import { ArrowLeftOutlined, EditOutlined } from "@ant-design/icons";
+import { ArrowLeftOutlined, EditOutlined, FileTextOutlined } from "@ant-design/icons";
 import { useGetIncident } from "../../services/requests/initiators/getIncident";
 import { ERoutes } from "../../enums/routes";
 import { EIncidentDirection } from "../../enums/incident";
@@ -29,6 +29,10 @@ export const IncidentView = () => {
 
   const handleEdit = () => {
     navigate(`${ERoutes.INCIDENT_CREATE}/${id}`);
+  };
+
+  const handleOpenAdditionally = () => {
+    navigate(`${ERoutes.INCIDENT_CREATE}/${id}`, { state: { activeTab: "additions" } });
   };
 
   const getDirectionText = (direction: string) => {
@@ -86,14 +90,25 @@ export const IncidentView = () => {
             <Title level={2} className={styles.title}>
               Инцидент {incident.code || `#${incident.id}`}
             </Title>
-            {canUpdateIncident && (
-              <PrimaryButton
-                icon={<EditOutlined />}
-                onClick={handleEdit}
-              >
-                Редактировать
-              </PrimaryButton>
-            )}
+            <Space>
+              {canReadAdditionally && (
+                <PrimaryButton
+                  variant="secondary"
+                  icon={<FileTextOutlined />}
+                  onClick={handleOpenAdditionally}
+                >
+                  Дополнения
+                </PrimaryButton>
+              )}
+              {canUpdateIncident && (
+                <PrimaryButton
+                  icon={<EditOutlined />}
+                  onClick={handleEdit}
+                >
+                  Редактировать
+                </PrimaryButton>
+              )}
+            </Space>
           </div>
         </div>
 
