@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useSelector } from "react-redux";
 import {
@@ -31,6 +31,7 @@ const { Title } = Typography;
 export const IncidentProvider = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState("main");
   const attachmentsRef = useRef<IncidentAttachmentsRef>(null);
   const additionallyRef = useRef<IncidentAdditionallyRef>(null);
@@ -40,6 +41,7 @@ export const IncidentProvider = () => {
   const canCreateAdditionally = useSelector(selectCanCreateAdditionally);
   const canUpdateAdditionally = useSelector(selectCanUpdateAdditionally);
   const canDeleteAdditionally = useSelector(selectCanDeleteAdditionally);
+  const canSaveAdditionally = canCreateAdditionally || canUpdateAdditionally || canDeleteAdditionally;
 
   const { data: incident, isLoading: isIncidentLoading } = useGetIncident(id);
   const createIncidentMutation = useCreateIncident();
@@ -159,6 +161,13 @@ export const IncidentProvider = () => {
     }
   };
 
+  useEffect(() => {
+    if (!id) return;
+    if (location.state && (location.state as { activeTab?: string }).activeTab === "additions") {
+      setActiveTab("additions");
+    }
+  }, [id, location.state]);
+
   const tabItems = [
     {
       key: "main",
@@ -213,7 +222,7 @@ export const IncidentProvider = () => {
                 size="large"
                 onClick={handleSubmit}
                 loading={createIncidentMutation.isLoading || updateIncidentMutation.isLoading}
-                disabled={!canUpdateIncident}
+                disabled={!canSaveAdditionally}
               >
                 Сохранить
               </PrimaryButton>

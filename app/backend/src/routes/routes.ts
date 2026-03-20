@@ -72,7 +72,15 @@ router
 router
   .route('/incidents/:id')
   .get(requirePermission([Permission.INCIDENT_READ]), getIncident)
-  .put(requirePermission([Permission.INCIDENT_UPDATE]), updateIncident)
+  .put(
+    requirePermission([
+      Permission.INCIDENT_UPDATE,
+      Permission.ADDITIONALLY_CREATE,
+      Permission.ADDITIONALLY_UPDATE,
+      Permission.ADDITIONALLY_DELETE,
+    ]),
+    updateIncident
+  )
   .delete(requirePermission([Permission.INCIDENT_DELETE]), deleteIncident);
 
 // Incident attachments
