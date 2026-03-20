@@ -7,14 +7,18 @@ dotenv.config();
 const KEYCLOAK_URL = process.env.KEYCLOAK_URL;
 const KEYCLOAK_URL_ISSUER = process.env.KEYCLOAK_URL_ISSUER;
 const KEYCLOAK_REALM = process.env.KEYCLOAK_REALM;
+const NODE_ENV = process.env.NODE_ENV;
 // Допустимые audience через запятую (Keycloak может отдавать aud: "ims_client" или "account" и т.д.)
 const ALLOWED_AUDIENCES: string[] = (process.env.KEYCLOAK_CLIENT_ID_FE || 'ims_client')
   .split(',')
   .map((s) => s.trim())
   .filter(Boolean);
 
-// JWKS запрашиваем по URL issuer (публичный), чтобы совпадал hostname с сертификатом (ims-mts.ru, а не ims-keycloak)
-const jwksUri = `${KEYCLOAK_URL_ISSUER}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/certs`;
+// В development используем внутренний URL (docker service), в остальных окружениях — публичный issuer URL.
+// Это сохраняет безопасное прод-поведение и исправляет локальную разработку в контейнерах.
+const jwksBaseUrl =
+  NODE_ENV === 'development' ? (KEYCLOAK_URL || KEYCLOAK_URL_ISSUER) : KEYCLOAK_URL_ISSUER;
+const jwksUri = `${jwksBaseUrl}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/certs`;
 
 const client = jwksClient({
   jwksUri,
@@ -58,7 +62,7 @@ export const verifyToken = (req: any, res: any, next: any) => {
         console.error('JWT verification error:', err.message);
         if (isKeycloakUnreachable(err)) {
           return res.status(503).json({
-            message: 'Keycloak недоступен. Запустите Keycloak и проверьте KEYCLOAK_URL_ISSUER (сейчас используется для JWKS: ' + jwksUri + ').',
+            message: 'Keycloak недоступен. Проверьте KEYCLOAK_URL/KEYCLOAK_URL_ISSUER (сейчас используется для JWKS: ' + jwksUri + ').',
             error: err.message,
           });
         }
