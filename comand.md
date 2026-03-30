@@ -299,3 +299,10 @@ cd /app
 sudo docker run --rm -v "$(pwd)/frontend:/work" -w /work -e npm_config_registry=https://nexus-cache.services.mts.ru/repository/npm-all/ node:18-alpine sh -lc "npm config set strict-ssl false && npm install --no-audit --no-fund && npm run build"
 sudo docker-compose restart ims-nginx
 Если хочешь оставить внешний путь именно /auth, тоже можно, но тогда отдельно подправим nginx/keycloak на явный relative-path. Сейчас самый быстрый путь — убрать /auth из фронта и проверить вход.
+
+
+++++++
+
+cd /app
+sudo docker run --rm -v "$(pwd)/frontend:/work" -w /work -e npm_config_registry=https://nexus-cache.services.mts.ru/repository/npm-all/ node:18-alpine sh -lc "npm config set strict-ssl false && npm install --no-audit --no-fund && npm run build"
+sudo docker-compose restart ims-nginx
