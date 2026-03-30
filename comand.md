@@ -254,3 +254,37 @@ cd /app
 sudo docker-compose up -d --force-recreate ims-keycloak ims-nginx ims-backend
 sudo docker-compose ps
 Если хочешь, пойдем по варианту A (быстрее) — и я дам точный минимальный diff по твоим текущим файлам.
+
+
+=================================================================
+
+
+Что делаем сейчас
+1) Больше не использовать --force-recreate
+Не запускай:
+docker-compose up -d --force-recreate ...
+Используй только:
+docker-compose up -d
+docker restart <container>
+2) Проверить, что контейнеры живы
+sudo docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+3) Причина 502 на /auth
+У тебя в nginx сейчас:
+proxy_pass http://ims-keycloak:8080/;
+А Keycloak в проде у тебя обычно с HTTPS (KC_COMMAND start --https...), значит upstream должен быть по https:8443.
+В app/nginx/production/nginx.conf в location /auth/ поставь:
+proxy_pass https://ims-keycloak:8443/;
+proxy_ssl_server_name on;
+proxy_ssl_verify off;
+(остальные proxy_set_header оставь как есть)
+4) Применить без compose recreate
+sudo docker restart ims-nginx
+sudo docker logs --tail 80 ims-nginx
+5) Проверка
+Открой:
+https://0000pamkiiavdb.msk.mts.ru/auth/
+https://0000pamkiiavdb.msk.mts.ru/auth/realms/ims/.well-known/openid-configuration
+Если после этого 502 останется — пришли только 2 вывода:
+sudo docker logs --tail 120 ims-nginx
+sudo docker logs --tail 120 ims-keycloak
+И добьем точечно, но уже без ломания всего стека.
