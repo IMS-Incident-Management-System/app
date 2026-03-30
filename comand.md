@@ -166,3 +166,16 @@ sudo docker-compose restart ims-nginx
 sudo docker-compose logs --tail 80 ims-nginx
 sudo docker exec ims-nginx ls -la /usr/share/nginx/html
 Тогда добьём за 1 шаг.
+
+
+=======================================
+
+Сделай ровно так, одной командой (без переносов):
+sudo docker run --rm -v /app/frontend:/work -w /work -e npm_config_registry=https://nexus-cache.services.mts.ru/repository/npm-all/ node:18-alpine sh -lc "npm config set strict-ssl false && npm install --no-audit --no-fund && npm run build"
+Потом:
+ls -la /app/frontend/dist
+cd /app
+sudo docker-compose restart ims-nginx
+Если снова не откроется:
+sudo docker-compose logs --tail 80 ims-nginx
+Ты уже в финишной точке, тут чисто техническая опечатка команды была.
