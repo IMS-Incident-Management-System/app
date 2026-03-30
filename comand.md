@@ -221,3 +221,36 @@ sudo docker inspect ims-keycloak --format '{{json .NetworkSettings.Networks}}'
 sudo docker inspect ims-keycloak-db --format '{{json .NetworkSettings.Networks}}'
 Там сразу видно, в одной ли они сети.
 Когда ims-keycloak станет Up, ошибка 502 на /auth должна уйти.
+
+
+++++++++++++++++++++++++++++++++++++++++++++++++
+
+Сделай проверку (2 команды)
+cd /app
+sudo docker exec ims-nginx sh -lc "apk add --no-cache curl >/dev/null 2>&1 || true; curl -vk http://ims-keycloak:8080/realms/master; echo '---'; curl -vk https://ims-keycloak:8443/realms/master"
+sudo docker-compose logs --tail 80 ims-keycloak
+Дальше выбери один режим и сделай его консистентным
+Вариант A (быстро и стабильно): Keycloak по HTTP внутри сети
+В /app/.env:
+KC_COMMAND=start-dev
+KC_PORT_MAPPING=8087:8080
+BACKEND_KEYCLOAK_URL=http://ims-keycloak:8080
+В nginx:
+location /auth/ {
+  proxy_pass http://ims-keycloak:8080/;
+}
+Вариант B (строго prod TLS): Keycloak по HTTPS внутри
+В /app/.env:
+KC_COMMAND="start --https-certificate-file=/etc/letsencrypt/live/0000PAMKIIAVDB.msk.mts.ru/fullchain.pem --https-certificate-key-file=/etc/letsencrypt/live/0000PAMKIIAVDB.msk.mts.ru/privkey.pem"
+KC_PORT_MAPPING=8087:8443
+BACKEND_KEYCLOAK_URL=https://ims-keycloak:8443
+В nginx:
+location /auth/ {
+  proxy_pass https://ims-keycloak:8443/;
+  proxy_ssl_verify off;
+}
+После правок
+cd /app
+sudo docker-compose up -d --force-recreate ims-keycloak ims-nginx ims-backend
+sudo docker-compose ps
+Если хочешь, пойдем по варианту A (быстрее) — и я дам точный минимальный diff по твоим текущим файлам.
