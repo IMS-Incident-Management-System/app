@@ -116,3 +116,29 @@ sudo docker-compose build --no-cache ims-backend
 sudo docker-compose up -d ims-backend ims-nginx
 sudo docker-compose ps
 И отдельно для nginx у тебя тоже остался старый домен в app/nginx/production/nginx.conf — его тоже нужно заменить на 0000PAMKIIAVDB.msk.mts.ru, иначе следующий падёж будет там.
+
+
+
+=====================================================================================
+
+Сейчас у тебя опять тот же баг docker-compose v1 (KeyError: 'ContainerConfig'), но уже для ims-backend при Recreating ....
+Бэкенд уже собран успешно — ломается только стадия пересоздания контейнера.
+Сделай так (точечно для backend)
+cd /app
+# 1) Найти все контейнеры backend (включая с хеш-префиксом)
+sudo docker ps -a --format '{{.ID}} {{.Names}}' | grep -E '_ims-backend|ims-backend' || true
+# 2) Удалить их
+sudo docker ps -a --format '{{.ID}} {{.Names}}' | grep -E '_ims-backend|ims-backend' | awk '{print $1}' | xargs -r sudo docker rm -f
+# 3) Поднять только backend заново
+sudo docker-compose up -d --no-deps --force-recreate ims-backend
+# 4) Проверка
+sudo docker-compose ps
+sudo docker-compose logs --tail 80 ims-backend
+Если снова ContainerConfig
+Тогда делай полный цикл (без удаления volume):
+cd /app
+sudo docker-compose down
+sudo docker-compose up -d
+sudo docker-compose ps
+down без -v данные БД не удаляет.
+Если даже после down/up это повторится — дальше уже лучше перейти на docker compose v2 (плагин), у v1.29.2 это частый баг на новых Docker Engine.
