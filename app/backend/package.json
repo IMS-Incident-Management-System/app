@@ -5,7 +5,7 @@
   "scripts": {
     "start": "node dist/index.js",
     "prebuild": "echo 'Preparing build...'",
-    "build": "rm -rf dist && tsc -p .",
+    "build": "rm -rf dist && node ./node_modules/typescript/bin/tsc -p .",
     "dev": "nodemon",
     "migrate:up": "ts-node src/scripts/migrate.ts up",
     "migrate:up:prod": "node dist/scripts/migrate.js up",

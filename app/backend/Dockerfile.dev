@@ -3,11 +3,14 @@ FROM node:18-alpine
 # Устанавливаем рабочую директорию
 WORKDIR /app
 
+ARG NPM_REGISTRY
+RUN if [ -n "$NPM_REGISTRY" ]; then npm config set registry "$NPM_REGISTRY"; fi
+
 # Копируем package.json и package-lock.json из backend директории
 COPY ./backend/package*.json ./
 
 # Устанавливаем все зависимости (включая dev)
-RUN npm install
+RUN npm install --no-audit --no-fund
 
 # Копируем исходный код (будет перезаписан volume в docker-compose)
 COPY ./backend .

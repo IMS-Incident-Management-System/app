@@ -30,6 +30,8 @@ services:
     build:
       context: .
       dockerfile: backend/${BACKEND_DEV_DOCKERFILE:-Dockerfile}
+      args:
+        NPM_REGISTRY: ${NPM_REGISTRY:-}
     restart: unless-stopped
     container_name: ims-backend
     environment:
