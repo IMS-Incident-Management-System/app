@@ -87,3 +87,32 @@ sudo docker-compose up -d --no-deps --force-recreate ims-nginx
 sudo docker-compose ps
 sudo docker-compose logs --tail 80 ims-nginx
 Если снова будет ContainerConfig, тогда уже делаем docker-compose down и up -d целиком (без -v).
+
+
+
+
+
+Нашли корень проблемы: у тебя в бэкенде домен зашит в коде, не в .env.
+По логу он ищет:
+/app/certs/live/ims-mts.ru/privkey.pem
+Это берётся из app/backend/index.ts, там хардкод на ims-mts.ru.
+Что поменять
+В файле app/backend/index.ts замени:
+origin: ['https://ims-mts.ru', 'https://www.ims-mts.ru']
+/app/certs/live/ims-mts.ru/privkey.pem
+/app/certs/live/ims-mts.ru/fullchain.pem
+https://ims-mts.ru:${PORT}/api/v1
+на домен:
+0000PAMKIIAVDB.msk.mts.ru
+Быстро через команды на сервере
+cd /app
+sed -i 's#https://ims-mts.ru#https://0000PAMKIIAVDB.msk.mts.ru#g' backend/index.ts
+sed -i 's#https://www.ims-mts.ru#https://0000PAMKIIAVDB.msk.mts.ru#g' backend/index.ts
+sed -i 's#/app/certs/live/ims-mts.ru/#/app/certs/live/0000PAMKIIAVDB.msk.mts.ru/#g' backend/index.ts
+# проверить
+grep -n "ims-mts.ru\\|0000PAMKIIAVDB.msk.mts.ru\\|/app/certs/live" backend/index.ts
+Потом пересобрать и поднять:
+sudo docker-compose build --no-cache ims-backend
+sudo docker-compose up -d ims-backend ims-nginx
+sudo docker-compose ps
+И отдельно для nginx у тебя тоже остался старый домен в app/nginx/production/nginx.conf — его тоже нужно заменить на 0000PAMKIIAVDB.msk.mts.ru, иначе следующий падёж будет там.
