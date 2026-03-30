@@ -142,3 +142,27 @@ sudo docker-compose up -d
 sudo docker-compose ps
 down без -v данные БД не удаляет.
 Если даже после down/up это повторится — дальше уже лучше перейти на docker compose v2 (плагин), у v1.29.2 это частый баг на новых Docker Engine.
+
+
+++++++++++++++++++++++++++++++
+
+
+Собрать frontend/dist без установки npm на сервер
+cd /app
+# 1) сборка фронта в одноразовом контейнере
+sudo docker run --rm \
+  -v /app/frontend:/work \
+  -w /work \
+  -e npm_config_registry=https://nexus-cache.services.mts.ru/repository/npm-all/ \
+  node:18-alpine \
+  sh -c "npm config set strict-ssl false && npm install --no-audit --no-fund && npm run build"
+Проверить, что dist появился
+ls -la /app/frontend/dist
+Перезапустить nginx
+cd /app
+sudo docker-compose restart ims-nginx
+Потом открой сайт снова.
+Если всё ещё 403, сразу дай:
+sudo docker-compose logs --tail 80 ims-nginx
+sudo docker exec ims-nginx ls -la /usr/share/nginx/html
+Тогда добьём за 1 шаг.
