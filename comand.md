@@ -306,3 +306,21 @@ sudo docker-compose restart ims-nginx
 cd /app
 sudo docker run --rm -v "$(pwd)/frontend:/work" -w /work -e npm_config_registry=https://nexus-cache.services.mts.ru/repository/npm-all/ node:18-alpine sh -lc "npm config set strict-ssl false && npm install --no-audit --no-fund && npm run build"
 sudo docker-compose restart ims-nginx
+
+
+++++++++++++++++++++++++++++++++++++++++++++++++
+
+2) Почему не собирается фронт
+Ошибка ENOENT /work/package.json = контейнеру примонтировали не ту папку.
+Сделай железно через общий mount /app:
+cd /app
+ls -la frontend/package.json
+sudo docker run --rm \
+  -v /app:/src \
+  -w /src/frontend \
+  -e npm_config_registry=https://nexus-cache.services.mts.ru/repository/npm-all/ \
+  node:18-alpine \
+  sh -lc "npm config set strict-ssl false && npm install --no-audit --no-fund && npm run build"
+Проверка:
+ls -la /app/frontend/dist
+sudo docker-compose restart ims-nginx
