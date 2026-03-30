@@ -179,3 +179,21 @@ sudo docker-compose restart ims-nginx
 Если снова не откроется:
 sudo docker-compose logs --tail 80 ims-nginx
 Ты уже в финишной точке, тут чисто техническая опечатка команды была.
+
+
+
+++++++++++++++++++++++++++++++++++++++++
+
+Всё ок, причина понятна: контейнеру снова не примонтировалась папка с фронтом, поэтому в /work нет package.json.
+Сделай максимально надёжно — от текущей директории:
+cd /app
+ls -la frontend/package.json
+sudo docker run --rm -v "$(pwd)/frontend:/work" -w /work -e npm_config_registry=https://nexus-cache.services.mts.ru/repository/npm-all/ node:18-alpine sh -lc "npm config set strict-ssl false && npm install --no-audit --no-fund && npm run build"
+Если первая команда (ls -la frontend/package.json) скажет “No such file”, значит проект лежит не в /app, а в ~/app. Тогда:
+cd ~/app
+ls -la frontend/package.json
+sudo docker run --rm -v "$(pwd)/frontend:/work" -w /work -e npm_config_registry=https://nexus-cache.services.mts.ru/repository/npm-all/ node:18-alpine sh -lc "npm config set strict-ssl false && npm install --no-audit --no-fund && npm run build"
+После успешной сборки:
+ls -la /app/frontend/dist || ls -la ~/app/frontend/dist
+cd /app && sudo docker-compose restart ims-nginx
+Ключевой момент: используй $(pwd)/frontend, чтобы не промахнуться с абсолютным путём.
