@@ -197,3 +197,27 @@ sudo docker run --rm -v "$(pwd)/frontend:/work" -w /work -e npm_config_registry=
 ls -la /app/frontend/dist || ls -la ~/app/frontend/dist
 cd /app && sudo docker-compose restart ims-nginx
 Ключевой момент: используй $(pwd)/frontend, чтобы не промахнуться с абсолютным путём.
+=============================================
+
+Сделай так по шагам
+cd /app
+# 1) Пересоздать только связку keycloak + его БД
+sudo docker-compose stop ims-keycloak ims-keycloak-db
+sudo docker-compose rm -f ims-keycloak ims-keycloak-db
+sudo docker-compose up -d ims-keycloak-db
+sleep 5
+sudo docker-compose up -d ims-keycloak
+Проверка:
+sudo docker-compose ps
+sudo docker-compose logs --tail 120 ims-keycloak-db
+sudo docker-compose logs --tail 120 ims-keycloak
+Быстрая проверка DNS внутри контейнера Keycloak
+sudo docker exec -it ims-keycloak getent hosts ims-keycloak-db
+если вернул IP — DNS ок,
+если пусто — контейнеры не в одной сети/сервис не поднят.
+Если снова UnknownHostException
+Тогда пришли вывод двух команд:
+sudo docker inspect ims-keycloak --format '{{json .NetworkSettings.Networks}}'
+sudo docker inspect ims-keycloak-db --format '{{json .NetworkSettings.Networks}}'
+Там сразу видно, в одной ли они сети.
+Когда ims-keycloak станет Up, ошибка 502 на /auth должна уйти.
