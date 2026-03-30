@@ -47,3 +47,23 @@ sudo docker-compose logs --tail 100 ims-nginx
 sudo docker-compose logs --tail 100 ims-keycloak
 sudo docker-compose logs --tail 100 ims-backend
 Если хочешь, после того как зальёшь файлы в /home/aygarshin/certs-in, просто пришли ls -la /home/aygarshin/certs-in, и я дам next-step ровно под твои имена/пути без лишних движений.
+
+
+++++++++++++++++++++++++++++++++++++++++++++++
+
+Сделай так (точечно)
+cd /app
+# 1) Найти "призрачный" контейнер
+sudo docker ps -a --format '{{.ID}} {{.Names}}' | rg "_ims-nginx|ims-nginx"
+# 2) Удалить найденные контейнеры (все, что относятся к nginx)
+sudo docker rm -f a4f6461f1469_ims-nginx 2>/dev/null || true
+sudo docker rm -f ims-nginx 2>/dev/null || true
+# 3) На всякий случай удалить образ nginx, чтобы чисто пересоздался
+sudo docker image rm -f nginx:alpine 2>/dev/null || true
+# 4) Поднять только nginx заново
+sudo docker-compose up -d --no-deps --force-recreate ims-nginx
+Потом проверка:
+sudo docker-compose ps
+sudo docker-compose logs --tail 80 ims-nginx
+Если снова будет тот же ContainerConfig, это уже 99% ограничение docker-compose v1 с твоей версией Docker Engine. Тогда следующий шаг — перейти на docker compose v2 (плагин) и запускать через него.
+Но сначала попробуй команды выше: в таких кейсах часто хватает удаления контейнера с хэш-именем.
