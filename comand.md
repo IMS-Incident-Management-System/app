@@ -67,3 +67,23 @@ sudo docker-compose ps
 sudo docker-compose logs --tail 80 ims-nginx
 Если снова будет тот же ContainerConfig, это уже 99% ограничение docker-compose v1 с твоей версией Docker Engine. Тогда следующий шаг — перейти на docker compose v2 (плагин) и запускать через него.
 Но сначала попробуй команды выше: в таких кейсах часто хватает удаления контейнера с хэш-именем.
+
+
+==================================================
+
+
+У тебя на сервере нет rg, всё ок — просто без него.
+Выполни так:
+cd /app
+# показать все контейнеры с nginx в имени (без rg)
+sudo docker ps -a --format '{{.ID}} {{.Names}}' | grep -E '_ims-nginx|ims-nginx' || true
+# удалить все такие контейнеры одной командой
+sudo docker ps -a --format '{{.ID}} {{.Names}}' | grep -E '_ims-nginx|ims-nginx' | awk '{print $1}' | xargs -r sudo docker rm -f
+# удалить образ nginx
+sudo docker image rm -f nginx:alpine || true
+# поднять nginx заново
+sudo docker-compose up -d --no-deps --force-recreate ims-nginx
+# проверка
+sudo docker-compose ps
+sudo docker-compose logs --tail 80 ims-nginx
+Если снова будет ContainerConfig, тогда уже делаем docker-compose down и up -d целиком (без -v).
