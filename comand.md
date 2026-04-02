@@ -7,10 +7,18 @@ tail -n 80 /tmp/build.log
 
 
 
-sudo docker run --rm \
-  -v certs:/certs \
-  -v /home/aygarshin/certs-ready:/in \
-  alpine sh -c 'mkdir -p /certs/live/0000PAMKIIAVDB.msk.mts.ru && cp /in/fullchain.pem /certs/live/0000PAMKIIAVDB.msk.mts.ru/fullchain.pem && cp /in/privkey.pem /certs/live/0000PAMKIIAVDB.msk.mts.ru/privkey.pem && chmod 600 /certs/live/0000PAMKIIAVDB.msk.mts.ru/privkey.pem'
+docker volume create certs 2>/dev/null || true
+
+docker run --rm \
+  -v certs:/etc/letsencrypt \
+  -v /home/aygarshin/certs-ready:/from:ro \
+  alpine sh -c '
+    mkdir -p /etc/letsencrypt/live/0000pamkiiavdb.msk.mts.ru &&
+    cp /from/fullchain.pem /etc/letsencrypt/live/0000pamkiiavdb.msk.mts.ru/fullchain.pem &&
+    cp /from/privkey.pem   /etc/letsencrypt/live/0000pamkiiavdb.msk.mts.ru/privkey.pem &&
+    chmod 644 /etc/letsencrypt/live/0000pamkiiavdb.msk.mts.ru/fullchain.pem &&
+    chmod 600 /etc/letsencrypt/live/0000pamkiiavdb.msk.mts.ru/privkey.pem
+  '
 
 
   sudo docker run --rm -v certs:/certs alpine ls -la /certs/live/0000PAMKIIAVDB.msk.mts.ru
