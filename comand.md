@@ -342,8 +342,17 @@ sudo ls -la "$(docker volume inspect certs --format '{{ .Mountpoint }}')/live"
 
 Сделай так на сервере
 1) Подготовь файлы
+
+mkdir -p /home/aygarshin/certs-ready
+cp /path/to/dbbbmts_le_key.pem /home/aygarshin/certs-ready/privkey.pem
+cat /path/to/dbbbmts_le.pem /path/to/dbbbmts_le_chain.pem > /home/aygarshin/certs-ready/fullchain.pem
+
 > Важно: порядок именно cert + chain.
 2) Проверь, что ключ и сертификат пара
+
+openssl x509 -noout -modulus -in /home/aygarshin/certs-ready/fullchain.pem | openssl md5
+openssl rsa  -noout -modulus -in /home/aygarshin/certs-ready/privkey.pem | openssl md5
+
 Хэши должны совпасть.
 3) Проверь цепочку
 openssl verify -CAfile /path/to/dbbbmts_le_chain.pem /path/to/dbbbmts_le.pem
