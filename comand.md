@@ -425,3 +425,26 @@ sudo docker-compose logs --tail 120 ims-keycloak
 Если после этого в Keycloak останется Certificate chain is not valid, значит порядок в fullchain.pem не подходит. Тогда сделай альтернативно:
 cat /home/aygarshin/certs-in/dbbbmts_le_chain.pem /home/aygarshin/certs-in/dbbbmts_le.pem > /home/aygarshin/certs-ready/fullchain.pem
 и повтори шаги 2–4.
+
+
+===========================================================
+
+Сделай так по шагам:
+# 1) Собираем fullchain правильно (серверный cert первым)
+cat /home/aygarshin/certs-in/dbbbmts_le.pem /home/aygarshin/certs-in/dbbbmts_le_chain.pem > /home/aygarshin/certs-ready/fullchain.pem
+# 2) Проверяем, что ключ подходит к cert (modulus должен совпасть)
+openssl x509 -noout -modulus -in /home/aygarshin/certs-ready/fullchain.pem | openssl md5
+openssl rsa  -noout -modulus -in /home/aygarshin/certs-ready/privkey.pem   | openssl md5
+Если хэши разные — ключ не от этого сертификата.
+# 3) Копируем в docker volume certs
+sudo docker run --rm -v certs:/certs -v /home/aygarshin/certs-ready:/in alpine sh -c \
+'mkdir -p /certs/live/0000PAMKIIAVDB.msk.mts.ru && \
+ cp /in/fullchain.pem /certs/live/0000PAMKIIAVDB.msk.mts.ru/fullchain.pem && \
+ cp /in/privkey.pem   /certs/live/0000PAMKIIAVDB.msk.mts.ru/privkey.pem && \
+ chmod 600 /certs/live/0000PAMKIIAVDB.msk.mts.ru/privkey.pem'
+# 4) Перезапускать только из папки с docker-compose.yaml
+cd /app
+sudo docker-compose restart ims-keycloak ims-nginx
+sudo docker-compose logs --tail 120 ims-keycloak
+Ещё один важный момент из твоего скрина: часть команд ты запускал не из /app, поэтому получал Can't find a suitable configuration file.
+Для docker-compose ... всегда сначала cd /app
