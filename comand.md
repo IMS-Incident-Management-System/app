@@ -448,3 +448,31 @@ sudo docker-compose restart ims-keycloak ims-nginx
 sudo docker-compose logs --tail 120 ims-keycloak
 Ещё один важный момент из твоего скрина: часть команд ты запускал не из /app, поэтому получал Can't find a suitable configuration file.
 Для docker-compose ... всегда сначала cd /app
+
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Что проверить и поправить
+1) Пересобери fullchain.pem строго так
+(серверный cert + intermediate chain, без ключа)
+cat /home/aygarshin/certs-in/dbbbmts_le.pem /home/aygarshin/certs-in/dbbbmts_le_chain.pem > /home/aygarshin/certs-ready/fullchain.pem
+cp /home/aygarshin/certs-in/dbbbmts_le_key.pem /home/aygarshin/certs-ready/privkey.pem
+chmod 644 /home/aygarshin/certs-ready/fullchain.pem
+chmod 600 /home/aygarshin/certs-ready/privkey.pem
+2) Проверь, что в fullchain.pem реально несколько сертификатов
+grep -c "BEGIN CERTIFICATE" /home/aygarshin/certs-ready/fullchain.pem
+Должно быть 2 или больше (не 1).
+3) Залей снова в volume certs
+sudo docker run --rm -v certs:/certs -v /home/aygarshin/certs-ready:/in alpine sh -c \
+'mkdir -p /certs/live/0000PAMKIIAVDB.msk.mts.ru && cp /in/fullchain.pem /certs/live/0000PAMKIIAVDB.msk.mts.ru/fullchain.pem && cp /in/privkey.pem /certs/live/0000PAMKIIAVDB.msk.mts.ru/privkey.pem && chmod 600 /certs/live/0000PAMKIIAVDB.msk.mts.ru/privkey.pem'
+4) Перезапуск и проверка логов
+cd /app
+sudo docker-compose restart ims-keycloak ims-nginx
+sudo docker-compose logs --tail 120 ims-keycloak
+Важный обходной вариант (если срочно запустить)
+Можно вообще убрать TLS из Keycloak (оставить TLS только на nginx/контуре):
+KC_COMMAND=start --http-enabled=true --proxy-headers=xforwarded
+KC_PORT_MAPPING=8087:8080
+в nginx для /auth → proxy_pass http://ims-keycloak:8080/;
+Это часто проще и надёжнее в вашем сценарии, а HTTPS наружу всё равно останется через nginx.
