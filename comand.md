@@ -399,3 +399,29 @@ openssl x509 -in /home/aygarshin/certs-in/dbbbmts_le.pem -noout -text | grep -A2
 Найди имена контейнеров keycloak/nginx и перезапусти именно их:
 (например у тебя это может быть 7bla14f136e3_ims-keycloak и 2161318225d2_ims-nginx)
 Если после этого Keycloak всё ещё пишет Certificate chain is not valid, пришли вывод команды с Subject Alternative Name — сразу скажу, проблема в домене сертификата или в цепочке.
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+Сделай ровно эти команды:
+# 1) Подготовить файлы
+mkdir -p /home/aygarshin/certs-ready
+cp /home/aygarshin/certs-in/dbbbmts_le_key.pem /home/aygarshin/certs-ready/privkey.pem
+cat /home/aygarshin/certs-in/dbbbmts_le.pem /home/aygarshin/certs-in/dbbbmts_le_chain.pem > /home/aygarshin/certs-ready/fullchain.pem
+chmod 600 /home/aygarshin/certs-ready/privkey.pem
+# 2) Положить в docker volume certs под нужный домен
+sudo docker run --rm \
+  -v certs:/certs \
+  -v /home/aygarshin/certs-ready:/in \
+  alpine sh -c 'mkdir -p /certs/live/0000PAMKIIAVDB.msk.mts.ru && cp /in/fullchain.pem /certs/live/0000PAMKIIAVDB.msk.mts.ru/fullchain.pem && cp /in/privkey.pem /certs/live/0000PAMKIIAVDB.msk.mts.ru/privkey.pem && chmod 600 /certs/live/0000PAMKIIAVDB.msk.mts.ru/privkey.pem'
+# 3) Проверить, что файлы реально в volume
+sudo docker run --rm -v certs:/certs alpine ls -la /certs/live/0000PAMKIIAVDB.msk.mts.ru
+# 4) Перезапустить keycloak и nginx
+cd /app
+sudo docker-compose restart ims-keycloak ims-nginx
+sudo docker-compose ps
+sudo docker-compose logs --tail 120 ims-keycloak
+Если после этого в Keycloak останется Certificate chain is not valid, значит порядок в fullchain.pem не подходит. Тогда сделай альтернативно:
+cat /home/aygarshin/certs-in/dbbbmts_le_chain.pem /home/aygarshin/certs-in/dbbbmts_le.pem > /home/aygarshin/certs-ready/fullchain.pem
+и повтори шаги 2–4.
