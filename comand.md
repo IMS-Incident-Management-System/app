@@ -372,3 +372,30 @@ sudo docker-compose logs --tail 120 ims-keycloak
 ключ не от этого сертификата
 в KC_COMMAND указан старый путь/старый домен
 Если хочешь, скинь вывод 3 проверок (modulus, verify, и KC_COMMAND из .env) — скажу точно, где именно несостыковка
+
+
+==============================================================
+
+1) Собрать fullchain.pem и privkey.pem
+mkdir -p /home/aygarshin/certs-ready
+# cert + chain = fullchain
+cat /home/aygarshin/certs-in/dbbbmts_le.pem /home/aygarshin/certs-in/dbbbmts_le_chain.pem > /home/aygarshin/certs-ready/fullchain.pem
+# ключ
+cp /home/aygarshin/certs-in/dbbbmts_le_key.pem /home/aygarshin/certs-ready/privkey.pem
+# если файлы с Windows-переносами
+sed -i 's/\r$//' /home/aygarshin/certs-ready/fullchain.pem /home/aygarshin/certs-ready/privkey.pem
+chmod 600 /home/aygarshin/certs-ready/privkey.pem
+2) Проверить, что ключ и сертификат пара
+openssl x509 -noout -modulus -in /home/aygarshin/certs-in/dbbbmts_le.pem | openssl md5
+openssl rsa  -noout -modulus -in /home/aygarshin/certs-in/dbbbmts_le_key.pem | openssl md5
+Хэши должны совпасть.
+3) Проверить, что сертификат на ваш домен
+openssl x509 -in /home/aygarshin/certs-in/dbbbmts_le.pem -noout -text | grep -A2 "Subject Alternative Name"
+Там должен быть DNS:0000PAMKIIAVDB.msk.mts.ru.
+Если его нет — Keycloak/Nginx будут падать/ругаться на цепочку/домен.
+4) Положить сертификаты в docker volume certs
+Проверка:
+5) Перезапуск без up (чтобы обойти баг v1 ContainerConfig)
+Найди имена контейнеров keycloak/nginx и перезапусти именно их:
+(например у тебя это может быть 7bla14f136e3_ims-keycloak и 2161318225d2_ims-nginx)
+Если после этого Keycloak всё ещё пишет Certificate chain is not valid, пришли вывод команды с Subject Alternative Name — сразу скажу, проблема в домене сертификата или в цепочке.
