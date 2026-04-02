@@ -332,3 +332,6 @@ sudo docker run --rm \
 Проверка:
 ls -la /app/frontend/dist
 sudo docker-compose restart ims-nginx
+
+
+sudo ls -la "$(docker volume inspect certs --format '{{ .Mountpoint }}')/live"
