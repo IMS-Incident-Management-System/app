@@ -335,3 +335,31 @@ sudo docker-compose restart ims-nginx
 
 
 sudo ls -la "$(docker volume inspect certs --format '{{ .Mountpoint }}')/live"
+
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+Сделай так на сервере
+1) Подготовь файлы
+> Важно: порядок именно cert + chain.
+2) Проверь, что ключ и сертификат пара
+Хэши должны совпасть.
+3) Проверь цепочку
+openssl verify -CAfile /path/to/dbbbmts_le_chain.pem /path/to/dbbbmts_le.pem
+Должно быть OK.
+4) Скопируй в volume certs по нужному домену
+sudo docker run --rm \
+  -v certs:/certs \
+  -v /home/aygarshin/certs-ready:/in \
+  alpine sh -c 'mkdir -p /certs/live/0000PAMKIIAVDB.msk.mts.ru && cp /in/fullchain.pem /certs/live/0000PAMKIIAVDB.msk.mts.ru/fullchain.pem && cp /in/privkey.pem /certs/live/0000PAMKIIAVDB.msk.mts.ru/privkey.pem && chmod 600 /certs/live/0000PAMKIIAVDB.msk.mts.ru/privkey.pem'
+5) Перезапусти только keycloak
+cd /app
+sudo docker-compose up -d --no-deps ims-keycloak
+sudo docker-compose logs --tail 120 ims-keycloak
+Частые причины этой ошибки
+перепутан порядок в fullchain.pem
+не та chain (не для этого cert)
+ключ не от этого сертификата
+в KC_COMMAND указан старый путь/старый домен
+Если хочешь, скинь вывод 3 проверок (modulus, verify, и KC_COMMAND из .env) — скажу точно, где именно несостыковка
