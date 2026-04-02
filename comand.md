@@ -476,3 +476,34 @@ KC_COMMAND=start --http-enabled=true --proxy-headers=xforwarded
 KC_PORT_MAPPING=8087:8080
 в nginx для /auth → proxy_pass http://ims-keycloak:8080/;
 Это часто проще и надёжнее в вашем сценарии, а HTTPS наружу всё равно останется через nginx.
+
+
+============================================================================
+
+1) Пересобрать fullchain.pem правильно
+mkdir -p /home/aygarshin/certs-ready
+# cert + intermediate chain (именно в таком порядке)
+cat /home/aygarshin/certs-in/dbbbmts_le.pem /home/aygarshin/certs-in/dbbbmts_le_chain.pem > /home/aygarshin/certs-ready/fullchain.pem
+cp /home/aygarshin/certs-in/dbbbmts_le_key.pem /home/aygarshin/certs-ready/privkey.pem
+chmod 600 /home/aygarshin/certs-ready/privkey.pem
+Проверка:
+grep -c "BEGIN CERTIFICATE" /home/aygarshin/certs-ready/fullchain.pem
+Должно быть 2 (или больше, но не 0/1).
+2) Проверить, что ключ и сертификат — пара
+openssl x509 -noout -modulus -in /home/aygarshin/certs-ready/fullchain.pem | openssl md5
+openssl rsa  -noout -modulus -in /home/aygarshin/certs-ready/privkey.pem   | openssl md5
+Хэши должны совпасть (у тебя уже совпадали — это хорошо).
+3) Скопировать в Docker volume certs (правильные пути)
+sudo docker run --rm \
+  -v certs:/certs \
+  -v /home/aygarshin/certs-ready:/in \
+  alpine sh -c 'mkdir -p /certs/live/0000PAMKIIAVDB.msk.mts.ru && cp /in/fullchain.pem /certs/live/0000PAMKIIAVDB.msk.mts.ru/fullchain.pem && cp /in/privkey.pem /certs/live/0000PAMKIIAVDB.msk.mts.ru/privkey.pem && chmod 600 /certs/live/0000PAMKIIAVDB.msk.mts.ru/privkey.pem'
+Проверка:
+sudo docker run --rm -v certs:/certs alpine ls -la /certs/live/0000PAMKIIAVDB.msk.mts.ru
+4) Рестарт сервисов
+cd /app
+sudo docker-compose restart ims-keycloak ims-nginx
+sudo docker-compose logs --tail 120 ims-keycloak
+Если после этого у Keycloak всё ещё certificate chain is not valid, значит dbbbmts_le_chain.pem не тот intermediate для этого cert. Тогда пришли вывод:
+openssl x509 -in /home/aygarshin/certs-ready/fullchain.pem -noout -subject -issuer
+и подскажу, как собрать правильную цепочку именно под твой сертификат
