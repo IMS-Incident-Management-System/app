@@ -18,13 +18,25 @@ dotenv.config();
 const app = express();
 const PORT = 8091;
 
+const getProductionCorsOrigins = (): string[] => {
+  if (process.env.CORS_ORIGINS) {
+    return process.env.CORS_ORIGINS.split(',').map((origin) => origin.trim()).filter(Boolean);
+  }
+
+  const domain = process.env.APP_DOMAIN || 'localhost';
+  return [`https://${domain}`, `https://www.${domain}`];
+};
+
+const getSslCertDir = (): string =>
+  process.env.SSL_CERT_DIR || process.env.APP_DOMAIN || 'localhost';
+
 const createApp = () => {
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
   // CORS handled by nginx in development, by backend in production
   if (process.env.NODE_ENV === 'production') {
     app.use(cors({
-      origin: ['https://ims-mts.ru', 'https://www.ims-mts.ru'],
+      origin: getProductionCorsOrigins(),
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With']
@@ -101,10 +113,11 @@ const startServer = async () => {
     await ensureFirstAdmin();
 
     // SSL configuration
+    const sslCertDir = getSslCertDir();
     const sslOptions = process.env.NODE_ENV === 'production'
       ? {
-        key: fs.readFileSync(path.join('/app/certs/live/ims-mts.ru/privkey.pem')),
-        cert: fs.readFileSync(path.join('/app/certs/live/ims-mts.ru/fullchain.pem'))
+        key: fs.readFileSync(path.join('/app/certs/live', sslCertDir, 'privkey.pem')),
+        cert: fs.readFileSync(path.join('/app/certs/live', sslCertDir, 'fullchain.pem'))
       }
       : undefined;
 
@@ -117,7 +130,7 @@ const startServer = async () => {
       const server = https.createServer(sslOptions, application);
       server.listen(PORT, () => {
         console.log(`Production HTTPS server is running on port ${PORT}`);
-        console.log(`API is available at https://ims-mts.ru:${PORT}/api/v1`);
+        console.log(`API is available at https://${process.env.APP_DOMAIN || sslCertDir}:${PORT}/api/v1`);
       });
     }
   } catch (error) {

@@ -1,5 +1,5 @@
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
 import {
   Checkbox,
@@ -8,10 +8,9 @@ import {
   Tabs,
   message,
   Spin,
-  Space,
   Typography,
 } from "antd";
-import { InfoCircleOutlined, FileTextOutlined, EyeOutlined, PaperClipOutlined } from "@ant-design/icons";
+import { InfoCircleOutlined, FileTextOutlined, EyeOutlined } from "@ant-design/icons";
 import { MainInfo } from "./components/MainInfo/MainInfo";
 import { IncidentAdditionally, IncidentAdditionallyRef } from "./components/IncidentAdditionally/IncidentAdditionally";
 import { IncidentAttachments, IncidentAttachmentsRef } from "./components/IncidentAttachments/IncidentAttachments";
@@ -51,17 +50,14 @@ export const IncidentProvider = () => {
   const createIncident = React.useCallback((data: CreateIncidentBody) => {
     createIncidentMutation.mutate(data, {
       onSuccess: async (response: any) => {
-        // Загружаем файлы после создания инцидента, но перед навигацией
-        // Стандартный onSuccess из useCreateIncident вызывается после этого
         const incidentData = response?.data || response;
         const incidentId = incidentData?.incident?.id;
-        
+
         if (incidentId && attachmentsRef.current) {
           const pendingFiles = attachmentsRef.current.getPendingFiles();
           if (pendingFiles.length > 0) {
             try {
               await attachmentsRef.current.uploadFiles(incidentId);
-              // Инвалидируем кеш после загрузки файлов
               const { queryClient } = await import("../../plugins/query");
               queryClient.invalidateQueries({
                 queryKey: ["getIncident", incidentId.toString()],
@@ -70,7 +66,7 @@ export const IncidentProvider = () => {
                 queryKey: ["incidentAttachments", incidentId.toString()],
               });
             } catch (error: any) {
-              console.error('Error uploading files:', error);
+              console.error("Error uploading files:", error);
             }
           }
         }
@@ -78,17 +74,15 @@ export const IncidentProvider = () => {
     });
   }, [createIncidentMutation]);
 
-  const updateIncident = React.useCallback(({ data, id }: { data: CreateIncidentBody, id: number }) => {
+  const updateIncident = React.useCallback(({ data, id }: { data: CreateIncidentBody; id: number }) => {
     updateIncidentMutation.mutate({ data, id }, {
       onSuccess: async () => {
         const { queryClient } = await import("../../plugins/query");
-        
-        // Сначала инвалидируем кеш
+
         queryClient.invalidateQueries({
           queryKey: ["getIncident", id.toString()],
         });
-        
-        // Загружаем файлы для основного инцидента
+
         if (attachmentsRef.current) {
           const pendingFiles = attachmentsRef.current.getPendingFiles();
           if (pendingFiles.length > 0) {
@@ -101,27 +95,23 @@ export const IncidentProvider = () => {
                 queryKey: ["incidentAttachments", id.toString()],
               });
             } catch (error: any) {
-              console.error('Error uploading incident files:', error);
+              console.error("Error uploading incident files:", error);
             }
           }
         }
-        
-        // Ждем, пока данные обновятся (после загрузки файлов основного инцидента)
+
         await queryClient.refetchQueries({
           queryKey: ["getIncident", id.toString()],
         });
-        
-        // Загружаем файлы для дополнений (теперь у нас есть обновленные данные с новыми ID событий)
+
         if (additionallyRef.current) {
           try {
             await additionallyRef.current.uploadAllPendingFiles(id);
-            // Инвалидируем кеш инцидента для обновления списка вложений
             queryClient.invalidateQueries({
               queryKey: ["getIncident", id.toString()],
             });
-            // Не инвалидируем все incidentEventAttachments, так как они инвалидируются индивидуально в uploadAllPendingFiles
           } catch (error: any) {
-            console.error('Error uploading addition files:', error);
+            console.error("Error uploading addition files:", error);
           }
         }
       },
@@ -137,14 +127,12 @@ export const IncidentProvider = () => {
 
   const [isDbChecked, setIsDbChecked] = useState(false);
 
-  // Синхронизируем локальное состояние с формой
   useEffect(() => {
-    const value = form.getFieldValue('is_db');
+    const value = form.getFieldValue("is_db");
     setIsDbChecked(value ?? false);
   }, [form, incident]);
 
-  // Слушаем изменения в форме
-  Form.useWatch('is_db', form);
+  Form.useWatch("is_db", form);
 
   const handleSubmit = async () => {
     try {
@@ -178,23 +166,21 @@ export const IncidentProvider = () => {
         </span>
       ),
       children: (
-          <div className={styles.tabContent}>
-            <MainInfo />
-            <IncidentAttachments ref={attachmentsRef} />
-            {id && (
-              <IncidentAttachmentsView showDelete={canIncidentAttachments} />
-            )}
-            <div className={styles.tabActions}>
-              <PrimaryButton
-                size="large"
-                onClick={handleSubmit}
-                loading={createIncidentMutation.isLoading || updateIncidentMutation.isLoading}
-                disabled={id ? !canUpdateIncident : !canCreateIncident}
-              >
-                {id ? "Сохранить изменения" : "Создать инцидент"}
-              </PrimaryButton>
-            </div>
+        <div className={styles.tabContent}>
+          <MainInfo />
+          <IncidentAttachments ref={attachmentsRef} />
+          {id && <IncidentAttachmentsView showDelete={canIncidentAttachments} />}
+          <div className={styles.tabActions}>
+            <PrimaryButton
+              size="large"
+              onClick={handleSubmit}
+              loading={createIncidentMutation.isLoading || updateIncidentMutation.isLoading}
+              disabled={id ? !canUpdateIncident : !canCreateIncident}
+            >
+              {id ? "Сохранить изменения" : "Создать инцидент"}
+            </PrimaryButton>
           </div>
+        </div>
       ),
     },
     {
@@ -206,28 +192,28 @@ export const IncidentProvider = () => {
         </span>
       ),
       disabled: !id,
-            children: (
-                <div className={styles.tabContent}>
-                  <IncidentAdditionally
-                    ref={additionallyRef}
-                    incident={incident}
-                    isLoading={isIncidentLoading}
-                    showDeleteAttachments={canIncidentAttachments}
-                    canCreate={canCreateAdditionally}
-                    canUpdate={canUpdateAdditionally}
-                    canDelete={canDeleteAdditionally}
-                  />
-            <div className={styles.tabActions}>
-              <PrimaryButton
-                size="large"
-                onClick={handleSubmit}
-                loading={createIncidentMutation.isLoading || updateIncidentMutation.isLoading}
-                disabled={!canSaveAdditionally}
-              >
-                Сохранить
-              </PrimaryButton>
-            </div>
+      children: (
+        <div className={styles.tabContent}>
+          <IncidentAdditionally
+            ref={additionallyRef}
+            incident={incident}
+            isLoading={isIncidentLoading}
+            showDeleteAttachments={canIncidentAttachments}
+            canCreate={canCreateAdditionally}
+            canUpdate={canUpdateAdditionally}
+            canDelete={canDeleteAdditionally}
+          />
+          <div className={styles.tabActions}>
+            <PrimaryButton
+              size="large"
+              onClick={handleSubmit}
+              loading={createIncidentMutation.isLoading || updateIncidentMutation.isLoading}
+              disabled={!canSaveAdditionally}
+            >
+              Сохранить
+            </PrimaryButton>
           </div>
+        </div>
       ),
     },
   ];
@@ -241,22 +227,22 @@ export const IncidentProvider = () => {
           ) : (
             <>
               <div className={styles.headerTop}>
-              <Title level={2} className={styles.title}>
-                {id ? `Инцидент ${incident?.code || `#${incident?.id}`}` : "Создание инцидента"}
-              </Title>
-              {id && (
-                <PrimaryButton
-                  variant="secondary"
-                  icon={<EyeOutlined />}
-                  onClick={handleViewIncident}
-                  className={styles.viewButton}
-                >
-                  Просмотр инцидента
-                </PrimaryButton>
-              )}
+                <Title level={2} className={styles.title}>
+                  {id ? `Инцидент ${incident?.code || `#${incident?.id}`}` : "Создание инцидента"}
+                </Title>
+                {id && (
+                  <PrimaryButton
+                    variant="secondary"
+                    icon={<EyeOutlined />}
+                    onClick={handleViewIncident}
+                    className={styles.viewButton}
+                  >
+                    Просмотр инцидента
+                  </PrimaryButton>
+                )}
               </div>
               <div className={styles.headerBottom}>
-                <Checkbox 
+                <Checkbox
                   className={styles.dbCheckbox}
                   checked={isDbChecked}
                   disabled={!!id}
@@ -264,7 +250,7 @@ export const IncidentProvider = () => {
                     if (!id) {
                       const newValue = e.target.checked;
                       setIsDbChecked(newValue);
-                      form.setFieldValue('is_db', newValue);
+                      form.setFieldValue("is_db", newValue);
                     }
                   }}
                 >
@@ -274,7 +260,7 @@ export const IncidentProvider = () => {
             </>
           )}
         </div>
-        
+
         <Form<CreateIncidentBody>
           form={form}
           layout="vertical"
@@ -284,7 +270,7 @@ export const IncidentProvider = () => {
           <Form.Item<CreateIncidentBody>
             name="is_db"
             valuePropName="checked"
-            style={{ display: 'none' }}
+            style={{ display: "none" }}
           >
             <input type="checkbox" />
           </Form.Item>

@@ -1,6 +1,6 @@
 import React from "react";
 import { Card, List, Button, message, Space, Typography, Image } from "antd";
-import { DeleteOutlined, DownloadOutlined, FileOutlined, EyeOutlined, FilePdfOutlined, FileImageOutlined, FileWordOutlined, FileExcelOutlined, FileTextOutlined } from "@ant-design/icons";
+import { DeleteOutlined, DownloadOutlined, FileOutlined, FilePdfOutlined, FileImageOutlined, FileWordOutlined, FileExcelOutlined, FileTextOutlined } from "@ant-design/icons";
 import { IncidentAttachmentAttributes } from "../../../../interfaces/requests/incident";
 import {
   deleteIncidentAttachment,
@@ -232,4 +232,3 @@ export const IncidentAttachmentsView = ({
     </Card>
   );
 };
-

@@ -34,6 +34,9 @@ services:
     container_name: ims-backend
     environment:
       - NODE_ENV=${NODE_ENV}
+      - APP_DOMAIN=${APP_DOMAIN:-localhost}
+      - SSL_CERT_DIR=${SSL_CERT_DIR:-}
+      - CORS_ORIGINS=${CORS_ORIGINS:-}
       - KEYCLOAK_URL=${BACKEND_KEYCLOAK_URL}
       - KEYCLOAK_URL_ISSUER=${BACKEND_KEYCLOAK_URL_ISSUER}
       - KEYCLOAK_REALM=${BACKEND_KEYCLOAK_REALM}
@@ -59,10 +62,11 @@ services:
       - ims-base-network
 
   ims-keycloak:
-    image: quay.io/keycloak/keycloak:latest
+    image: ${KEYCLOAK_IMAGE:-quay.io/keycloak/keycloak:latest}
     restart: unless-stopped
     container_name: ims-keycloak
     environment:
+      - KC_CACHE=${KC_CACHE:-local}
       - KC_DB=${KC_OWN_KC_DB}
       - KC_DB_PASSWORD=${KC_OWN_KC_DB_PASSWORD}
       - KC_DB_URL=${KC_OWN_KC_DB_URL}

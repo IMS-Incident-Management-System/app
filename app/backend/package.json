@@ -5,8 +5,13 @@
   "scripts": {
     "start": "node dist/index.js",
     "prebuild": "echo 'Preparing build...'",
+<<<<<<< Updated upstream
     "build": "rm -rf dist && tsc -p .",
     "dev": "nodemon",
+=======
+    "build": "rm -rf dist && node ./node_modules/typescript/bin/tsc -p .",
+    "dev": "node ./node_modules/nodemon/bin/nodemon.js",
+>>>>>>> Stashed changes
     "migrate:up": "ts-node src/scripts/migrate.ts up",
     "migrate:up:prod": "node dist/scripts/migrate.js up",
     "migrate:status": "ts-node src/scripts/migrate.ts status",

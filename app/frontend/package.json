@@ -4,9 +4,9 @@
   "main": "./dist/index",
   "types": "./dist/index",
   "scripts": {
-    "start": "webpack server --mode development --open",
-    "build": "npm run tsc && webpack --progress",
-    "tsc": "tsc",
+    "start": "node ./node_modules/webpack-cli/bin/cli.js serve --mode development --open",
+    "build": "npm run tsc && node ./node_modules/webpack-cli/bin/cli.js --progress",
+    "tsc": "node ./node_modules/typescript/bin/tsc",
     "pre-commit": "npm run tsc"
   },
   "author": "",

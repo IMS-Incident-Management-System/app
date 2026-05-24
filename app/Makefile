@@ -1,7 +1,10 @@
-.PHONY: help dev dev-no-build fe down logs restart clean seed-report seed-report-auto
+.PHONY: help dev dev-no-build prod prod-no-build setup-dev-env setup-prod-env fe down logs restart clean seed-report seed-report-auto build-fe-prod deploy-certs
 
 # По умолчанию показываем help
 .DEFAULT_GOAL := help
+
+COMPOSE_DEV = docker compose --env-file .env.development
+COMPOSE_PROD = docker compose --env-file .env.production -f docker-compose.yaml -f docker-compose.prod.yaml
 
 help: ## Показать справку по доступным командам
 	@echo "Доступные команды:"
@@ -9,66 +12,126 @@ help: ## Показать справку по доступным команда�
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
 	@echo ""
 
-dev: ## Запустить development окружение с пересборкой контейнеров (docker-compose up -d --build)
+setup-dev-env: ## Скопировать dev env-файлы в рабочие .env
+	cp .env.development .env
+	cp frontend/.env.development frontend/.env
+
+setup-prod-env: ## Скопировать prod env-файлы в рабочие .env
+	@test -f .env.production || (echo "Создайте .env.production из .env.production.example" && exit 1)
+	cp .env.production .env
+	cp frontend/.env.production frontend/.env
+
+dev: setup-dev-env ## Запустить development окружение с пересборкой
 	@echo "🚀 Запуск development окружения с пересборкой..."
-	docker-compose up -d --build
+	$(COMPOSE_DEV) up -d --build
 	@echo "✅ Готово! Проверьте логи: make logs"
 
-dev-no-build: ## Запустить development окружение без пересборки (docker-compose up -d)
+dev-no-build: setup-dev-env ## Запустить development окружение без пересборки
 	@echo "🚀 Запуск development окружения без пересборки..."
-	docker-compose up -d
+	$(COMPOSE_DEV) up -d
 	@echo "✅ Готово! Проверьте логи: make logs"
+
+prod: setup-prod-env build-fe-prod ## Запустить production окружение с пересборкой
+	@echo "🚀 Запуск production окружения с пересборкой..."
+	$(COMPOSE_PROD) up -d --build
+	@echo "✅ Готово! Проверьте логи: make logs COMPOSE='$(COMPOSE_PROD)'"
+
+prod-no-build: setup-prod-env build-fe-prod ## Запустить production окружение без пересборки backend
+	@echo "🚀 Запуск production окружения без пересборки..."
+	$(COMPOSE_PROD) up -d
+	@echo "✅ Готово!"
+
+build-fe-prod: setup-prod-env ## Собрать frontend для production (dist/)
+	@echo "🎨 Сборка frontend для production..."
+	cd frontend && npm run build
+	@echo "✅ Frontend собран в frontend/dist"
+
+deploy-certs: setup-prod-env ## Выпуск/обновление TLS-сертификатов на сервере
+	./scripts/deploy-cert.sh production
 
 fe: ## Запустить frontend в dev режиме (npm run start в директории frontend)
 	@echo "🎨 Запуск frontend dev сервера..."
+	cp frontend/.env.development frontend/.env
 	cd frontend && npm run start
 
 down: ## Остановить все контейнеры (docker-compose down)
 	@echo "🛑 Остановка контейнеров..."
-	docker-compose down
+	@if [ -f .env.production ] && grep -q '^NODE_ENV=production' .env 2>/dev/null; then \
+		$(COMPOSE_PROD) down; \
+	else \
+		$(COMPOSE_DEV) down; \
+	fi
 
 stop: ## Остановить контейнеры без удаления (docker-compose stop)
 	@echo "⏸️  Остановка контейнеров..."
-	docker-compose stop
+	@if [ -f .env.production ] && grep -q '^NODE_ENV=production' .env 2>/dev/null; then \
+		$(COMPOSE_PROD) stop; \
+	else \
+		$(COMPOSE_DEV) stop; \
+	fi
 
 restart: ## Перезапустить все контейнеры
 	@echo "🔄 Перезапуск контейнеров..."
-	docker-compose restart
+	@if [ -f .env.production ] && grep -q '^NODE_ENV=production' .env 2>/dev/null; then \
+		$(COMPOSE_PROD) restart; \
+	else \
+		$(COMPOSE_DEV) restart; \
+	fi
 	@echo "✅ Готово!"
 
 logs: ## Показать логи всех контейнеров
-	docker-compose logs -f
+	@if [ -f .env.production ] && grep -q '^NODE_ENV=production' .env 2>/dev/null; then \
+		$(COMPOSE_PROD) logs -f; \
+	else \
+		$(COMPOSE_DEV) logs -f; \
+	fi
 
 logs-backend: ## Показать логи backend
-	docker-compose logs -f ims-backend
+	@if [ -f .env.production ] && grep -q '^NODE_ENV=production' .env 2>/dev/null; then \
+		$(COMPOSE_PROD) logs -f ims-backend; \
+	else \
+		$(COMPOSE_DEV) logs -f ims-backend; \
+	fi
 
 logs-frontend: ## Показать логи nginx (frontend)
-	docker-compose logs -f ims-nginx
+	@if [ -f .env.production ] && grep -q '^NODE_ENV=production' .env 2>/dev/null; then \
+		$(COMPOSE_PROD) logs -f ims-nginx; \
+	else \
+		$(COMPOSE_DEV) logs -f ims-nginx; \
+	fi
 
 logs-postgres: ## Показать логи PostgreSQL
-	docker-compose logs -f ims-postgres
+	@if [ -f .env.production ] && grep -q '^NODE_ENV=production' .env 2>/dev/null; then \
+		$(COMPOSE_PROD) logs -f ims-postgres; \
+	else \
+		$(COMPOSE_DEV) logs -f ims-postgres; \
+	fi
 
 ps: ## Показать статус контейнеров
-	docker-compose ps
+	@if [ -f .env.production ] && grep -q '^NODE_ENV=production' .env 2>/dev/null; then \
+		$(COMPOSE_PROD) ps; \
+	else \
+		$(COMPOSE_DEV) ps; \
+	fi
 
 clean: ## Остановить и удалить все контейнеры, сети и volumes
 	@echo "🧹 Очистка контейнеров и volumes..."
-	docker-compose down -v
+	$(COMPOSE_DEV) down -v
 	@echo "✅ Очистка завершена!"
 
-build: ## Пересобрать все контейнеры
+build: setup-dev-env ## Пересобрать все контейнеры (dev)
 	@echo "🔨 Пересборка контейнеров..."
-	docker-compose build
+	$(COMPOSE_DEV) build
 	@echo "✅ Сборка завершена!"
 
-build-backend: ## Пересобрать только backend
+build-backend: setup-dev-env ## Пересобрать только backend
 	@echo "🔨 Пересборка backend..."
-	docker-compose build ims-backend
+	$(COMPOSE_DEV) build ims-backend
 	@echo "✅ Сборка backend завершена!"
 
-build-backend-no-cache: ## Пересобрать только backend без кеша
+build-backend-no-cache: setup-dev-env ## Пересобрать только backend без кеша
 	@echo "🔨 Пересборка backend без кеша..."
-	docker-compose build --no-cache ims-backend
+	$(COMPOSE_DEV) build --no-cache ims-backend
 	@echo "✅ Сборка backend завершена!"
 
 shell-backend: ## Открыть shell в контейнере backend
@@ -112,8 +175,3 @@ install: ## Установить все зависимости
 	@echo "📦 Установка зависимостей frontend..."
 	cd frontend && npm install
 	@echo "✅ Все зависимости установлены!"
-
-
-
-
-
