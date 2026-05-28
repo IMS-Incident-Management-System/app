@@ -34,6 +34,8 @@ make prod
 
 Prod-only override: `docker-compose.prod.yaml` (extra_hosts для резолва APP_DOMAIN).
 
+На сервере с `docker-compose` 1.29 и новым Docker при `KeyError: ContainerConfig` — `make prod` делает `down` + `up`. Лучше поставить плагин v2: `sudo apt install docker-compose-plugin`, тогда работает `docker compose`.
+
 ## Сертификаты на сервере
 
 ```bash

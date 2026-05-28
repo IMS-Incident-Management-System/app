@@ -3,11 +3,13 @@
 # По умолчанию показываем help
 .DEFAULT_GOAL := help
 
-# docker compose (v2 plugin) или legacy docker-compose — на сервере часто только второе
-ifeq ($(shell docker compose version >/dev/null 2>&1 && echo ok),ok)
+# docker compose v2 plugin (если реально работает) или legacy docker-compose 1.29
+ifeq ($(shell docker compose version 2>/dev/null | grep -qE 'v2|version 2' && docker compose -f docker-compose.yaml config >/dev/null 2>&1 && echo ok),ok)
   COMPOSE := docker compose
+  COMPOSE_LEGACY := 0
 else
   COMPOSE := docker-compose
+  COMPOSE_LEGACY := 1
 endif
 
 # Переменные из .env (setup-*-env копирует .env.development / .env.production → .env)
@@ -41,11 +43,18 @@ dev-no-build: setup-dev-env ## Запустить development окружение
 
 prod: setup-prod-env build-fe-prod ## Запустить production окружение с пересборкой
 	@echo "🚀 Запуск production окружения с пересборкой..."
+	@if [ "$(COMPOSE_LEGACY)" = "1" ]; then \
+		echo "docker-compose 1.x: down перед up (обход KeyError ContainerConfig)"; \
+		$(COMPOSE_PROD) down --remove-orphans 2>/dev/null || true; \
+	fi
 	$(COMPOSE_PROD) up -d --build
 	@echo "✅ Готово! Проверьте логи: make logs COMPOSE='$(COMPOSE_PROD)'"
 
 prod-no-build: setup-prod-env build-fe-prod ## Запустить production окружение без пересборки backend
 	@echo "🚀 Запуск production окружения без пересборки..."
+	@if [ "$(COMPOSE_LEGACY)" = "1" ]; then \
+		$(COMPOSE_PROD) down --remove-orphans 2>/dev/null || true; \
+	fi
 	$(COMPOSE_PROD) up -d
 	@echo "✅ Готово!"
 
