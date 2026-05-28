@@ -51,3 +51,8 @@ docker compose --profile ims-env-generator up ims-env-generator
 ```
 
 Требует `.env-files/.env-generator.env` с доступом к Vault.
+
+восстановление из бэкапа базы:
+
+gunzip -c /var/backups/ims-postgres/ims_YYYYMMDD_HHMMSS.sql.gz \
+  | sudo docker exec -i ims-postgres psql -U admin -d ims
