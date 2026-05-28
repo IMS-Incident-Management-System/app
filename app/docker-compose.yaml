@@ -53,6 +53,7 @@ services:
       - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-}
       - MAIL_IS_DB_RECIPIENTS=${MAIL_IS_DB_RECIPIENTS:-}
       - APP_PUBLIC_URL=${APP_PUBLIC_URL:-http://localhost:8026}
+      - QUICKCHART_URL=${QUICKCHART_URL:-http://ims-quickchart:3400/chart}
     volumes:
       - certs:/app/certs:ro
       - ${BACKEND_DEV_VOLUME:-empty_volume}:/app
@@ -62,6 +63,15 @@ services:
       - 8091:8091
     depends_on:
       - ims-postgres
+      - ims-quickchart
+    networks:
+      - ims-base-network
+
+  # Графики для export-dashboard (в контуре MTS quickchart.io недоступен)
+  ims-quickchart:
+    image: ianw/quickchart:latest
+    restart: unless-stopped
+    container_name: ims-quickchart
     networks:
       - ims-base-network
 

@@ -5,7 +5,8 @@ import { Incident, Event, OperationalActivity, Department } from '../models';
 import { REPORT_FIELDS } from '../constants/reportFields';
 import { computeFieldValueByRule } from './reportCalculator';
 
-const QUICKCHART_URL = 'https://quickchart.io/chart';
+/** Локальный контейнер ims-quickchart на проде; dev без compose — https://quickchart.io/chart в .env */
+const QUICKCHART_URL = process.env.QUICKCHART_URL?.trim() || 'http://ims-quickchart:3400/chart';
 const QUICKCHART_MAX_WIDTH = 4000;
 const QUICKCHART_MAX_HEIGHT = 2400;
 /** Макс. число серий в столбчатом графике — при большем QuickChart возвращает 400 (лимит размера запроса). */
