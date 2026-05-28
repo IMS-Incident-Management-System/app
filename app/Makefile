@@ -48,7 +48,8 @@ build-fe-prod: setup-prod-env ## Собрать frontend для production (dist
 		echo "NPM_REGISTRY не задан в .env.production"; exit 1; \
 	fi; \
 	echo "npm registry: $$NPM_REG"; \
-	cd frontend && npm config set registry "$$NPM_REG" && npm config set strict-ssl false && npm run build
+	cd frontend && npm config set registry "$$NPM_REG" && npm config set strict-ssl false && \
+	npm install --no-audit --no-fund && npm run build
 	@echo "✅ Frontend собран в frontend/dist"
 
 deploy-certs: setup-prod-env ## Выпуск/обновление TLS-сертификатов на сервере
