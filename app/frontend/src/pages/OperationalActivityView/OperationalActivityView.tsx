@@ -8,6 +8,7 @@ import {
   Divider,
   Tag,
   Descriptions,
+  Tabs,
 } from "antd";
 import { ArrowLeftOutlined, EditOutlined } from "@ant-design/icons";
 import { useGetOperationalActivity } from "../../services/requests/operationalActivities/getOperationalActivity";
@@ -19,6 +20,8 @@ import dayjs from "dayjs";
 import styles from "./OperationalActivityView.module.scss";
 import { PrimaryButton } from "../../components/PrimaryButton";
 import { selectCanUpdateOperationalActivity } from "../../store/features/permissions/selectors";
+import { EntityMetaHeader } from "../../components/EntityMetaHeader/EntityMetaHeader";
+import { EntityActivityTimeline } from "../../components/EntityActivityTimeline/EntityActivityTimeline";
 
 const { Title } = Typography;
 
@@ -474,6 +477,18 @@ export const OperationalActivityView = () => {
           </div>
         </div>
 
+        <div className={styles.metaWrap}>
+          <EntityMetaHeader meta={operationalActivity.meta} />
+        </div>
+
+        <Tabs
+          className={styles.tabs}
+          defaultActiveKey="overview"
+          items={[
+            {
+              key: "overview",
+              label: "Обзор",
+              children: (
         <div className={styles.content}>
 
           {/* Основная информация */}
@@ -569,6 +584,19 @@ export const OperationalActivityView = () => {
             </Card>
           )}
         </div>
+              ),
+            },
+            {
+              key: "history",
+              label: "История",
+              children: (
+                <div className={styles.tabPanel}>
+                  <EntityActivityTimeline resource="operational-activities" entityId={id} />
+                </div>
+              ),
+            },
+          ]}
+        />
       </Card>
     </div>
   );

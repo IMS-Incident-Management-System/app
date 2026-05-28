@@ -24,6 +24,7 @@ import Role from './role';
 import RolePermission from './rolePermission';
 import UserRole from './userRole';
 import ExplanatoryNote from './explanatoryNote';
+import EntityActivity from './entityActivity';
 
 // IncidentEvent связи
 IncidentEvent.belongsTo(IncidentEventType, { 
@@ -265,5 +266,6 @@ export {
   RolePermission,
   UserRole,
   ExplanatoryNote,
+  EntityActivity,
   sequelize
 }; 

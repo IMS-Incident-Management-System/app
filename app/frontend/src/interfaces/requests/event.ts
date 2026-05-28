@@ -1,9 +1,11 @@
+import { EntityMeta } from '../activity';
 
 export type TEventFilter = Partial<{
   department_id: number;
   date_from: string;
   date_to: string;
   code?: string;
+  is_db?: boolean;
 }>;
 
 export interface EventAttributes {
@@ -43,6 +45,7 @@ export interface EventWithRelations extends EventAttributes {
   department?: EventDepartmentAttributes;
   criminal_case?: EventCriminalCaseAttributes;
   punishment?: EventPunishmentAttributes;
+  meta?: EntityMeta | null;
 }
 
 export interface EventCriminalCaseAttributes {

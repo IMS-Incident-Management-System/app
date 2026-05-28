@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { TIncidentFilter } from "../../../../interfaces/requests/incident";
-import { Button, Card, Form, DatePicker, Select, TreeSelect, Input } from "antd";
+import { Button, Card, Checkbox, Form, DatePicker, Select, TreeSelect, Input } from "antd";
 import styles from "./FilterForm.module.scss";
 import dayjs from "dayjs";
 import { directionDict } from "../../../../constants/incidentDict";
@@ -45,6 +45,7 @@ export const FilterForm = ({
       date_to: values.date_to
         ? new Date(values.date_to.format("YYYY-MM-DD"))
         : undefined,
+      is_db: values.is_db === true ? true : undefined,
     });
   };
 
@@ -116,6 +117,12 @@ export const FilterForm = ({
               loading={isEventTypesLoading}
               className={styles.formInput}
             />
+          </Form.Item>
+        </div>
+
+        <div className={styles.filterFormGroup}>
+          <Form.Item name="is_db" valuePropName="checked" className={styles.dbFilter}>
+            <Checkbox>Особо важно (1ДБ)</Checkbox>
           </Form.Item>
         </div>
 

@@ -26,6 +26,11 @@ import { getEvent } from '../controllers/event/getEvent.controller';
 import { createEvent } from '../controllers/event/createEvent.controller';
 import { updateEvent } from '../controllers/event/updateEvent.controller';
 import { deleteEvent } from '../controllers/event/deleteEvent.controller';
+import {
+  getIncidentActivity,
+  getEventActivity,
+  getOperationalActivityActivity,
+} from '../controllers/activity/getEntityActivity.controller';
 import { getMyProfile, updateMyProfile, uploadProfilePhoto } from '../controllers/profile.controller';
 import { getMyPermissions } from '../controllers/permissions.controller';
 import {
@@ -83,6 +88,12 @@ router
   )
   .delete(requirePermission([Permission.INCIDENT_DELETE]), deleteIncident);
 
+router.get(
+  '/incidents/:id/activity',
+  requirePermission([Permission.INCIDENT_READ]),
+  getIncidentActivity
+);
+
 // Incident attachments
 router
   .route('/incidents/:id/attachments')
@@ -122,6 +133,12 @@ router
   .get(requirePermission([Permission.OPERATIONAL_ACTIVITY_READ]), getOperationalActivity)
   .put(requirePermission([Permission.OPERATIONAL_ACTIVITY_UPDATE]), updateOperationalActivity)
   .delete(requirePermission([Permission.OPERATIONAL_ACTIVITY_DELETE]), deleteOperationalActivity);
+
+router.get(
+  '/operational-activities/:id/activity',
+  requirePermission([Permission.OPERATIONAL_ACTIVITY_READ]),
+  getOperationalActivityActivity
+);
 
 // Event types (типы событий инцидентов)
 router
@@ -170,6 +187,12 @@ router
   .get(requirePermission([Permission.EVENT_READ]), getEvent)
   .put(requirePermission([Permission.EVENT_UPDATE]), updateEvent)
   .delete(requirePermission([Permission.EVENT_DELETE]), deleteEvent);
+
+router.get(
+  '/events/:id/activity',
+  requirePermission([Permission.EVENT_READ]),
+  getEventActivity
+);
 
 // Профиль — по правам profile.read / profile.update; список своих прав — всем аутентифицированным
 router.get('/profile/me', getMyProfile);

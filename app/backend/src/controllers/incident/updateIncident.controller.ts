@@ -15,6 +15,20 @@ import { punishmentService } from '../../services/punishment.service';
 import { sequelize } from '../../models';
 import { SecurityDirectionEnum } from '../../models/incident';
 import { IncidentObjectType } from '../../models';
+import { entityMetaService } from '../../services/entityMeta.service';
+import { activityBuilderService } from '../../services/activityBuilder.service';
+import { activityService } from '../../services/activity.service';
+import { semanticChangeService } from '../../services/semanticChange.service';
+import { getActivityActorContext } from '../../utils/activityContext';
+import { EntityType } from '../../enums/entityActivity';
+import {
+  snapshotIncidentRoot,
+  snapshotIncidentRootFromBody,
+} from '../../utils/entitySnapshots';
+import {
+  buildIncidentMainEventSnapshot,
+  getIncidentObjectTypeIds,
+} from '../../utils/incidentActivityHelper';
 
 interface UpdateIncidentBody {
   department_id: number;
@@ -117,6 +131,18 @@ export const updateIncident = asyncErrorHandler(
     }
     const additionallyList = Array.isArray(data.additionally) ? data.additionally : [];
 
+    const actor = getActivityActorContext(req);
+    const incidentId = Number(id);
+
+    const existingIncident = await incidentService.getIncident(incidentId);
+    if (!existingIncident) {
+      throw ApiError.notFound('Incident not found');
+    }
+
+    const beforeObjectTypeIds = await getIncidentObjectTypeIds(incidentId);
+    const beforeRootSnapshot = snapshotIncidentRoot(existingIncident, beforeObjectTypeIds);
+    const beforeMainEventSnapshot = await buildIncidentMainEventSnapshot(incidentId);
+
     const result = await sequelize.transaction(async (transaction) => {
       // 1. Обновляем инцидент
       // Для обратной совместимости берем первый элемент из массива или object_type_id
@@ -125,23 +151,27 @@ export const updateIncident = asyncErrorHandler(
         : data.object_type_id;
 
       const incident = await incidentService.updateIncident(
-        Number(id),
-        {
-          department_id: data.department_id,
-          direction: data.direction,
-          object_type_id: object_type_id,
-          is_db: Boolean(data.is_db),
-          description: data.description,
-          source_last_name: data.source_last_name,
-          source_first_name: data.source_first_name,
-          source_middle_name: data.source_middle_name,
-          source_position: data.source_position,
-          detected_damage: data.detected_damage,
-          recovered_damage: data.recovered_damage,
-          prevented_damage: data.prevented_damage,
-          additional_income: data.additional_income,
-          reduced_cost: data.reduced_cost,
-        },
+        incidentId,
+        entityMetaService.applyUpdateMeta(
+          {
+            department_id: data.department_id,
+            direction: data.direction,
+            object_type_id: object_type_id,
+            is_db: Boolean(data.is_db),
+            description: data.description,
+            source_last_name: data.source_last_name,
+            source_first_name: data.source_first_name,
+            source_middle_name: data.source_middle_name,
+            source_position: data.source_position,
+            detected_damage: data.detected_damage,
+            recovered_damage: data.recovered_damage,
+            prevented_damage: data.prevented_damage,
+            additional_income: data.additional_income,
+            reduced_cost: data.reduced_cost,
+            updated_by: actor.actorExternalId ?? undefined,
+          },
+          actor.actorExternalId
+        ),
         { transaction }
       );
 
@@ -337,6 +367,38 @@ export const updateIncident = asyncErrorHandler(
             );
           }
         }
+      }
+
+      const afterRootSnapshot = snapshotIncidentRootFromBody(data as unknown as Record<string, unknown>);
+      await activityBuilderService.recordFromChanges(
+        EntityType.INCIDENT,
+        incidentId,
+        beforeRootSnapshot,
+        afterRootSnapshot,
+        actor,
+        { transaction }
+      );
+
+      const afterMainEventSnapshot = semanticChangeService.snapshotMainEventBlock({
+        event_type_ids: eventTypeIds,
+        sub_type_id: data.event!.sub_type_id,
+        date: data.event!.date,
+        entry_date: data.event!.entry_date,
+      });
+
+      if (
+        semanticChangeService.hasMainEventBlockChanged(
+          beforeMainEventSnapshot,
+          afterMainEventSnapshot
+        )
+      ) {
+        await activityService.record(
+          activityBuilderService.buildMainEventUpdatedActivity(incidentId, actor, {
+            old: beforeMainEventSnapshot,
+            new: afterMainEventSnapshot,
+          }),
+          { transaction }
+        );
       }
 
       return {

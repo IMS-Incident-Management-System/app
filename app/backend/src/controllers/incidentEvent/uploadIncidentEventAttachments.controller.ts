@@ -6,6 +6,10 @@ import {
 import { CustomResponse } from '../../middlewares/responseHandler.middleware';
 import { incidentEventAttachmentService } from '../../services/incidentEventAttachment.service';
 import { incidentEventService } from '../../services/incidentEvent.service';
+import { activityBuilderService } from '../../services/activityBuilder.service';
+import { activityService } from '../../services/activity.service';
+import { getActivityActorContext } from '../../utils/activityContext';
+import { EntityType } from '../../enums/entityActivity';
 import { MulterRequest } from '../../types/multer';
 
 export const uploadIncidentEventAttachments = asyncErrorHandler(
@@ -29,11 +33,30 @@ export const uploadIncidentEventAttachments = asyncErrorHandler(
       throw ApiError.badRequest('Максимальное количество файлов: 10');
     }
 
-    // Сохраняем все файлы
+    const actor = getActivityActorContext(req as unknown as Request);
+    const incidentId = incidentEvent.incident_id;
+
     const attachments = await Promise.all(
-      files.map((file) =>
-        incidentEventAttachmentService.createAttachment(Number(incidentEventId), file)
-      )
+      files.map(async (file) => {
+        const attachment = await incidentEventAttachmentService.createAttachment(
+          Number(incidentEventId),
+          file
+        );
+        await activityService.record(
+          activityBuilderService.buildAttachmentUploaded(
+            EntityType.INCIDENT,
+            incidentId,
+            file.originalname,
+            actor,
+            {
+              attachment_id: attachment.id,
+              parent: 'incident_event',
+              incident_event_id: Number(incidentEventId),
+            }
+          )
+        );
+        return attachment;
+      })
     );
 
     res.success(attachments, 'Файлы успешно загружены');

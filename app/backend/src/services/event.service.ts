@@ -32,6 +32,8 @@ interface CreateEventData {
   reduced_cost?: number;
   prevented_unnecessary_writeoff?: number;
   vat_deducted?: number;
+  created_by?: string;
+  updated_by?: string;
 }
 
 interface UpdateEventData {
@@ -56,6 +58,7 @@ interface UpdateEventData {
   reduced_cost?: number;
   prevented_unnecessary_writeoff?: number;
   vat_deducted?: number;
+  updated_by?: string;
 }
 
 interface GetEventsFilters {
@@ -63,6 +66,7 @@ interface GetEventsFilters {
   date_from?: Date;
   date_to?: Date;
   code?: string;
+  is_db?: boolean;
 }
 
 export const eventService = {
@@ -86,6 +90,9 @@ export const eventService = {
       where.code = {
         [Op.iLike]: `%${escapedCode}%`
       };
+    }
+    if (filters?.is_db !== undefined) {
+      where.is_db = filters.is_db;
     }
 
     const result = await paginate(Event, {
@@ -175,6 +182,7 @@ export const eventService = {
       reduced_cost: data.reduced_cost,
       prevented_unnecessary_writeoff: data.prevented_unnecessary_writeoff,
       vat_deducted: data.vat_deducted,
+      updated_by: data.updated_by,
     }, options);
 
     return await Event.findByPk(id, {

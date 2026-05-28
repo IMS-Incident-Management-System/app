@@ -12,9 +12,12 @@ export const useUpdateOperationalActivity = () => {
   return useMutation(
     ({ data, id }: { data: any; id: number }) => updateOperationalActivity(data, id),
     {
-      onSuccess: () => {
+      onSuccess: (_data, variables) => {
         message.success("Операционная деятельность успешно обновлена");
+        const idKey = variables.id.toString();
         queryClient.invalidateQueries(EQueryKeys.GET_ALL_OPERATIONAL_ACTIVITIES);
+        queryClient.invalidateQueries([EQueryKeys.GET_OPERATIONAL_ACTIVITY, idKey]);
+        queryClient.invalidateQueries(['entityActivity', 'operational-activities', idKey]);
         navigate(ERoutes.OPERATIONAL_ACTIVITIES_LIST);
       },
       onError: () => {

@@ -6,6 +6,11 @@ import {
 import { CustomResponse } from '../../middlewares/responseHandler.middleware';
 import { operationalActivityService } from '../../services/operationalActivity.service';
 import { OperationalActivityDirectionEnum } from '../../enums/operationalActivity';
+import { entityMetaService } from '../../services/entityMeta.service';
+import { activityBuilderService } from '../../services/activityBuilder.service';
+import { getActivityActorContext } from '../../utils/activityContext';
+import { EntityType } from '../../enums/entityActivity';
+import { snapshotOperationalActivityRoot } from '../../utils/entitySnapshots';
 
 interface UpdateOperationalActivityBody {
   department_id?: number;
@@ -29,11 +34,41 @@ export const updateOperationalActivity = asyncErrorHandler(
       }
     }
 
-    const operationalActivity = await operationalActivityService.updateOperationalActivity(Number(id), data);
+    const actor = getActivityActorContext(req);
+    const entityId = Number(id);
+    const existing = await operationalActivityService.getOperationalActivity(entityId);
+    if (!existing) {
+      throw ApiError.notFound('Operational activity not found');
+    }
+
+    const beforeSnapshot = snapshotOperationalActivityRoot(
+      existing.get ? existing.get({ plain: true }) : existing
+    );
+    const updatePayload = entityMetaService.applyUpdateMeta(
+      {
+        ...data,
+        updated_by: actor.actorExternalId ?? undefined,
+      },
+      actor.actorExternalId
+    );
+
+    const operationalActivity = await operationalActivityService.updateOperationalActivity(
+      entityId,
+      updatePayload
+    );
 
     if (!operationalActivity) {
       throw ApiError.notFound('Operational activity not found');
     }
+
+    const afterSnapshot = snapshotOperationalActivityRoot(operationalActivity);
+    await activityBuilderService.recordFromChanges(
+      EntityType.OPERATIONAL_ACTIVITY,
+      entityId,
+      beforeSnapshot,
+      afterSnapshot,
+      actor
+    );
 
     res.success(operationalActivity, 'Operational activity updated successfully');
   }

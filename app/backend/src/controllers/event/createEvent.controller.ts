@@ -8,6 +8,11 @@ import { eventService } from '../../services/event.service';
 import { eventCriminalCaseService } from '../../services/eventCriminalCase.service';
 import { eventPunishmentService } from '../../services/eventPunishment.service';
 import { sequelize } from '../../models';
+import { entityMetaService } from '../../services/entityMeta.service';
+import { activityBuilderService } from '../../services/activityBuilder.service';
+import { getActivityActorContext } from '../../utils/activityContext';
+import { EntityType } from '../../enums/entityActivity';
+import { sendIsDbCreatedEmailAsync } from '../../utils/sendIsDbCreatedEmail';
 
 interface CreateEventBody {
   department_id: number;
@@ -70,10 +75,13 @@ export const createEvent = asyncErrorHandler(
       throw ApiError.badRequest('Missing required fields');
     }
 
+    const actor = getActivityActorContext(req);
+
     const result = await sequelize.transaction(async (transaction) => {
       // 1. Создаем событие
       const event = await eventService.createEvent(
-        {
+        entityMetaService.applyCreateMeta(
+          {
           department_id: data.department_id,
           date: data.date,
           is_service_investigation: Boolean(data.is_service_investigation),
@@ -96,6 +104,15 @@ export const createEvent = asyncErrorHandler(
           prevented_unnecessary_writeoff: data.prevented_unnecessary_writeoff,
           vat_deducted: data.vat_deducted,
         },
+          actor.actorExternalId
+        ),
+        { transaction }
+      );
+
+      await activityBuilderService.recordCreated(
+        EntityType.EVENT,
+        event.id,
+        actor,
         { transaction }
       );
 
@@ -125,6 +142,14 @@ export const createEvent = asyncErrorHandler(
         event,
       };
     });
+
+    if (Boolean(data.is_db)) {
+      sendIsDbCreatedEmailAsync({
+        entityType: 'event',
+        entityId: result.event.id,
+        entityCode: result.event.code,
+      });
+    }
 
     res.created(result, 'Event created successfully');
   }

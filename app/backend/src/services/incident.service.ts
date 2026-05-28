@@ -50,6 +50,7 @@ interface UpdateIncidentData {
   prevented_damage?: number;
   additional_income?: number;
   reduced_cost?: number;
+  updated_by?: string;
 }
 
 interface GetIncidentsFilters {
@@ -60,6 +61,7 @@ interface GetIncidentsFilters {
   date_from?: Date;
   date_to?: Date;
   code?: string;
+  is_db?: boolean;
 }
 
 export const incidentService = {
@@ -81,6 +83,9 @@ export const incidentService = {
       where.code = {
         [Op.iLike]: `%${escapedCode}%`
       };
+    }
+    if (filters?.is_db !== undefined) {
+      where.is_db = filters.is_db;
     }
 
     // Если есть фильтры по событиям (даты или тип события), используем подзапрос
@@ -254,6 +259,7 @@ export const incidentService = {
       prevented_damage: data.prevented_damage,
       additional_income: data.additional_income,
       reduced_cost: data.reduced_cost,
+      updated_by: data.updated_by,
     }, options);
 
 

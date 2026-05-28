@@ -10,6 +10,7 @@ export interface OperationalActivityAttributes {
   code?: string; // Уникальный код операционной деятельности (формат: OA-DDMMYYYY-HHmmss)
   department_id: number;
   created_by?: string; // ID пользователя из Keycloak
+  updated_by?: string;
   period_from: Date; // Период с
   period_to: Date; // Период по
   direction: OperationalActivityDirectionEnum; // Тип (ЭБ, ИБ, БПиО)
@@ -253,6 +254,11 @@ const OperationalActivity = sequelize.define<OperationalActivityInstance>(
       type: DataTypes.STRING,
       allowNull: true,
       comment: 'ID пользователя, создавшего операционную деятельность (из Keycloak)',
+    },
+    updated_by: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Keycloak sub последнего редактора',
     },
     period_from: {
       type: DataTypes.DATEONLY,

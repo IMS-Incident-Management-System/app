@@ -15,6 +15,11 @@ import { criminalCaseService } from '../../services/criminalCase.service';
 import { punishmentService } from '../../services/punishment.service';
 import { sequelize } from '../../models/sequelize';
 import { IncidentObjectType } from '../../models';
+import { entityMetaService } from '../../services/entityMeta.service';
+import { activityBuilderService } from '../../services/activityBuilder.service';
+import { getActivityActorContext } from '../../utils/activityContext';
+import { EntityType } from '../../enums/entityActivity';
+import { sendIsDbCreatedEmailAsync } from '../../utils/sendIsDbCreatedEmail';
 
 interface CreateIncidentBody {
   department_id: number;
@@ -108,6 +113,8 @@ export const createIncident = asyncErrorHandler(
       throw ApiError.badRequest('Missing required fields');
     }
 
+    const actor = getActivityActorContext(req);
+
     const result = await sequelize.transaction(async (transaction) => {
       // 1. Создаем инцидент
       // Для обратной совместимости берем первый элемент из массива или object_type_id
@@ -116,22 +123,32 @@ export const createIncident = asyncErrorHandler(
         : data.object_type_id;
 
       const incident = await incidentService.createIncident(
-        {
-          department_id: data.department_id,
-          direction: data.direction,
-          object_type_id: object_type_id,
-          is_db: Boolean(data.is_db),
-          description: data.description,
-          source_last_name: data.source_last_name,
-          source_first_name: data.source_first_name,
-          source_middle_name: data.source_middle_name,
-          source_position: data.source_position,
-          detected_damage: data.detected_damage,
-          recovered_damage: data.recovered_damage,
-          prevented_damage: data.prevented_damage,
-          additional_income: data.additional_income,
-          reduced_cost: data.reduced_cost,
-        },
+        entityMetaService.applyCreateMeta(
+          {
+            department_id: data.department_id,
+            direction: data.direction,
+            object_type_id: object_type_id,
+            is_db: Boolean(data.is_db),
+            description: data.description,
+            source_last_name: data.source_last_name,
+            source_first_name: data.source_first_name,
+            source_middle_name: data.source_middle_name,
+            source_position: data.source_position,
+            detected_damage: data.detected_damage,
+            recovered_damage: data.recovered_damage,
+            prevented_damage: data.prevented_damage,
+            additional_income: data.additional_income,
+            reduced_cost: data.reduced_cost,
+          },
+          actor.actorExternalId
+        ),
+        { transaction }
+      );
+
+      await activityBuilderService.recordCreated(
+        EntityType.INCIDENT,
+        incident.id,
+        actor,
         { transaction }
       );
 
@@ -275,7 +292,15 @@ export const createIncident = asyncErrorHandler(
 
     // Загружаем полные данные инцидента с attachments после завершения транзакции
     const fullIncident = await incidentService.getIncident(result.incident.id);
-    
+
+    if (Boolean(data.is_db)) {
+      sendIsDbCreatedEmailAsync({
+        entityType: 'incident',
+        entityId: result.incident.id,
+        entityCode: fullIncident?.code ?? result.incident.code,
+      });
+    }
+
     res.created({
       ...result,
       incident: fullIncident,

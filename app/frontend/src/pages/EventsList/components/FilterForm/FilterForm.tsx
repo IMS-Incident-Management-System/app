@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { TEventFilter } from "../../../../interfaces/requests/event";
-import { Button, Card, Form, DatePicker, TreeSelect, Input } from "antd";
+import { Button, Card, Checkbox, Form, DatePicker, TreeSelect, Input } from "antd";
 import styles from "./FilterForm.module.scss";
 import dayjs from "dayjs";
 import { useGetDepartments } from "../../../../services/requests/departments/getDepartments";
@@ -30,6 +30,7 @@ export const FilterForm = ({
     const values = form.getFieldsValue();
 
     onFilter({
+      code: values.code,
       department_id: values.department_id,
       date_from: values.date_from
         ? values.date_from.format("YYYY-MM-DD")
@@ -37,6 +38,7 @@ export const FilterForm = ({
       date_to: values.date_to
         ? values.date_to.format("YYYY-MM-DD")
         : undefined,
+      is_db: values.is_db === true ? true : undefined,
     });
   };
 
@@ -91,6 +93,10 @@ export const FilterForm = ({
               placeholder="Дата до"
               style={{ width: "100%" }}
             />
+          </Form.Item>
+
+          <Form.Item name="is_db" valuePropName="checked" className={styles.dbFilter}>
+            <Checkbox>Особо важно (1ДБ)</Checkbox>
           </Form.Item>
         </div>
 

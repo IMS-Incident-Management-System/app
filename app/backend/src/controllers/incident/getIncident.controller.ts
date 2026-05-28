@@ -5,6 +5,7 @@ import {
 } from '../../middlewares/errorHandler.middleware';
 import { CustomResponse } from '../../middlewares/responseHandler.middleware';
 import { incidentService } from '../../services/incident.service';
+import { entityMetaService } from '../../services/entityMeta.service';
 import { userHasAnyPermission } from '../../services/permission.service';
 import { Permission } from '../../enums/permissions';
 
@@ -25,6 +26,9 @@ export const getIncident = asyncErrorHandler(
       (incident as any).additionally = [];
     }
 
-    res.success(incident, 'Incident retrieved successfully');
+    const meta = await entityMetaService.buildMetaDto(incident);
+    const payload = incident ? { ...(incident.toJSON?.() ?? incident), meta } : incident;
+
+    res.success(payload, 'Incident retrieved successfully');
   }
 );

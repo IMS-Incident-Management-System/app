@@ -1,7 +1,7 @@
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { Card, Typography, Spin, Row, Col, Tag, Descriptions } from "antd";
+import { Card, Typography, Spin, Row, Col, Tag, Descriptions, Tabs } from "antd";
 import { ArrowLeftOutlined, EditOutlined } from "@ant-design/icons";
 import { useGetEvent } from "../../services/requests/events/getEvent";
 import { ERoutes } from "../../enums/routes";
@@ -9,6 +9,8 @@ import dayjs from "dayjs";
 import styles from "./EventView.module.scss";
 import { PrimaryButton } from "../../components/PrimaryButton";
 import { selectCanUpdateEvent } from "../../store/features/permissions/selectors";
+import { EntityMetaHeader } from "../../components/EntityMetaHeader/EntityMetaHeader";
+import { EntityActivityTimeline } from "../../components/EntityActivityTimeline/EntityActivityTimeline";
 
 const { Title, Text } = Typography;
 
@@ -73,6 +75,15 @@ export const EventView = () => {
           </div>
         </div>
 
+        <EntityMetaHeader meta={event.meta} />
+
+        <Tabs
+          defaultActiveKey="overview"
+          items={[
+            {
+              key: "overview",
+              label: "Обзор",
+              children: (
         <div className={styles.content}>
           {/* Основная информация */}
           <Card title="Основная информация" className={styles.sectionCard}>
@@ -461,6 +472,17 @@ export const EventView = () => {
             </Card>
           )}
         </div>
+              ),
+            },
+            {
+              key: "history",
+              label: "История",
+              children: (
+                <EntityActivityTimeline resource="events" entityId={id} />
+              ),
+            },
+          ]}
+        />
       </Card>
     </div>
   );

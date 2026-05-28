@@ -1,7 +1,7 @@
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { Card, Typography, Spin, Space, Divider, Row, Col, Tag, Descriptions } from "antd";
+import { Card, Typography, Spin, Space, Divider, Row, Col, Tag, Descriptions, Tabs } from "antd";
 import { ArrowLeftOutlined, EditOutlined, FileTextOutlined } from "@ant-design/icons";
 import { useGetIncident } from "../../services/requests/initiators/getIncident";
 import { ERoutes } from "../../enums/routes";
@@ -12,6 +12,8 @@ import { IncidentEventAttachmentsView } from "../IncidentProvider/components/Inc
 import { IncidentAttachmentsView } from "../IncidentProvider/components/IncidentAttachments/IncidentAttachmentsView";
 import { PrimaryButton } from "../../components/PrimaryButton";
 import { selectCanUpdateIncident, selectCanIncidentAttachments, selectCanReadAdditionally } from "../../store/features/permissions/selectors";
+import { EntityMetaHeader } from "../../components/EntityMetaHeader/EntityMetaHeader";
+import { EntityActivityTimeline } from "../../components/EntityActivityTimeline/EntityActivityTimeline";
 
 const { Title, Text } = Typography;
 
@@ -112,6 +114,15 @@ export const IncidentView = () => {
           </div>
         </div>
 
+        <EntityMetaHeader meta={incident.meta} />
+
+        <Tabs
+          defaultActiveKey="overview"
+          items={[
+            {
+              key: "overview",
+              label: "Обзор",
+              children: (
         <div className={styles.content}>
           {/* Основная информация */}
           <Card title="Основная информация" className={styles.sectionCard}>
@@ -734,6 +745,17 @@ export const IncidentView = () => {
             </Card>
           )}
         </div>
+              ),
+            },
+            {
+              key: "history",
+              label: "История",
+              children: (
+                <EntityActivityTimeline resource="incidents" entityId={id} />
+              ),
+            },
+          ]}
+        />
       </Card>
     </div>
   );

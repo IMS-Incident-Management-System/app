@@ -28,7 +28,10 @@ export const useCreateOperationalActivity = (onSuccess?: () => void) => {
           (data as any)?.data?.id;
 
         if (createdId) {
-          const target = ERoutes.OPERATIONAL_ACTIVITY_VIEW_ID.replace(':id', createdId.toString());
+          const idKey = createdId.toString();
+          queryClient.invalidateQueries(['entityActivity', 'operational-activities', idKey]);
+          queryClient.invalidateQueries([EQueryKeys.GET_OPERATIONAL_ACTIVITY, idKey]);
+          const target = ERoutes.OPERATIONAL_ACTIVITY_VIEW_ID.replace(':id', idKey);
           console.log('Redirecting to operational activity view:', target);
           navigate(target);
         } else {

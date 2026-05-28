@@ -5,6 +5,7 @@ import {
 } from '../../middlewares/errorHandler.middleware';
 import { CustomResponse } from '../../middlewares/responseHandler.middleware';
 import { operationalActivityService } from '../../services/operationalActivity.service';
+import { entityMetaService } from '../../services/entityMeta.service';
 
 export const getOperationalActivity = asyncErrorHandler(
   async (req: Request, res: CustomResponse) => {
@@ -15,7 +16,9 @@ export const getOperationalActivity = asyncErrorHandler(
       throw ApiError.notFound('Operational activity not found');
     }
 
-    res.success(operationalActivity, 'Operational activity retrieved successfully');
+    const meta = await entityMetaService.buildMetaDto(operationalActivity);
+    const payload = { ...(operationalActivity.toJSON?.() ?? operationalActivity), meta };
+    res.success(payload, 'Operational activity retrieved successfully');
   }
 );
 

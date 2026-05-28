@@ -6,6 +6,10 @@ import {
 import { CustomResponse } from '../../middlewares/responseHandler.middleware';
 import { operationalActivityService } from '../../services/operationalActivity.service';
 import { OperationalActivityDirectionEnum } from '../../enums/operationalActivity';
+import { entityMetaService } from '../../services/entityMeta.service';
+import { activityBuilderService } from '../../services/activityBuilder.service';
+import { getActivityActorContext } from '../../utils/activityContext';
+import { EntityType } from '../../enums/entityActivity';
 
 interface CreateOperationalActivityBody {
   department_id: number;
@@ -19,7 +23,7 @@ interface CreateOperationalActivityBody {
 export const createOperationalActivity = asyncErrorHandler(
   async (req: Request, res: CustomResponse) => {
     const data = req.body as CreateOperationalActivityBody;
-    const user = (req as any).user; // Данные пользователя из middleware
+    const actor = getActivityActorContext(req);
 
     if (!data.department_id || !data.period_from || !data.period_to || !data.direction) {
       throw ApiError.badRequest('Missing required fields: department_id, period_from, period_to, direction');
@@ -31,11 +35,21 @@ export const createOperationalActivity = asyncErrorHandler(
       throw ApiError.badRequest('Department not found');
     }
 
-    // Создаем операционную деятельность с ID пользователя
-    const operationalActivity = await operationalActivityService.createOperationalActivity({
-      ...data,
-      created_by: user?.sub || user?.preferred_username || undefined,
-    });
+    const operationalActivity = await operationalActivityService.createOperationalActivity(
+      entityMetaService.applyCreateMeta(
+        {
+          ...data,
+          created_by: actor.actorExternalId ?? undefined,
+        },
+        actor.actorExternalId
+      )
+    );
+
+    await activityBuilderService.recordCreated(
+      EntityType.OPERATIONAL_ACTIVITY,
+      operationalActivity.id,
+      actor
+    );
 
     res.created(operationalActivity, 'Operational activity created successfully');
   }

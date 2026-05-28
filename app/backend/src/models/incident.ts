@@ -33,6 +33,10 @@ export interface IncidentAttributes {
   prevented_damage?: number; // Предотвращен ущерб (руб.)
   additional_income?: number; // Получен дополнительный доход (руб.)
   reduced_cost?: number; // Снижена стоимость товаров, работ и услуг на сумму (руб.)
+  created_by?: string;
+  updated_by?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface IncidentWithRelations extends IncidentAttributes {
@@ -152,6 +156,16 @@ const Incident = sequelize.define<IncidentInstance>(
       allowNull: true,
       defaultValue: 0,
       comment: 'Снижена стоимость товаров, работ и услуг на сумму (руб.)'
+    },
+    created_by: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Keycloak sub создателя',
+    },
+    updated_by: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Keycloak sub последнего редактора',
     },
   },
   {

@@ -5,6 +5,7 @@ import {
 } from '../../middlewares/errorHandler.middleware';
 import { CustomResponse } from '../../middlewares/responseHandler.middleware';
 import { eventService } from '../../services/event.service';
+import { entityMetaService } from '../../services/entityMeta.service';
 
 export const getEvent = asyncErrorHandler(
   async (req: Request, res: CustomResponse) => {
@@ -15,7 +16,9 @@ export const getEvent = asyncErrorHandler(
       throw ApiError.notFound('Event not found');
     }
 
-    res.success(event, 'Event retrieved successfully');
+    const meta = await entityMetaService.buildMetaDto(event);
+    const payload = { ...(event.toJSON?.() ?? event), meta };
+    res.success(payload, 'Event retrieved successfully');
   }
 );
 

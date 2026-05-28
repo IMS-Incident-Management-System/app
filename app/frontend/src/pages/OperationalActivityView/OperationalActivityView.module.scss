@@ -1,20 +1,15 @@
 .container {
   padding: 24px;
-  max-width: 1400px;
+  max-width: 1200px;
   margin: 0 auto;
-  background: #f5f5f5;
-  min-height: 100vh;
 }
 
 .mainCard {
-  border-radius: 16px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
-  border: none;
-  overflow: hidden;
-  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 
   :global(.ant-card-body) {
-    padding: 0;
+    padding: 32px;
   }
 }
 
@@ -26,10 +21,19 @@
 }
 
 .header {
-  padding: 32px;
-  background: white;
-  border-bottom: 2px solid #f0f0f0;
+  margin-bottom: 24px;
 }
+
+.metaWrap {
+  margin-bottom: 24px;
+}
+
+.tabs {
+  :global(.ant-tabs-nav) {
+    margin-bottom: 24px;
+  }
+}
+
 
 .headerTop {
   display: flex;
@@ -97,7 +101,6 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
-  padding: 32px;
 }
 
 .sectionCard {
@@ -240,10 +243,6 @@
     padding: 16px;
   }
 
-  .header {
-    padding: 24px 20px;
-  }
-
   .headerTop {
     flex-direction: column;
     align-items: flex-start;
@@ -260,8 +259,10 @@
     }
   }
 
-  .content {
-    padding: 24px 20px;
+  .mainCard {
+    :global(.ant-card-body) {
+      padding: 24px 20px;
+    }
   }
 
   .sectionCard {
@@ -280,12 +281,10 @@
     padding: 12px;
   }
 
-  .header {
-    padding: 20px 16px;
-  }
-
-  .content {
-    padding: 20px 16px;
+  .mainCard {
+    :global(.ant-card-body) {
+      padding: 20px 16px;
+    }
   }
 
   .title {

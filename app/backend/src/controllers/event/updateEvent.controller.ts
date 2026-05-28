@@ -8,6 +8,11 @@ import { eventService } from '../../services/event.service';
 import { eventCriminalCaseService } from '../../services/eventCriminalCase.service';
 import { eventPunishmentService } from '../../services/eventPunishment.service';
 import { sequelize } from '../../models';
+import { entityMetaService } from '../../services/entityMeta.service';
+import { activityBuilderService } from '../../services/activityBuilder.service';
+import { getActivityActorContext } from '../../utils/activityContext';
+import { EntityType } from '../../enums/entityActivity';
+import { snapshotEventRoot } from '../../utils/entitySnapshots';
 
 interface UpdateEventBody {
   department_id: number;
@@ -71,11 +76,20 @@ export const updateEvent = asyncErrorHandler(
       throw ApiError.badRequest('Missing required fields');
     }
 
+    const actor = getActivityActorContext(req);
+    const eventId = Number(id);
+    const existingEvent = await eventService.getEvent(eventId);
+    if (!existingEvent) {
+      throw ApiError.notFound('Event not found');
+    }
+    const beforeSnapshot = snapshotEventRoot(existingEvent);
+
     const result = await sequelize.transaction(async (transaction) => {
       // 1. Обновляем событие
       const event = await eventService.updateEvent(
-        Number(id),
-        {
+        eventId,
+        entityMetaService.applyUpdateMeta(
+          {
           department_id: data.department_id,
           date: data.date,
           is_service_investigation: Boolean(data.is_service_investigation),
@@ -97,13 +111,26 @@ export const updateEvent = asyncErrorHandler(
           reduced_cost: data.reduced_cost,
           prevented_unnecessary_writeoff: data.prevented_unnecessary_writeoff,
           vat_deducted: data.vat_deducted,
+          updated_by: actor.actorExternalId ?? undefined,
         },
+          actor.actorExternalId
+        ),
         { transaction }
       );
 
       if (!event) {
         throw ApiError.notFound('Event not found');
       }
+
+      const afterSnapshot = snapshotEventRoot(data as unknown as Record<string, unknown>);
+      await activityBuilderService.recordFromChanges(
+        EntityType.EVENT,
+        eventId,
+        beforeSnapshot,
+        afterSnapshot,
+        actor,
+        { transaction }
+      );
 
       // 2. Удаляем старые criminal_case и punishment, создаем новые
       await eventCriminalCaseService.deleteEventCriminalCaseByEventId(Number(id), { transaction });

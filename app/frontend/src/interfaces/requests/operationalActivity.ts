@@ -1,6 +1,7 @@
 import {
   EOperationalActivityDirection,
 } from "../../enums/operationalActivity";
+import { EntityMeta } from "../activity";
 
 // Фильтры для списка операционной деятельности
 export type TOperationalActivityFilter = Partial<{
@@ -234,6 +235,7 @@ export interface OperationalActivityDepartmentAttributes {
 // Операционная деятельность со связями
 export interface OperationalActivityWithRelations extends OperationalActivityAttributes {
   department?: OperationalActivityDepartmentAttributes;
+  meta?: EntityMeta | null;
 }
 
 // Тело запроса для создания/обновления операционной деятельности

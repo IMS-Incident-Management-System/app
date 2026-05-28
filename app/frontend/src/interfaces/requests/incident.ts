@@ -3,6 +3,7 @@ import { IncidentEventWithRelations } from "./incidentEvent";
 import { ObjectAttributes } from "./object";
 import { AdditionallyAttributes } from "./additionally";
 import { AdditionallyPersonAttributes } from "./additionallyPerson";
+import { EntityMeta } from "../activity";
 
 export type TIncidentFilter = Partial<{
   department_id: number;
@@ -12,6 +13,7 @@ export type TIncidentFilter = Partial<{
   date_from: string;
   date_to: string;
   code?: string;
+  is_db?: boolean;
 }>;
 
 export interface IncidentAttributes {
@@ -41,6 +43,7 @@ export interface IncidentDepartmentAttributes {
 }
 
 export interface IncidentWithRelations extends IncidentAttributes {
+  meta?: EntityMeta | null;
   department?: IncidentDepartmentAttributes;
   object?: ObjectAttributes;
   object_type?: { title: string; object_type_id: number }; // Для обратной совместимости

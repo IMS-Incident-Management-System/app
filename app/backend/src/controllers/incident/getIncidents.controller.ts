@@ -17,7 +17,8 @@ export const getIncidents = asyncErrorHandler(
       req.query.event_type_id ||
       req.query.date_from ||
       req.query.date_to ||
-      req.query.code
+      req.query.code ||
+      req.query.is_db !== undefined
         ? {
             department_id: req.query.department_id
               ? Number(req.query.department_id)
@@ -38,10 +39,12 @@ export const getIncidents = asyncErrorHandler(
             code: req.query.code
               ? String(req.query.code)
               : undefined,
+            is_db:
+              req.query.is_db !== undefined
+                ? String(req.query.is_db) === 'true'
+                : undefined,
           }
         : undefined;
-
-    console.log(filters);
 
     const { incidents, total } = await incidentService.getIncidents({
       filters,

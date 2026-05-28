@@ -2,4 +2,29 @@
   margin-top: 24px;
 }
 
+.actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+@media (max-width: 580px) {
+  .actions {
+    gap: 4px;
+
+    :global(.ant-btn) {
+      width: 32px;
+      height: 32px;
+      min-width: 32px;
+      padding: 0;
+
+      :global(.anticon) {
+        font-size: 14px;
+      }
+    }
+  }
+}
+
 

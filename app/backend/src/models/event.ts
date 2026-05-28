@@ -30,6 +30,8 @@ export interface EventAttributes {
   reduced_cost?: number; // Снижена стоимость товаров, работ и услуг на сумму (руб.)
   prevented_unnecessary_writeoff?: number; // Предотвращено необ. списание ДЗ, руб.
   vat_deducted?: number; // Принят к вычету НДС, руб.
+  created_by?: string;
+  updated_by?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -185,6 +187,16 @@ const Event = sequelize.define<EventInstance>(
       allowNull: true,
       defaultValue: 0,
       comment: 'Принят к вычету НДС, руб.',
+    },
+    created_by: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Keycloak sub создателя',
+    },
+    updated_by: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Keycloak sub последнего редактора',
     },
   },
   {
