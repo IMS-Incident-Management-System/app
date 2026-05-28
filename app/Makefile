@@ -3,9 +3,16 @@
 # По умолчанию показываем help
 .DEFAULT_GOAL := help
 
+# docker compose (v2 plugin) или legacy docker-compose — на сервере часто только второе
+ifeq ($(shell docker compose version >/dev/null 2>&1 && echo ok),ok)
+  COMPOSE := docker compose
+else
+  COMPOSE := docker-compose
+endif
+
 # Переменные из .env (setup-*-env копирует .env.development / .env.production → .env)
-COMPOSE_DEV = docker compose
-COMPOSE_PROD = docker compose -f docker-compose.yaml -f docker-compose.prod.yaml
+COMPOSE_DEV = $(COMPOSE)
+COMPOSE_PROD = $(COMPOSE) -f docker-compose.yaml -f docker-compose.prod.yaml
 
 help: ## Показать справку по доступным командам
 	@echo "Доступные команды:"

@@ -73,5 +73,9 @@ jobs:
              rm -rf node_modules; \
              cd ..; \
              echo '=== Step 4: Start all services ==='; \
-             docker compose up -d --build; \
+             if docker compose version >/dev/null 2>&1; then \
+               docker compose up -d --build; \
+             else \
+               docker-compose up -d --build; \
+             fi; \
              echo 'Deployment completed successfully!'"
