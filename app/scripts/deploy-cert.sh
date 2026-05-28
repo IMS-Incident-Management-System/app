@@ -56,7 +56,7 @@ if [[ "$MODE" != "development" ]]; then
     echo "[INFO] Сертификаты не найдены → initial issuance в режиме init"
 
     echo "[INFO] Запуск nginx (init)..."
-    NODE_ENV=init docker compose --env-file "$ENV_FILE" up -d "$NGINX_CONTAINER_NAME"
+    NODE_ENV=init docker compose up -d "$NGINX_CONTAINER_NAME"
 
     echo "[INFO] Ждём, пока nginx отдаёт /.well-known/acme-challenge/…"
     until [ "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1/.well-known/acme-challenge/healthcheck)" = "404" ]; do
@@ -87,9 +87,9 @@ fi
 
 echo "[INFO] Перезапуск nginx в режиме $MODE..."
 
-docker compose --env-file "$ENV_FILE" down
+docker compose down
 
-NODE_ENV=$MODE docker compose --env-file "$ENV_FILE" up -d "$NGINX_CONTAINER_NAME"
+NODE_ENV=$MODE docker compose up -d "$NGINX_CONTAINER_NAME"
 
 ######################################
 # Настройка cron-задачи для renew (только не dev)

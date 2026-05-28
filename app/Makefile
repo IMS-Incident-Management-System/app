@@ -3,8 +3,9 @@
 # По умолчанию показываем help
 .DEFAULT_GOAL := help
 
-COMPOSE_DEV = docker compose --env-file .env.development
-COMPOSE_PROD = docker compose --env-file .env.production -f docker-compose.yaml -f docker-compose.prod.yaml
+# Переменные из .env (setup-*-env копирует .env.development / .env.production → .env)
+COMPOSE_DEV = docker compose
+COMPOSE_PROD = docker compose -f docker-compose.yaml -f docker-compose.prod.yaml
 
 help: ## Показать справку по доступным командам
 	@echo "Доступные команды:"
