@@ -8,6 +8,7 @@
 |--|----------|------------|
 | Команда | `make dev` | `make prod` |
 | Env | `.env.development` | `.env.production` (из example) |
+| npm (backend/frontend build) | публичный registry.npmjs.org | `NPM_REGISTRY` → Nexus (`nexus-cache.services.mts.ru`) |
 | Keycloak | `quay.io`, `start-dev` | `quay.services.mts.ru`, `/auth` за nginx |
 | Frontend | `localhost:8087` | `0000pamkiiavdb.msk.mts.ru` |
 

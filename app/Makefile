@@ -43,6 +43,11 @@ prod-no-build: setup-prod-env build-fe-prod ## Запустить production о�
 
 build-fe-prod: setup-prod-env ## Собрать frontend для production (dist/)
 	@echo "🎨 Сборка frontend для production..."
+	@set -a && . ./.env && set +a && \
+	if [ -n "$${NPM_REGISTRY:-}" ]; then \
+		echo "npm registry: $${NPM_REGISTRY}"; \
+		cd frontend && npm config set registry "$${NPM_REGISTRY}" && npm config set strict-ssl false; \
+	fi && \
 	cd frontend && npm run build
 	@echo "✅ Frontend собран в frontend/dist"
 

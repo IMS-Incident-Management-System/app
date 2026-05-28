@@ -41,6 +41,7 @@ jobs:
              else \
                echo '.env already exists'; \
              fi; \
+             grep -q '^NPM_REGISTRY=' .env 2>/dev/null || echo 'NPM_REGISTRY=https://nexus-cache.services.mts.ru/repository/npm-all/' >> .env; \
              echo '=== Step 2: Run deploy-cert.sh ==='; \
              if [ -f scripts/deploy-cert.sh ]; then \
                chmod +x scripts/deploy-cert.sh; \
@@ -61,6 +62,11 @@ jobs:
              echo 'REACT_APP_PROD_URL_BACKEND=https://ims-mts.ru/api' >> .env; \
              echo 'Frontend .env created:'; \
              cat .env; \
+             NPM_REG=$$(grep -E '^NPM_REGISTRY=' ../.env 2>/dev/null | cut -d= -f2- | tr -d '\"'); \
+             if [ -z \"$$NPM_REG\" ]; then NPM_REG='https://nexus-cache.services.mts.ru/repository/npm-all/'; fi; \
+             echo \"Using npm registry: $$NPM_REG\"; \
+             npm config set registry \"$$NPM_REG\"; \
+             npm config set strict-ssl false; \
              npm install; \
              npm run build; \
              echo 'Cleaning up node_modules after build...'; \
