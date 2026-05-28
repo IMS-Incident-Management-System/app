@@ -47,11 +47,13 @@ make deploy-certs
 
 ## Env generator (опционально)
 
-```bash
-docker compose --profile ims-env-generator up ims-env-generator
-```
+Не входит в `make dev` / `make prod`. Отдельный compose-файл:
 
-Требует `.env-files/.env-generator.env` с доступом к Vault.
+```bash
+# создать .env-files/.env-generator.env с доступом к Vault
+docker compose -f docker-compose.yaml -f docker-compose.env-generator.yaml up ims-env-generator
+# или: docker-compose -f docker-compose.yaml -f docker-compose.env-generator.yaml up ims-env-generator
+```
 
 восстановление из бэкапа базы:
 

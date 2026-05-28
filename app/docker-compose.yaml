@@ -1,13 +1,4 @@
 services:
-  ims-env-generator:
-    profiles: ["ims-env-generator"]
-    image: nexus.code-generation.ru/docker-company-artifacts/env-generator:latest
-    env_file:
-      - ./.env-files/.env-generator.env
-    volumes:
-      - ./.env:/app/config/.env
-    restart: "no"
-
   ims-nginx:
     image: nginx:alpine
     container_name: ${NGINX_CONTAINER_NAME}
