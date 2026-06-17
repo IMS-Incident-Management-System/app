@@ -5,7 +5,7 @@ let transporter: Transporter | null = null;
 let transporterConfigKey: string | null = null;
 
 function buildConfigKey(config: MailConfig): string {
-  return `${config.smtp.host}:${config.smtp.port}:${config.smtp.user}:${config.smtp.secure}`;
+  return `${config.smtp.host}:${config.smtp.port}:${config.smtp.user}:${config.smtp.secure}:${config.smtp.tlsRejectUnauthorized}`;
 }
 
 export function getMailTransporter(config: MailConfig = getMailConfig()): Transporter | null {
@@ -32,6 +32,7 @@ export function getMailTransporter(config: MailConfig = getMailConfig()): Transp
     tls: {
       minVersion: 'TLSv1.2',
       servername: config.smtp.host,
+      rejectUnauthorized: config.smtp.tlsRejectUnauthorized,
     },
   });
 

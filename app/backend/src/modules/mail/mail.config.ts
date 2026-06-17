@@ -4,6 +4,7 @@ export interface MailConfig {
     host: string;
     port: number;
     secure: boolean;
+    tlsRejectUnauthorized: boolean;
     user: string;
     password: string;
   };
@@ -56,6 +57,7 @@ export function getMailConfig(): MailConfig {
       host: process.env.MAIL_SMTP_HOST?.trim() || 'smtp.yandex.ru',
       port: resolvedPort,
       secure,
+      tlsRejectUnauthorized: parseBoolean(process.env.MAIL_SMTP_TLS_REJECT_UNAUTHORIZED, true),
       user,
       password,
     },

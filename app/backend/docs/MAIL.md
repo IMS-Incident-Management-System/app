@@ -30,6 +30,20 @@ APP_PUBLIC_URL=http://localhost:8026
    MAIL_SMTP_SECURE=false
    ```
 
+### Корпоративный SMTP (например `smtp.inside.mts.ru`)
+
+Внутренние серверы часто отдают самоподписанный или корпоративный сертификат, которого нет в trust store контейнера Node.js. Ошибка в логе: `self signed certificate` / `DEPTH_ZERO_SELF_SIGNED_CERT`.
+
+```env
+MAIL_SMTP_HOST=smtp.inside.mts.ru
+MAIL_SMTP_PORT=587
+MAIL_SMTP_SECURE=false
+MAIL_SMTP_TLS_REJECT_UNAUTHORIZED=false
+```
+
+Порт и `MAIL_SMTP_SECURE` уточните у админов почты (часто 587 + STARTTLS или 465 + SSL).  
+`MAIL_SMTP_TLS_REJECT_UNAUTHORIZED=false` отключает проверку цепочки сертификата — используйте только для доверенных внутренних SMTP внутри сети. Более безопасный вариант — добавить корпоративный CA в образ Docker.
+
 ## Поведение
 
 При создании **инцидента** или **события** с галочкой «Особо важно (1ДБ)» отправляется письмо:
