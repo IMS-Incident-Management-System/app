@@ -3,6 +3,10 @@ import { asyncErrorHandler } from '../middlewares/errorHandler.middleware';
 import { CustomResponse } from '../middlewares/responseHandler.middleware';
 import { reportService } from '../services/report.service';
 import { REPORT_FIELDS } from '../constants/reportFields';
+import { reportImportService } from '../services/reportImport.service';
+import { MulterRequest } from '../types/multer';
+import { REPORT_TYPE_RP053_MATRIX } from '../models/reportImportBatch';
+import fs from 'fs';
 
 // Хранилище активных запросов для отмены предыдущих при поступлении новых
 interface ActiveRequest {
@@ -82,7 +86,11 @@ export const reportController = {
    * key — идентификатор для API (r1..r160), label — название показателя.
    */
   getAvailableFields: asyncErrorHandler(async (req: Request, res: CustomResponse) => {
-    const fields = REPORT_FIELDS.map((def) => ({ key: def.key, label: def.label }));
+    const fields = REPORT_FIELDS.map((def) => ({
+      key: def.key,
+      metricKey: def.metricKey,
+      label: def.label,
+    }));
     res.success(fields, 'Available fields retrieved successfully');
   }),
 
@@ -262,7 +270,7 @@ export const reportController = {
   getReportTable: asyncErrorHandler(async (req: Request, res: CustomResponse) => {
     console.log('[getReportTable] Request started', { dateFrom: req.body.dateFrom, dateTo: req.body.dateTo });
     
-    const { dateFrom, dateTo, departmentIds, page = 1, limit = 50 } = req.body;
+    const { dateFrom, dateTo, departmentIds, page = 1, limit = 50, dataSource = 'live', reportType } = req.body;
 
     if (!dateFrom || !dateTo) {
       return res.status(400).json({
@@ -271,12 +279,19 @@ export const reportController = {
       });
     }
 
+    if (dataSource !== 'live' && dataSource !== 'imported') {
+      return res.status(400).json({
+        success: false,
+        message: 'dataSource должен быть live или imported',
+      });
+    }
+
     const ids = Array.isArray(departmentIds) && departmentIds.length > 0
       ? departmentIds.map((id: any) => Number(id))
       : [];
 
     // Генерируем ключ для этого запроса
-    const requestKey = getRequestKey(dateFrom, dateTo, ids, Number(page), Number(limit));
+    const requestKey = getRequestKey(dateFrom, dateTo, ids, Number(page), Number(limit)) + `_${dataSource}`;
     
     // Отменяем ВСЕ предыдущие активные запросы ДО начала обработки нового
     // Это гарантирует, что старые запросы не будут продолжаться параллельно
@@ -339,6 +354,8 @@ export const reportController = {
         page: Number(page),
         limit: Number(limit),
         abortSignal: abortController?.signal,
+        dataSource: dataSource === 'imported' ? 'imported' : 'live',
+        reportType,
       });
 
       // Удаляем запрос из активных после успешного завершения
@@ -395,7 +412,7 @@ export const reportController = {
    * Выгрузка выбранного разреза в Excel
    */
   exportReport: asyncErrorHandler(async (req: Request, res: CustomResponse) => {
-    const { dateFrom, dateTo, departmentIds, fieldKeys } = req.body;
+    const { dateFrom, dateTo, departmentIds, fieldKeys, dataSource = 'live', reportType } = req.body;
 
     if (!dateFrom || !dateTo || !departmentIds || !Array.isArray(departmentIds) || !fieldKeys || !Array.isArray(fieldKeys)) {
       return res.status(400).json({
@@ -409,6 +426,8 @@ export const reportController = {
       dateTo: new Date(dateTo),
       departmentIds: departmentIds.map((id: any) => Number(id)),
       fieldKeys: fieldKeys,
+      dataSource: dataSource === 'imported' ? 'imported' : 'live',
+      reportType,
     });
 
     const monthNames = [
@@ -436,7 +455,14 @@ export const reportController = {
    * Выгрузка дашборда в Excel (график по месяцам + круговые по показателям)
    */
   exportDashboard: asyncErrorHandler(async (req: Request, res: CustomResponse) => {
-    const { dateFrom, dateTo, departmentIds, fieldKeys } = req.body;
+    const { dateFrom, dateTo, departmentIds, fieldKeys, dataSource = 'live' } = req.body;
+
+    if (dataSource === 'imported') {
+      return res.status(400).json({
+        success: false,
+        message: 'Дашборд для архивных отчётов недоступен',
+      });
+    }
 
     if (!dateFrom || !dateTo || !departmentIds || !Array.isArray(departmentIds) || !fieldKeys || !Array.isArray(fieldKeys)) {
       return res.status(400).json({
@@ -450,6 +476,7 @@ export const reportController = {
       dateTo: new Date(dateTo),
       departmentIds: departmentIds.map((id: unknown) => Number(id)),
       fieldKeys: fieldKeys,
+      dataSource: 'live',
     });
 
     const now = new Date();
@@ -464,5 +491,90 @@ export const reportController = {
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(fileName)}"`);
     res.send(buffer);
+  }),
+
+  listImports: asyncErrorHandler(async (req: Request, res: CustomResponse) => {
+    const { reportType, periodFrom, periodTo, status } = req.query;
+    const batches = await reportImportService.listBatches({
+      reportType: typeof reportType === 'string' ? reportType : undefined,
+      periodFrom: typeof periodFrom === 'string' ? periodFrom : undefined,
+      periodTo: typeof periodTo === 'string' ? periodTo : undefined,
+      status: typeof status === 'string' ? status : undefined,
+    });
+    res.success(batches, 'Report imports retrieved successfully');
+  }),
+
+  uploadImport: asyncErrorHandler(async (req: Request, res: CustomResponse) => {
+    const mreq = req as MulterRequest;
+    const file = mreq.file;
+    if (!file) {
+      return res.status(400).json({ success: false, message: 'Необходимо загрузить файл Excel (.xlsx)' });
+    }
+
+    if (!file.path) {
+      return res.status(400).json({ success: false, message: 'Файл не сохранён на диск' });
+    }
+
+    const periodFrom = (req.body.periodFrom || req.body.period_from) as string | undefined;
+    const periodTo = (req.body.periodTo || req.body.period_to) as string | undefined;
+    const reportType = (req.body.reportType || req.body.report_type || REPORT_TYPE_RP053_MATRIX) as string;
+
+    const uploadedBy = (req as Request & { user?: { sub?: string } }).user?.sub ?? null;
+
+    try {
+      const batch = await reportImportService.importExcel({
+        filePath: file.path,
+        originalName: file.originalname || 'report.xlsx',
+        periodFrom: periodFrom || null,
+        periodTo: periodTo || null,
+        reportType,
+        uploadedBy,
+      });
+      // temp multer file can be removed if we copied it
+      if (fs.existsSync(file.path) && batch.storage_path !== file.path) {
+        try {
+          fs.unlinkSync(file.path);
+        } catch {
+          /* ignore */
+        }
+      }
+      const periodHint =
+        batch.period_from && batch.period_to
+          ? ` (период ${String(batch.period_from).slice(0, 10)} — ${String(batch.period_to).slice(0, 10)})`
+          : '';
+      res.success(
+        batch,
+        batch.status === 'active'
+          ? `Отчёт импортирован${periodHint}`
+          : `Импорт завершился с ошибкой${periodHint}`
+      );
+    } catch (err) {
+      if (file.path && fs.existsSync(file.path)) {
+        try {
+          fs.unlinkSync(file.path);
+        } catch {
+          /* ignore */
+        }
+      }
+      throw err;
+    }
+  }),
+
+  activateImport: asyncErrorHandler(async (req: Request, res: CustomResponse) => {
+    const id = Number(req.params.id);
+    if (!id) {
+      return res.status(400).json({ success: false, message: 'Некорректный id' });
+    }
+    const batch = await reportImportService.activateBatch(id);
+    res.success(batch, 'Батч активирован');
+  }),
+
+  deleteImport: asyncErrorHandler(async (req: Request, res: CustomResponse) => {
+    const id = Number(req.params.id);
+    if (!id) {
+      return res.status(400).json({ success: false, message: 'Некорректный id' });
+    }
+    await reportImportService.deleteBatch(id);
+    res.success(null, 'Импорт удалён');
   }),
 };

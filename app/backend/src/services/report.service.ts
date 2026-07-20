@@ -1,9 +1,11 @@
 import { Op } from 'sequelize';
 import axios from 'axios';
 import ExcelJS from 'exceljs';
-import { Incident, Event, OperationalActivity, Department } from '../models';
-import { REPORT_FIELDS } from '../constants/reportFields';
+import { Incident, Event, OperationalActivity, Department, ReportFact } from '../models';
+import { REPORT_FIELDS, resolveReportFields } from '../constants/reportFields';
 import { computeFieldValueByRule } from './reportCalculator';
+import { reportImportService } from './reportImport.service';
+import { REPORT_TYPE_RP053_MATRIX } from '../models/reportImportBatch';
 
 /** Локальный контейнер ims-quickchart на проде; dev без compose — https://quickchart.io/chart в .env */
 const QUICKCHART_URL = process.env.QUICKCHART_URL?.trim() || 'http://ims-quickchart:3400/chart';
@@ -61,19 +63,30 @@ function excelBorder(style: typeof EXCEL_STYLE.borderThin) {
   return { top: style, left: style, bottom: style, right: style };
 }
 
+function toDateOnlyLocal(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
 interface ReportField {
   entity: 'incident' | 'event' | 'operationalActivity';
   field: string;
   label: string;
 }
 
+export type ReportDataSource = 'live' | 'imported';
+
 interface ReportRequest {
   dateFrom: Date;
   dateTo: Date;
   departmentIds: number[];
   fields?: ReportField[];
-  /** Ключи полей из REPORT_FIELDS (r1..r160) — при наличии используются правила расчёта */
+  /** Ключи полей из REPORT_FIELDS (legacy rN или metricKey) */
   fieldKeys?: string[];
+  /** Готовые значения: legacy/metric key → departmentId → value (archive export) */
+  precomputed?: Map<string, Map<number, number>>;
 }
 
 interface TableRequest {
@@ -83,6 +96,8 @@ interface TableRequest {
   page: number;
   limit: number;
   abortSignal?: AbortSignal;
+  dataSource?: ReportDataSource;
+  reportType?: string;
 }
 
 interface ExportRequest {
@@ -90,6 +105,8 @@ interface ExportRequest {
   dateTo: Date;
   departmentIds: number[];
   fieldKeys: string[];
+  dataSource?: ReportDataSource;
+  reportType?: string;
 }
 
 /** Ячейка иерархической шапки: подпись и число объединяемых столбцов */
@@ -398,13 +415,19 @@ export const reportService = {
     dateToEndOfDay.setHours(23, 59, 59, 999);
 
     if (request.fieldKeys && request.fieldKeys.length > 0) {
-      const defs = request.fieldKeys
-        .map((k) => REPORT_FIELDS.find((f) => f.key === k))
-        .filter((f): f is NonNullable<typeof f> => f != null);
+      const defs = resolveReportFields(request.fieldKeys);
       for (const def of defs) {
         const dataMap = new Map<number, number>();
         for (const leafId of excelLeafIds) {
-          const value = await computeFieldValueByRule(def, leafId, request.dateFrom, dateToEndOfDay, undefined);
+          let value = 0;
+          if (request.precomputed) {
+            value =
+              request.precomputed.get(def.key)?.get(leafId) ??
+              request.precomputed.get(def.metricKey)?.get(leafId) ??
+              0;
+          } else {
+            value = await computeFieldValueByRule(def, leafId, request.dateFrom, dateToEndOfDay, undefined);
+          }
           dataMap.set(leafId, value);
         }
         fieldData.set(def.key, dataMap);
@@ -582,10 +605,7 @@ export const reportService = {
 
     const outputFields: Array<{ label: string; dataKey: string }> =
       request.fieldKeys && request.fieldKeys.length > 0
-        ? (request.fieldKeys
-            .map((k) => REPORT_FIELDS.find((f) => f.key === k))
-            .filter((f): f is NonNullable<typeof f> => f != null)
-            .map((def) => ({ label: def.label, dataKey: def.key })))
+        ? resolveReportFields(request.fieldKeys).map((def) => ({ label: def.label, dataKey: def.key }))
         : (request.fields || []).map((f) => ({ label: f.label, dataKey: `${f.entity}.${f.field}` }));
 
     let currentRow = headerStartRow + numHeaderRows;
@@ -666,14 +686,27 @@ export const reportService = {
    * Данные таблицы отчётов по полям и департаментам с пагинацией
    */
   async getReportTable(request: TableRequest): Promise<{
-    rows: Array<{ fieldName: string; fieldKey: string; [key: string]: string | number }>;
+    rows: Array<{ fieldName: string; fieldKey: string; metricKey?: string; [key: string]: string | number | undefined }>;
     departments: Array<{ id: number; name: string }>;
     total: number;
     paoMtsDepartmentIds: number[];
     allSelectedArePaoMts?: boolean;
-    /** Иерархическая шапка таблицы: массив строк, каждая строка — массив ячеек с label и span */
     headerRows?: ReportHeaderCell[][];
+    meta?: {
+      dataSource: ReportDataSource;
+      batchId?: number;
+      batchIds?: number[];
+      batchCount?: number;
+      fileName?: string;
+      fileNames?: string[];
+      uploadedAt?: string;
+      reportType?: string;
+      message?: string;
+    };
   }> {
+    if (request.dataSource === 'imported') {
+      return this.getImportedReportTable(request);
+    }
     console.log('[reportService.getReportTable] Starting', { page: request.page, limit: request.limit, departmentIds: request.departmentIds });
     const { dateFrom, dateTo, departmentIds, page, limit } = request;
     
@@ -798,7 +831,7 @@ export const reportService = {
     const start = (page - 1) * limit;
     const pageFields = REPORT_FIELDS.slice(start, start + limit);
     console.log('[reportService.getReportTable] Processing fields:', pageFields.length, 'from', start, 'to', start + limit);
-    const rows: Array<{ fieldName: string; fieldKey: string; [key: string]: string | number }> = [];
+    const rows: Array<{ fieldName: string; fieldKey: string; metricKey?: string; [key: string]: string | number | undefined }> = [];
 
     for (let i = 0; i < pageFields.length; i++) {
       const def = pageFields[i];
@@ -810,9 +843,10 @@ export const reportService = {
         throw new Error('Request aborted');
       }
 
-      const row: { fieldName: string; fieldKey: string; [key: string]: string | number } = {
+      const row: { fieldName: string; fieldKey: string; metricKey?: string; [key: string]: string | number | undefined } = {
         fieldName: def.label,
         fieldKey: def.key,
+        metricKey: def.metricKey,
       };
       
       let totalGkMts = 0;
@@ -853,24 +887,261 @@ export const reportService = {
       paoMtsDepartmentIds: paoMtsMainIds,
       allSelectedArePaoMts,
       headerRows,
+      meta: { dataSource: 'live' as const },
     };
     console.log('[reportService.getReportTable] Result prepared:', { rowsCount: rows.length, departmentsCount: result.departments.length, headerRowsCount: headerRows.length });
     return result;
   },
 
   /**
+   * Таблица из активного архивного импорта (report_facts)
+   */
+  async getImportedReportTable(request: TableRequest): Promise<{
+    rows: Array<{ fieldName: string; fieldKey: string; metricKey?: string; [key: string]: string | number | undefined }>;
+    departments: Array<{ id: number; name: string }>;
+    total: number;
+    paoMtsDepartmentIds: number[];
+    allSelectedArePaoMts?: boolean;
+    headerRows?: ReportHeaderCell[][];
+    meta?: {
+      dataSource: ReportDataSource;
+      batchId?: number;
+      batchIds?: number[];
+      batchCount?: number;
+      fileName?: string;
+      fileNames?: string[];
+      uploadedAt?: string;
+      reportType?: string;
+      message?: string;
+    };
+  }> {
+    const reportType = request.reportType || REPORT_TYPE_RP053_MATRIX;
+    const periodFrom = toDateOnlyLocal(request.dateFrom);
+    const periodTo = toDateOnlyLocal(request.dateTo);
+
+    const batches = await reportImportService.findActiveBatchesInRange({
+      reportType,
+      periodFrom,
+      periodTo,
+    });
+
+    if (batches.length === 0) {
+      return {
+        rows: [],
+        departments: [],
+        total: REPORT_FIELDS.length,
+        paoMtsDepartmentIds: [],
+        headerRows: [],
+        meta: {
+          dataSource: 'imported',
+          reportType,
+          batchCount: 0,
+          message: 'Нет активных архивных отчётов за выбранный период',
+        },
+      };
+    }
+
+    const facts = await ReportFact.findAll({
+      where: { batch_id: { [Op.in]: batches.map((b) => b.id) } },
+    });
+    const valueByMetricDept = new Map<string, Map<number, number>>();
+    const factDeptIds = new Set<number>();
+    for (const f of facts) {
+      factDeptIds.add(f.department_id);
+      let m = valueByMetricDept.get(f.metric_key);
+      if (!m) {
+        m = new Map();
+        valueByMetricDept.set(f.metric_key, m);
+      }
+      m.set(f.department_id, (m.get(f.department_id) ?? 0) + (Number(f.value) || 0));
+    }
+
+    const departments =
+      request.departmentIds.length > 0
+        ? await Department.findAll({ where: { department_id: { [Op.in]: request.departmentIds } } })
+        : await Department.findAll();
+    const allDepartments = await Department.findAll();
+
+    const getAllDescendants = (parentId: number): number[] => {
+      const result = [parentId];
+      const children = allDepartments.filter((d) => d.parent_id === parentId);
+      for (const child of children) {
+        result.push(...getAllDescendants(child.department_id));
+      }
+      return result;
+    };
+    const getLeafDescendants = (parentId: number): number[] => {
+      const children = allDepartments.filter((d) => d.parent_id === parentId);
+      if (children.length === 0) return [parentId];
+      const result: number[] = [];
+      for (const child of children) {
+        result.push(...getLeafDescendants(child.department_id));
+      }
+      return result;
+    };
+
+    const paoMtsIds = new Set<number>();
+    const paoMtsMainIds: number[] = [];
+    const paoMtsNameToId = new Map<string, number>();
+    for (const name of PAO_MTS_DEPARTMENT_NAMES) {
+      const dept = allDepartments.find((d) => d.title === name);
+      if (dept) {
+        paoMtsMainIds.push(dept.department_id);
+        paoMtsNameToId.set(name, dept.department_id);
+        getAllDescendants(dept.department_id).forEach((id) => paoMtsIds.add(id));
+      }
+    }
+
+    const sortedDepartments = [...departments].sort((a, b) => {
+      const aIndex = PAO_MTS_DEPARTMENT_NAMES.findIndex((name) => {
+        const id = paoMtsNameToId.get(name);
+        return id === a.department_id || getAllDescendants(id || 0).includes(a.department_id);
+      });
+      const bIndex = PAO_MTS_DEPARTMENT_NAMES.findIndex((name) => {
+        const id = paoMtsNameToId.get(name);
+        return id === b.department_id || getAllDescendants(id || 0).includes(b.department_id);
+      });
+      if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+      if (aIndex !== -1) return -1;
+      if (bIndex !== -1) return 1;
+      return a.title.localeCompare(b.title);
+    });
+
+    const allSelectedArePaoMts = sortedDepartments.every((dept) => paoMtsIds.has(dept.department_id));
+    const allDeptsForTree = allDepartments.map((d) => ({
+      department_id: d.department_id,
+      title: d.title,
+      parent_id: d.parent_id,
+    }));
+    const selectedLeafIds = new Set(
+      sortedDepartments.flatMap((d) => getLeafDescendants(d.department_id)).filter((id) => factDeptIds.has(id) || factDeptIds.size === 0)
+    );
+    // If filter removed everything, show all fact leaves
+    if (selectedLeafIds.size === 0) {
+      factDeptIds.forEach((id) => selectedLeafIds.add(id));
+    }
+
+    const rootDepts = STANDARD_ROOT_NAMES.map((name) => allDeptsForTree.find((d) => d.title === name))
+      .filter((d): d is NonNullable<typeof d> => d != null)
+      .map((d) => ({ department_id: d.department_id, title: d.title }));
+    const childOrder = (
+      a: { department_id: number; title: string },
+      b: { department_id: number; title: string }
+    ) => {
+      const ai = PAO_MTS_DEPARTMENT_NAMES.indexOf(a.title);
+      const bi = PAO_MTS_DEPARTMENT_NAMES.indexOf(b.title);
+      if (ai !== -1 && bi !== -1) return ai - bi;
+      if (ai !== -1) return -1;
+      if (bi !== -1) return 1;
+      return (a.title || '').localeCompare(b.title || '');
+    };
+    const forest = buildDepartmentForest(rootDepts, allDeptsForTree, childOrder);
+    const { headerRows, leafDepartmentIds } = buildReportHeaderStructure(forest, selectedLeafIds);
+    const leafDepartments = leafDepartmentIds.map((id) => {
+      const d = allDepartments.find((x) => x.department_id === id);
+      return { id, name: d?.title ?? `Департамент ${id}` };
+    });
+
+    const total = REPORT_FIELDS.length;
+    const start = (request.page - 1) * request.limit;
+    const pageFields = REPORT_FIELDS.slice(start, start + request.limit);
+    const rows: Array<{ fieldName: string; fieldKey: string; metricKey?: string; [key: string]: string | number | undefined }> = [];
+
+    for (const def of pageFields) {
+      const row: { fieldName: string; fieldKey: string; metricKey?: string; [key: string]: string | number | undefined } = {
+        fieldName: def.label,
+        fieldKey: def.key,
+        metricKey: def.metricKey,
+      };
+      let totalGkMts = 0;
+      let totalPaoMts = 0;
+      const metricMap = valueByMetricDept.get(def.metricKey);
+      for (const leafId of leafDepartmentIds) {
+        const val = metricMap?.get(leafId) ?? 0;
+        row[`dept_${leafId}`] = val;
+        totalGkMts += val;
+        if (paoMtsIds.has(leafId)) totalPaoMts += val;
+      }
+      if (!allSelectedArePaoMts) row.total_gk_mts = totalGkMts;
+      row.total_pao_mts = totalPaoMts;
+      rows.push(row);
+    }
+
+    return {
+      rows,
+      departments: leafDepartments,
+      total,
+      paoMtsDepartmentIds: paoMtsMainIds,
+      allSelectedArePaoMts,
+      headerRows,
+      meta: {
+        dataSource: 'imported',
+        batchId: batches[0].id,
+        batchIds: batches.map((b) => b.id),
+        batchCount: batches.length,
+        fileName: batches.map((b) => b.file_name).join(', '),
+        fileNames: batches.map((b) => b.file_name),
+        uploadedAt:
+          batches[0].createdAt?.toISOString?.() ?? String(batches[0].createdAt ?? ''),
+        reportType: batches[0].report_type,
+        message:
+          batches.length === 1
+            ? undefined
+            : `Сумма по ${batches.length} архивным периодам`,
+      },
+    };
+  },
+
+  /**
    * Выгрузка выбранного разреза (поля + департаменты) в Excel
    */
   async exportSelectedReport(request: ExportRequest): Promise<ExcelJS.Buffer> {
-    const { dateFrom, dateTo, departmentIds, fieldKeys } = request;
-    const validKeys = fieldKeys.filter((k) => REPORT_FIELDS.some((f) => f.key === k));
-    if (validKeys.length === 0) {
+    const defs = resolveReportFields(request.fieldKeys);
+    if (defs.length === 0) {
       throw new Error('Не найдено полей для выгрузки');
     }
+    const validKeys = defs.map((d) => d.key);
+
+    if (request.dataSource === 'imported') {
+      const reportType = request.reportType || REPORT_TYPE_RP053_MATRIX;
+      const periodFrom = toDateOnlyLocal(request.dateFrom);
+      const periodTo = toDateOnlyLocal(request.dateTo);
+      const batches = await reportImportService.findActiveBatchesInRange({
+        reportType,
+        periodFrom,
+        periodTo,
+      });
+      if (batches.length === 0) {
+        throw new Error('Нет активного архивного отчёта за выбранный период');
+      }
+      const facts = await ReportFact.findAll({
+        where: { batch_id: { [Op.in]: batches.map((b) => b.id) } },
+      });
+      const precomputed = new Map<string, Map<number, number>>();
+      for (const f of facts) {
+        const def = REPORT_FIELDS.find((x) => x.metricKey === f.metric_key);
+        const legacyKey = def?.key ?? f.metric_key;
+        let m = precomputed.get(legacyKey);
+        if (!m) {
+          m = new Map();
+          precomputed.set(legacyKey, m);
+          if (def) precomputed.set(def.metricKey, m);
+        }
+        m.set(f.department_id, (m.get(f.department_id) ?? 0) + (Number(f.value) || 0));
+      }
+      return this.generateReport({
+        dateFrom: request.dateFrom,
+        dateTo: request.dateTo,
+        departmentIds: request.departmentIds,
+        fieldKeys: validKeys,
+        precomputed,
+      });
+    }
+
     return this.generateReport({
-      dateFrom,
-      dateTo,
-      departmentIds,
+      dateFrom: request.dateFrom,
+      dateTo: request.dateTo,
+      departmentIds: request.departmentIds,
       fieldKeys: validKeys,
     });
   },
@@ -880,8 +1151,11 @@ export const reportService = {
    * Таблицу в файл не включаем.
    */
   async exportDashboard(request: ExportRequest): Promise<Buffer> {
+    if (request.dataSource === 'imported') {
+      throw new Error('Дашборд для архивных отчётов недоступен');
+    }
     const { dateFrom, dateTo, departmentIds, fieldKeys } = request;
-    const validKeys = fieldKeys.filter((k) => REPORT_FIELDS.some((f) => f.key === k));
+    const validKeys = resolveReportFields(fieldKeys).map((d) => d.key);
     if (validKeys.length === 0) {
       throw new Error('Не найдено полей для выгрузки');
     }
@@ -956,7 +1230,7 @@ export const reportService = {
     const { leafDepartmentIds: excelLeafIds } = buildReportHeaderStructure(forest, selectedLeafIds);
 
     const defs = validKeys
-      .map((k) => REPORT_FIELDS.find((f) => f.key === k))
+      .map((k) => resolveReportFields([k])[0])
       .filter((f): f is NonNullable<typeof f> => f != null);
     const monthNames = [
       'январь', 'февраль', 'март', 'апрель', 'май', 'июнь',

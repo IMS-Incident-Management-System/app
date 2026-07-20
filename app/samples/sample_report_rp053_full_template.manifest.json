@@ -1,0 +1,916 @@
+{
+  "title": "Результаты работы январь 2025",
+  "roots": [
+    "КЦ",
+    "ЕЦКБ",
+    "ДЗК",
+    "ФО"
+  ],
+  "leafCount": 101,
+  "leafTitles": [
+    "ДАФ",
+    "ДБПиО",
+    "ДИБ",
+    "ДЭБ",
+    "Начальники ЕЦКБ",
+    "ОДС",
+    "Авантаж",
+    "Беларусь",
+    "Гринбуш",
+    "Диджитал",
+    "ИТ-ГРАД",
+    "КИОН",
+    "КП",
+    "КС",
+    "Лайв",
+    "МГТС",
+    "МТС-Банк",
+    "МТТ",
+    "ОРК",
+    "ПТ",
+    "РТК",
+    "СТВ",
+    "Стрим",
+    "Москва",
+    "Белгородская область",
+    "Брянская область",
+    "Владимирская область",
+    "Воронежская область",
+    "Ивановская область",
+    "Калужская область",
+    "Костромская область",
+    "Курская область",
+    "Липецкая область",
+    "Орловская область",
+    "Рязанская область",
+    "Смоленская область",
+    "Тамбовская область",
+    "Тверская область",
+    "Тульская область",
+    "Ярославская область",
+    "Архангельская область",
+    "Вологодская область",
+    "Калининградская область",
+    "Мурманская область",
+    "Новгородская область",
+    "Псковская область",
+    "Республика Карелия",
+    "Республика Коми",
+    "Санкт-Петербург",
+    "Кировская область",
+    "Нижегородская область",
+    "Оренбургская область",
+    "Пензенская область",
+    "Пермский край",
+    "Республика Башкортостан",
+    "Республика Марий Эл",
+    "Республика Мордовия",
+    "Республика Татарстан",
+    "Самарская область",
+    "Саратовская область",
+    "Удмуртская Республика",
+    "Ульяновская область",
+    "Чувашская Республика",
+    "Алания",
+    "Астрахань",
+    "Волгоград",
+    "Дагестан",
+    "Ингушетия",
+    "КБР",
+    "Краснодар",
+    "КЧР",
+    "Новороссийск",
+    "Ростов",
+    "Сочи",
+    "Ставрополь",
+    "Чечня",
+    "Курган",
+    "Свердловская область",
+    "Тюменская область",
+    "ХМАО-Югра",
+    "Челябинская область",
+    "ЯНАО",
+    "Алтайский край",
+    "Иркутская область",
+    "Кемеровская область",
+    "Красноярский край",
+    "Новосибирская область",
+    "Омская область",
+    "Республика Алтай",
+    "Республика Тыва",
+    "Республика Хакасия",
+    "Томская область",
+    "Амурская область",
+    "Забайкальский край",
+    "Камчатский край",
+    "Магаданская область",
+    "Приморский край",
+    "Республика Бурятия",
+    "Республика Саха (Якутия)",
+    "Сахалинская область",
+    "Хабаровский край"
+  ],
+  "metricCount": 160,
+  "metrics": [
+    {
+      "key": "r1",
+      "metricKey": "event_sum_booleans_rp053",
+      "label": "Проведено служебных проверок и расследований по РП-053"
+    },
+    {
+      "key": "r2",
+      "metricKey": "event_count_is_service_investigation",
+      "label": "Проведено служебных расследований (СР)"
+    },
+    {
+      "key": "r3",
+      "metricKey": "event_count_is_service_check",
+      "label": "Проведено служебных проверок (СП)"
+    },
+    {
+      "key": "r4",
+      "metricKey": "event_count_is_service_check_ib",
+      "label": "Проведено служебных проверок по ИБ (СП ИБ)"
+    },
+    {
+      "key": "r5",
+      "metricKey": "event_with_violations",
+      "label": "Общее количество СП, СП ИБ и СР с выявленными нарушениями"
+    },
+    {
+      "key": "r6",
+      "metricKey": "event_count_is_verification_activity",
+      "label": "Проведено проверочных мероприятий (ПМ) в рамках операционной деятельности"
+    },
+    {
+      "key": "r7",
+      "metricKey": "sum_eia_detected_damage",
+      "label": "Выявлен ущерб (руб.)"
+    },
+    {
+      "key": "r8",
+      "metricKey": "sum_eia_recovered_damage",
+      "label": "Возмещен ущерб (руб.)"
+    },
+    {
+      "key": "r9",
+      "metricKey": "sum_eia_prevented_damage",
+      "label": "Предотвращен ущерб (руб.)"
+    },
+    {
+      "key": "r10",
+      "metricKey": "sum_eia_additional_income",
+      "label": "Получен дополнительный доход (руб.)"
+    },
+    {
+      "key": "r11",
+      "metricKey": "sum_eia_reduced_cost",
+      "label": "Снижена стоимость товаров, работ и услуг на сумму (руб.)"
+    },
+    {
+      "key": "r12",
+      "metricKey": "event_sum_prevented_unnecessary_writeoff",
+      "label": "Предотвращено фактов необоснованного списания ДЗ на сумму (руб.)"
+    },
+    {
+      "key": "r13",
+      "metricKey": "event_vat_vat_deducted",
+      "label": "Содействие в получении документов для возмещения НДС (руб.)"
+    },
+    {
+      "key": "r14",
+      "metricKey": "event_add_guilty_persons_count",
+      "label": "Установлено виновных лиц"
+    },
+    {
+      "key": "r15",
+      "metricKey": "event_add_measures_taken_count",
+      "label": "Принято мер к виновным лицам"
+    },
+    {
+      "key": "r16",
+      "metricKey": "event_add_warning_letter_rp398",
+      "label": "Предупреждение предупредительным письмом по РП-398"
+    },
+    {
+      "key": "r17",
+      "metricKey": "event_add_remark",
+      "label": "Замечание"
+    },
+    {
+      "key": "r18",
+      "metricKey": "event_add_reprimand",
+      "label": "Выговор"
+    },
+    {
+      "key": "r19",
+      "metricKey": "event_add_dismissed_count",
+      "label": "Уволено"
+    },
+    {
+      "key": "r20",
+      "metricKey": "event_criminal_transferred",
+      "label": "Передано материалов в ПОО для возбуждения АД/УД"
+    },
+    {
+      "key": "r21",
+      "metricKey": "event_criminal_rejected",
+      "label": "из них отказано в возбуждении административных/уголовных дел"
+    },
+    {
+      "key": "r22",
+      "metricKey": "event_criminal_opened",
+      "label": "Возбуждено административных/уголовных дел"
+    },
+    {
+      "key": "r23",
+      "metricKey": "event_criminal_closed",
+      "label": "из них окончено АД/УД (приговор/решение суда)"
+    },
+    {
+      "key": "r24",
+      "metricKey": "oa_economic_total_debt",
+      "label": "Общий размер дебиторской задолженности (руб.)"
+    },
+    {
+      "key": "r25",
+      "metricKey": "oa_economic_overdue_debt",
+      "label": "Общий размер просроченной дебиторской задолженности (руб.)"
+    },
+    {
+      "key": "r26",
+      "metricKey": "oa_economic_overdue_debt_sb",
+      "label": "в том числе размер ПДЗ, переданный в работу СБ (руб.)"
+    },
+    {
+      "key": "r27",
+      "metricKey": "oa_economic_recovered_debt",
+      "label": "Взыскано ДЗ при участии подразделений безопасности (руб.)"
+    },
+    {
+      "key": "r28",
+      "metricKey": "oa_economic_available_vat",
+      "label": "Общая сумма доступного к возмещению, но не возмещенного НДС (руб.)"
+    },
+    {
+      "key": "r29",
+      "metricKey": "oa_economic_written_off_debt",
+      "label": "Общий размер списанной дебиторской задолженности (руб.)"
+    },
+    {
+      "key": "r30",
+      "metricKey": "oa_economic_checked_entities_new",
+      "label": "Проверено юр. и физ.лиц перед заключением новых договоров, доп.соглашений и ОВП"
+    },
+    {
+      "key": "r31",
+      "metricKey": "oa_economic_negative_conclusions_new",
+      "label": "из них дано отрицательных заключений по потенциальным контрагентам"
+    },
+    {
+      "key": "r32",
+      "metricKey": "oa_economic_checked_entities_active",
+      "label": "Проверено контрагентов с действующими договорами"
+    },
+    {
+      "key": "r33",
+      "metricKey": "oa_economic_negative_conclusions_active",
+      "label": "из них дано отрицательных заключений по контрагентам"
+    },
+    {
+      "key": "r34",
+      "metricKey": "oa_economic_checked_draft_contracts",
+      "label": "Проверено проектов договоров. доп. соглашений, заказов и ОВП"
+    },
+    {
+      "key": "r35",
+      "metricKey": "oa_economic_not_approved_drafts",
+      "label": "из них не согласовано"
+    },
+    {
+      "key": "r36",
+      "metricKey": "oa_economic_checked_active_contracts",
+      "label": "Проверено действующих договоров, доп. соглашений и заказов"
+    },
+    {
+      "key": "r37",
+      "metricKey": "oa_economic_not_approved_active",
+      "label": "из них не согласовано"
+    },
+    {
+      "key": "r38",
+      "metricKey": "oa_economic_planned_budget",
+      "label": "Сумма запланированного бюджета закупок на год (руб.)"
+    },
+    {
+      "key": "r39",
+      "metricKey": "oa_economic_procurement_procedures_count",
+      "label": "Проведено закупочных процедур (кол-во)"
+    },
+    {
+      "key": "r40",
+      "metricKey": "oa_economic_single_source_count",
+      "label": "из них использован способ закупки \"единственный источник\" (кол-во)"
+    },
+    {
+      "key": "r41",
+      "metricKey": "oa_economic_procurement_procedures_sum",
+      "label": "Проведено закупочных процедур на сумму (руб.)"
+    },
+    {
+      "key": "r42",
+      "metricKey": "oa_economic_single_source_sum",
+      "label": "из них использован способ закупки \"единственный источник\" на сумму (руб.)"
+    },
+    {
+      "key": "r43",
+      "metricKey": "oa_economic_checked_employees",
+      "label": "Проверено сотрудников на их возможную аффилированность с контрагентами (чел.)"
+    },
+    {
+      "key": "r44",
+      "metricKey": "oa_economic_found_affiliated",
+      "label": "из них выявлено аффилированных лиц"
+    },
+    {
+      "key": "r45",
+      "metricKey": "oa_economic_checked_candidates",
+      "label": "Проверено кандидатов на трудоустройство (чел.)"
+    },
+    {
+      "key": "r46",
+      "metricKey": "oa_economic_rejected_candidates",
+      "label": "из них отклонено"
+    },
+    {
+      "key": "r47",
+      "metricKey": "oa_economic_rejected_affiliated",
+      "label": "из них отклонено по причине аффилированности"
+    },
+    {
+      "key": "r48",
+      "metricKey": "oa_economic_total_appeals",
+      "label": "Проверено обращений граждан и юр. Лиц"
+    },
+    {
+      "key": "r49",
+      "metricKey": "oa_economic_zon_applications",
+      "label": "Проверено заявлений абонентов о непричастности к договору (ЗОН)"
+    },
+    {
+      "key": "r50",
+      "metricKey": "oa_economic_fictitious_contracts",
+      "label": "из них выявлено фиктивных договоров"
+    },
+    {
+      "key": "r51",
+      "metricKey": "oa_economic_termination_requests",
+      "label": "Проверено заявлений абонентов о расторжении договора и возврате ДС"
+    },
+    {
+      "key": "r52",
+      "metricKey": "oa_economic_beautiful_numbers",
+      "label": "Проверено запросов на переоформление \"красивых\" номеров"
+    },
+    {
+      "key": "r53",
+      "metricKey": "oa_economic_sim_replacement",
+      "label": "Проверено заявлений о неправомерной замене SIM-карт с последующим выводом ДС"
+    },
+    {
+      "key": "r54",
+      "metricKey": "oa_economic_refund_requests",
+      "label": "Проверено заявлений абонентов о возврате ошибочного платежа"
+    },
+    {
+      "key": "r55",
+      "metricKey": "oa_economic_other_appeals",
+      "label": "Проверено прочих заявлений абонентов"
+    },
+    {
+      "key": "r56",
+      "metricKey": "oa_cyber_cyber_incoming_paper_requests",
+      "label": "Поступило входящих бумажных запросов ПОО на предоставление информации"
+    },
+    {
+      "key": "r57",
+      "metricKey": "oa_cyber_cyber_executed_paper_requests",
+      "label": "Исполнено бумажных запросов ПОО на предоставление информации"
+    },
+    {
+      "key": "r58",
+      "metricKey": "oa_cyber_cyber_executed_paper_tasks",
+      "label": "Исполнено заданий в бумажных запросах ПОО на предоставление информации"
+    },
+    {
+      "key": "r59",
+      "metricKey": "oa_cyber_cyber_received_presentations",
+      "label": "Поступило представлений правоохранительных органов, прокуратуры и суда"
+    },
+    {
+      "key": "r60",
+      "metricKey": "oa_cyber_cyber_executed_presentations",
+      "label": "из них исполнено (подготовлен ответ)"
+    },
+    {
+      "key": "r61",
+      "metricKey": "oa_security_staff_count",
+      "label": "Штатное количество сотрудников безопасности (включая филиалы и ДЗО)"
+    },
+    {
+      "key": "r62",
+      "metricKey": "oa_security_objects_count",
+      "label": "Количество объектов"
+    },
+    {
+      "key": "r63",
+      "metricKey": "oa_security_objects_physical_security",
+      "label": "под физической охраной"
+    },
+    {
+      "key": "r64",
+      "metricKey": "oa_security_objects_panel_security",
+      "label": "под пультовой охраной"
+    },
+    {
+      "key": "r65",
+      "metricKey": "oa_security_capex_allocated",
+      "label": "CAPEX Сумма выделенного бюджета на год (руб.)"
+    },
+    {
+      "key": "r66",
+      "metricKey": "oa_security_capex_spent_current",
+      "label": "Сумма освоения бюджета в текущем месяце (руб.)"
+    },
+    {
+      "key": "r67",
+      "metricKey": "oa_security_opex_allocated",
+      "label": "Бюджет на физ. охрану (OPEX)"
+    },
+    {
+      "key": "r68",
+      "metricKey": "oa_sum_security_atz_inspections",
+      "label": "Проведено проверок состояния АТЗ объектов"
+    },
+    {
+      "key": "r69",
+      "metricKey": "oa_security_atz_checks_pb",
+      "label": "сотрудниками ПБ ДЗК/ДЗО"
+    },
+    {
+      "key": "r70",
+      "metricKey": "oa_security_atz_checks_law",
+      "label": "совместно с сотрудниками правоохранительных органов"
+    },
+    {
+      "key": "r71",
+      "metricKey": "oa_sum_security_atu_att",
+      "label": "Проведено АТУ и АТТ на объектах"
+    },
+    {
+      "key": "r72",
+      "metricKey": "oa_security_atu_att_pb",
+      "label": "сотрудниками ПБ ДЗК/ДЗО"
+    },
+    {
+      "key": "r73",
+      "metricKey": "oa_security_atu_att_law",
+      "label": "совместно с сотрудниками правоохранительных органов"
+    },
+    {
+      "key": "r74",
+      "metricKey": "oa_security_chop_checks",
+      "label": "Проведено проверок несения службы сотрудниками ЧОП/ЧОО"
+    },
+    {
+      "key": "r75",
+      "metricKey": "oa_security_chop_claims",
+      "label": "Подготовлено претензий к ЧОП/ЧОО"
+    },
+    {
+      "key": "r76",
+      "metricKey": "inc_sum_proniknovenie_na_obekt",
+      "label": "Проникновение на объект"
+    },
+    {
+      "key": "r77",
+      "metricKey": "inc_count_proniknovenie_na_obekt_ne_predotvraschennyy",
+      "label": "не предотвращенные"
+    },
+    {
+      "key": "r78",
+      "metricKey": "inc_count_proniknovenie_na_obekt_predotvraschennye",
+      "label": "предотвращенные"
+    },
+    {
+      "key": "r79",
+      "metricKey": "add_proniknovenie_na_obekt_punishment_detained_persons_count",
+      "label": "Задержаны лица при совершении правонарушения"
+    },
+    {
+      "key": "r80",
+      "metricKey": "add_proniknovenie_na_obekt_financial_detected_damage",
+      "label": "Установлена сумма причиненного ущерба (руб.)"
+    },
+    {
+      "key": "r81",
+      "metricKey": "add_proniknovenie_na_obekt_financial_prevented_damage",
+      "label": "Предотвращен ущерб на сумму (руб.)"
+    },
+    {
+      "key": "r82",
+      "metricKey": "add_proniknovenie_na_obekt_financial_recovered_damage",
+      "label": "Возмещен ущерб на сумму (руб.)"
+    },
+    {
+      "key": "r83",
+      "metricKey": "add_proniknovenie_na_obekt_punishment_employees_involved_count",
+      "label": "Установлено сотрудников, причастных к проникновению"
+    },
+    {
+      "key": "r84",
+      "metricKey": "add_pun_sum_proniknovenie_na_obekt",
+      "label": "наложено дисциплинарных взысканий и уволено с работы"
+    },
+    {
+      "key": "r85",
+      "metricKey": "add_proniknovenie_na_obekt_punishment_dismissed_count",
+      "label": "уволено с работы"
+    },
+    {
+      "key": "r86",
+      "metricKey": "add_crim_proniknovenie_na_obekt_transferred",
+      "label": "Передано материалов в правоохранительные органы"
+    },
+    {
+      "key": "r87",
+      "metricKey": "add_crim_proniknovenie_na_obekt_opened",
+      "label": "Возбуждено уголовных дел"
+    },
+    {
+      "key": "r88",
+      "metricKey": "add_crim_proniknovenie_na_obekt_closed",
+      "label": "Окончено уголовных дел"
+    },
+    {
+      "key": "r89",
+      "metricKey": "inc_sum_napadenie_na_obekt_sotrudnikov",
+      "label": "Нападение на объект/сотрудников (грабеж, разбой)"
+    },
+    {
+      "key": "r90",
+      "metricKey": "inc_count_napadenie_na_obekt_sotrudnikov_ne_predotvraschennyy",
+      "label": "не предотвращенные"
+    },
+    {
+      "key": "r91",
+      "metricKey": "inc_count_napadenie_na_obekt_sotrudnikov_predotvraschennye",
+      "label": "предотвращенные"
+    },
+    {
+      "key": "r92",
+      "metricKey": "add_napadenie_na_obekt_sotrudnikov_punishment_detained_persons_count",
+      "label": "Задержаны лица при совершении правонарушения (нападение)"
+    },
+    {
+      "key": "r93",
+      "metricKey": "add_napadenie_na_obekt_sotrudnikov_financial_detected_damage",
+      "label": "Установлена сумма причиненного ущерба (руб.) БПО"
+    },
+    {
+      "key": "r94",
+      "metricKey": "add_napadenie_na_obekt_sotrudnikov_financial_prevented_damage",
+      "label": "Предотвращен ущерб на сумму (руб.) (нападение)"
+    },
+    {
+      "key": "r95",
+      "metricKey": "add_napadenie_na_obekt_sotrudnikov_financial_recovered_damage",
+      "label": "Возмещен ущерб на сумму (руб.) (нападение)"
+    },
+    {
+      "key": "r96",
+      "metricKey": "add_napadenie_na_obekt_sotrudnikov_punishment_employees_involved_count",
+      "label": "Установлено сотрудников, причастных к проникновению (нападение)"
+    },
+    {
+      "key": "r97",
+      "metricKey": "add_pun_sum_napadenie_na_obekt_sotrudnikov",
+      "label": "наложено взысканий (нападение)"
+    },
+    {
+      "key": "r98",
+      "metricKey": "add_napadenie_na_obekt_sotrudnikov_punishment_dismissed_count",
+      "label": "уволено с работы (нападение)"
+    },
+    {
+      "key": "r99",
+      "metricKey": "add_crim_napadenie_na_obekt_sotrudnikov_transferred",
+      "label": "Передано материалов в правоохранительные органы (нападение)"
+    },
+    {
+      "key": "r100",
+      "metricKey": "add_crim_napadenie_na_obekt_sotrudnikov_opened",
+      "label": "Возбуждено уголовных дел (нападение)"
+    },
+    {
+      "key": "r101",
+      "metricKey": "add_crim_napadenie_na_obekt_sotrudnikov_closed",
+      "label": "Окончено уголовных дел (нападение)"
+    },
+    {
+      "key": "r102",
+      "metricKey": "inc_sum_krazhi",
+      "label": "Кража (акт вандализма)"
+    },
+    {
+      "key": "r103",
+      "metricKey": "inc_count_krazhi_ne_predotvraschennyy",
+      "label": "не предотвращенные (кражи)"
+    },
+    {
+      "key": "r104",
+      "metricKey": "inc_count_krazhi_predotvraschennye",
+      "label": "предотвращенные (кражи)"
+    },
+    {
+      "key": "r105",
+      "metricKey": "add_krazhi_punishment_detained_persons_count",
+      "label": "Задержаны лица при совершении правонарушения (кражи)"
+    },
+    {
+      "key": "r106",
+      "metricKey": "add_krazhi_financial_detected_damage",
+      "label": "Установлена сумма причиненного ущерба (руб.) (кражи)"
+    },
+    {
+      "key": "r107",
+      "metricKey": "add_krazhi_financial_prevented_damage",
+      "label": "Предотвращен ущерб на сумму (руб.) (кражи)"
+    },
+    {
+      "key": "r108",
+      "metricKey": "add_krazhi_financial_recovered_damage",
+      "label": "Возмещен ущерб на сумму (руб.) (кражи)"
+    },
+    {
+      "key": "r109",
+      "metricKey": "add_krazhi_punishment_employees_involved_count",
+      "label": "Установлено сотрудников, причастных к проникновению (кражи)"
+    },
+    {
+      "key": "r110",
+      "metricKey": "add_pun_sum_krazhi",
+      "label": "наложено взысканий (кражи)"
+    },
+    {
+      "key": "r111",
+      "metricKey": "add_krazhi_punishment_dismissed_count",
+      "label": "уволено с работы (кражи)"
+    },
+    {
+      "key": "r112",
+      "metricKey": "add_crim_krazhi_transferred",
+      "label": "Передано материалов в правоохранительные органы (кражи)"
+    },
+    {
+      "key": "r113",
+      "metricKey": "add_crim_krazhi_opened",
+      "label": "Возбуждено уголовных дел (кражи)"
+    },
+    {
+      "key": "r114",
+      "metricKey": "add_crim_krazhi_closed",
+      "label": "Окончено уголовных дел (кражи)"
+    },
+    {
+      "key": "r115",
+      "metricKey": "trauma_injury",
+      "label": "Травмировано"
+    },
+    {
+      "key": "r116",
+      "metricKey": "trauma_injury_employee",
+      "label": "из них сотрудники (травма)"
+    },
+    {
+      "key": "r117",
+      "metricKey": "trauma_death",
+      "label": "Смертельный исход"
+    },
+    {
+      "key": "r118",
+      "metricKey": "trauma_death_employee",
+      "label": "из них сотрудники (смертельный исход)"
+    },
+    {
+      "key": "r119",
+      "metricKey": "inc_etype_dtp_s_uchastiem_sotrudnikov_ili_sluzhebnogo_transporta",
+      "label": "ДТП с участием сотрудников или служебного транспорта"
+    },
+    {
+      "key": "r120",
+      "metricKey": "inc_etype_pozhary_vozgoraniya",
+      "label": "Пожар"
+    },
+    {
+      "key": "r121",
+      "metricKey": "event_count_is_service_investigation_bpio",
+      "label": "Проведено проверок и СР БПиО"
+    },
+    {
+      "key": "r122",
+      "metricKey": "event_bools_sum_is_service_check_bpio_is_service_investigation_bpio",
+      "label": "в том числе по обращениям на «горячую линию»"
+    },
+    {
+      "key": "r123",
+      "metricKey": "oa_security_categorized_rooms_count",
+      "label": "Количество категорированных помещений"
+    },
+    {
+      "key": "r124",
+      "metricKey": "event_all_bools_is_service_check_ib_is_service_investigation_ib",
+      "label": "проведено проверок и служебных расследований по инцидентам ИБ (кол-во)"
+    },
+    {
+      "key": "r125",
+      "metricKey": "oa_information_planned_ib_checks",
+      "label": "проведено плановых проверок ИБ (кол-во)"
+    },
+    {
+      "key": "r126",
+      "metricKey": "oa_information_non_compliances",
+      "label": "выявлено несоответствий нормативным документам (кол-во)"
+    },
+    {
+      "key": "r127",
+      "metricKey": "oa_sum_information_violators_measures",
+      "label": "Меры, принятые к нарушителям"
+    },
+    {
+      "key": "r128",
+      "metricKey": "oa_information_warnings",
+      "label": "предупреждение (кол-во)"
+    },
+    {
+      "key": "r129",
+      "metricKey": "oa_information_remarks",
+      "label": "замечание (кол-во)"
+    },
+    {
+      "key": "r130",
+      "metricKey": "oa_information_reprimands",
+      "label": "выговор (кол-во)"
+    },
+    {
+      "key": "r131",
+      "metricKey": "oa_information_dismissals",
+      "label": "увольнение по соответствующим основаниям (кол-во)"
+    },
+    {
+      "key": "r132",
+      "metricKey": "oa_information_approved_accesses",
+      "label": "Количество согласованных доступов к информационным активам"
+    },
+    {
+      "key": "r133",
+      "metricKey": "oa_information_memos_count",
+      "label": "Подготовлено служебных записок руководству"
+    },
+    {
+      "key": "r134",
+      "metricKey": "oa_sum_information_risk_minimization",
+      "label": "События и мероприятия, связанные с минимизацией рисков и угроз в информационной сфере"
+    },
+    {
+      "key": "r135",
+      "metricKey": "oa_information_audit_security_control_count",
+      "label": "Проведение аудита и контроль защищённости информационной инфраструктуры ИС"
+    },
+    {
+      "key": "r136",
+      "metricKey": "oa_information_work_status_result_count",
+      "label": "Описание статуса и/или результата проводимых работ в рамках данной задачи"
+    },
+    {
+      "key": "r137",
+      "metricKey": "oa_information_scanned_count",
+      "label": "Проведено /просканировано (кол-во)"
+    },
+    {
+      "key": "r138",
+      "metricKey": "oa_information_vulnerabilities_found",
+      "label": "Выявлено уязвимостей (кол-во)"
+    },
+    {
+      "key": "r139",
+      "metricKey": "oa_information_ct_ki_protection_count",
+      "label": "Реализация режима защиты КТ и КИ"
+    },
+    {
+      "key": "r140",
+      "metricKey": "oa_information_confidential_docs",
+      "label": "Зарегистрировано конфиденциальных документов (кол-во)"
+    },
+    {
+      "key": "r141",
+      "metricKey": "oa_information_compliance_checks",
+      "label": "Проведено проверок на соответствие нормативным документам (кол-во)"
+    },
+    {
+      "key": "r142",
+      "metricKey": "oa_information_awareness_count",
+      "label": "Повышение осведомленности в области ИБ сотрудников компании"
+    },
+    {
+      "key": "r143",
+      "metricKey": "oa_sum_information_access_control",
+      "label": "Контроль доступа к ИС и действий привилегированных пользователей"
+    },
+    {
+      "key": "r144",
+      "metricKey": "oa_information_access_requests",
+      "label": "Рассмотрено заявок на предоставление доступа к ИС (кол-во)"
+    },
+    {
+      "key": "r145",
+      "metricKey": "oa_information_access_violations",
+      "label": "Зафиксировано нарушений предоставления доступа к ИС (кол-во)"
+    },
+    {
+      "key": "r146",
+      "metricKey": "oa_information_account_audits",
+      "label": "Проведено аудитов учетных записей (кол-во)"
+    },
+    {
+      "key": "r147",
+      "metricKey": "oa_information_violations_found",
+      "label": "Выявлено нарушений (кол-во)"
+    },
+    {
+      "key": "r148",
+      "metricKey": "oa_information_processed_incidents",
+      "label": "Обработано инцидентов ИБ (кол-во), из них"
+    },
+    {
+      "key": "r149",
+      "metricKey": "oa_information_admin_rights_incidents",
+      "label": "инцидентов, связанных с нарушением процедур предоставления административных прав (кол-во)"
+    },
+    {
+      "key": "r150",
+      "metricKey": "oa_information_kspd_access_incidents",
+      "label": "инцидентов по подозрению в нелегитимном доступе в КСПД (кол-во)"
+    },
+    {
+      "key": "r151",
+      "metricKey": "oa_information_spam_incidents",
+      "label": "инцидентов по подозрению внутренней спам-активности (кол-во)"
+    },
+    {
+      "key": "r152",
+      "metricKey": "oa_information_virus_incidents",
+      "label": "инцидентов, связанных с вирусной активностью (кол-во)"
+    },
+    {
+      "key": "r153",
+      "metricKey": "oa_information_software_incidents",
+      "label": "инцидентов, связанных с выявлением некорпоративного, нелицензионного, вредоносного ПО (кол-во)"
+    },
+    {
+      "key": "r154",
+      "metricKey": "oa_information_ki_pdn_incidents",
+      "label": "инцидентов, связанных с нарушениями порядка обработки КИ и ПДн (кол-во)"
+    },
+    {
+      "key": "r155",
+      "metricKey": "oa_information_network_attacks_incidents",
+      "label": "инцидентов по подозрению в сетевых атаках (кол-во)"
+    },
+    {
+      "key": "r156",
+      "metricKey": "oa_information_leaks_found",
+      "label": "выявлено утечек КИ или информации, составляющей КТ (кол-во)"
+    },
+    {
+      "key": "r157",
+      "metricKey": "oa_information_blocked_threats",
+      "label": "в рамках мониторинга инцидентов ИБ заблокировано (кол-во)"
+    },
+    {
+      "key": "r158",
+      "metricKey": "oa_information_other_incidents",
+      "label": "другие инциденты ИБ (кол-во)"
+    },
+    {
+      "key": "r159",
+      "metricKey": "oa_information_fraud_incidents",
+      "label": "Выявлено инцидентов фрода, находящихся в зоне ответственности ИБ (кол-во)"
+    },
+    {
+      "key": "r160",
+      "metricKey": "oa_information_analyzed_documents",
+      "label": "Обработано документов в рамках участия в составах проектных рабочих групп компании (кол-во)"
+    }
+  ]
+}

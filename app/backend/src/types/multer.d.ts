@@ -13,6 +13,7 @@ export interface MulterFile {
 }
 
 export interface MulterRequest extends Request {
+  file?: MulterFile;
   files?: MulterFile[];
 }
 

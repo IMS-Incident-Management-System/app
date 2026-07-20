@@ -68,6 +68,7 @@ export const Permission = {
   REPORT_TABLE: 'report.table',
   REPORT_EXPORT: 'report.export',
   REPORT_DASHBOARD: 'report.dashboard',
+  REPORT_IMPORT: 'report.import',
 
   // Пояснительные записки
   EXPLANATORY_NOTE_LIST: 'explanatory_note.list',
@@ -183,6 +184,7 @@ export const PERMISSION_GROUPS: Record<string, { label: string; permissions: Per
       Permission.REPORT_TABLE,
       Permission.REPORT_EXPORT,
       Permission.REPORT_DASHBOARD,
+      Permission.REPORT_IMPORT,
     ],
   },
   explanatory_note: {

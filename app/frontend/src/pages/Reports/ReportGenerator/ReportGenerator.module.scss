@@ -43,6 +43,9 @@
 
   :global(.ant-card-body) {
     padding: 24px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
   }
 
   .filterLabel {
@@ -60,11 +63,77 @@
     }
   }
 
+  .filterSource {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .sourceSegmented {
+    background: #f1f5f9;
+    padding: 4px;
+    border-radius: 12px;
+
+    :global(.ant-segmented-item-selected) {
+      box-shadow: 0 1px 4px rgba(30, 60, 114, 0.12);
+    }
+  }
+
+  .filterGrid {
+    display: grid;
+    grid-template-columns: minmax(260px, 360px) minmax(280px, 1fr);
+    gap: 20px 32px;
+    align-items: start;
+  }
+
+  .filterField {
+    min-width: 0;
+  }
+
+  .filterActions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 16px;
+    min-height: 40px;
+  }
+
+  .paoCheckbox {
+    display: inline-flex;
+    align-items: center;
+    margin-inline-end: 0;
+    white-space: nowrap;
+  }
+
+  .filterHint {
+    margin: 10px 0 0;
+    max-width: 420px;
+    font-size: 12px;
+    line-height: 1.45;
+    color: #64748b;
+  }
+
+  .sourceMeta {
+    padding-top: 16px;
+    border-top: 1px solid #e2e8f0;
+  }
+
+  .sourceTag {
+    margin: 0;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.4;
+    max-width: 100%;
+    white-space: normal;
+  }
+
   .rangePicker {
     width: 100%;
     border-radius: 10px;
 
     :global(.ant-picker) {
+      width: 100%;
       border-radius: 10px;
       border-color: #e2e8f0;
       transition: border-color 0.2s, box-shadow 0.2s;
@@ -282,7 +351,18 @@
     padding: 16px;
   }
 
-  .filtersCard :global(.ant-card-body),
+  .filtersCard {
+    :global(.ant-card-body) {
+      padding: 20px;
+      gap: 16px;
+    }
+
+    .filterGrid {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+  }
+
   .tableCard :global(.ant-card-body) {
     padding: 20px 20px;
   }

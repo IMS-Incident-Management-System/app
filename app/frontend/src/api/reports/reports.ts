@@ -51,18 +51,33 @@ export interface GetReportTableRequest {
   departmentIds?: number[];
   page?: number;
   limit?: number;
+  dataSource?: 'live' | 'imported';
+  reportType?: string;
 }
 
 export interface ReportTableRow {
   fieldName: string;
   fieldKey: string;
-  [key: string]: string | number;
+  metricKey?: string;
+  [key: string]: string | number | undefined;
 }
 
 /** Ячейка иерархической шапки (бэкенд) */
 export interface ReportHeaderCell {
   label: string;
   span: number;
+}
+
+export interface ReportTableMeta {
+  dataSource: 'live' | 'imported';
+  batchId?: number;
+  batchIds?: number[];
+  batchCount?: number;
+  fileName?: string;
+  fileNames?: string[];
+  uploadedAt?: string;
+  reportType?: string;
+  message?: string;
 }
 
 export interface ReportTableResponse {
@@ -73,6 +88,7 @@ export interface ReportTableResponse {
   allSelectedArePaoMts?: boolean;
   /** Иерархическая шапка таблицы: массив строк, каждая строка — массив ячеек с label и span */
   headerRows?: ReportHeaderCell[][];
+  meta?: ReportTableMeta;
 }
 
 export interface ExportReportRequest {
@@ -80,6 +96,23 @@ export interface ExportReportRequest {
   dateTo: string;
   departmentIds: number[];
   fieldKeys: string[];
+  dataSource?: 'live' | 'imported';
+  reportType?: string;
+}
+
+export interface ReportImportBatch {
+  id: number;
+  report_type: string;
+  file_name: string;
+  storage_path?: string | null;
+  period_from: string;
+  period_to: string;
+  status: string;
+  replaced_by_batch_id?: number | null;
+  uploaded_by?: string | null;
+  validation_summary?: Record<string, unknown> | null;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export const getReportTableData = async (
@@ -103,6 +136,7 @@ export const getReportTableData = async (
         paoMtsDepartmentIds: Array.isArray(payload.paoMtsDepartmentIds) ? payload.paoMtsDepartmentIds : undefined,
         allSelectedArePaoMts: typeof payload.allSelectedArePaoMts === 'boolean' ? payload.allSelectedArePaoMts : undefined,
         headerRows: Array.isArray(payload.headerRows) ? payload.headerRows : undefined,
+        meta: payload.meta && typeof payload.meta === 'object' ? payload.meta as ReportTableMeta : undefined,
       };
     }
     return { rows: [], departments: [], total: 0 };
@@ -232,5 +266,59 @@ export const generateReport = async (data: GenerateReportRequest) => {
   link.click();
   link.remove();
   window.URL.revokeObjectURL(url);
+};
+
+export const listReportImports = async (params?: {
+  reportType?: string;
+  periodFrom?: string;
+  periodTo?: string;
+  status?: string;
+}): Promise<ReportImportBatch[]> => {
+  const raw = await useRequest<{ success: boolean; data: ReportImportBatch[] } | ReportImportBatch[]>(
+    async () => axiosGatewayBackend.get('/reports/imports', { params }),
+  );
+  if (Array.isArray(raw)) return raw;
+  if (raw && typeof raw === 'object' && Array.isArray((raw as { data?: ReportImportBatch[] }).data)) {
+    return (raw as { data: ReportImportBatch[] }).data;
+  }
+  return [];
+};
+
+export const uploadReportImport = async (params: {
+  file: File;
+  periodFrom: string;
+  periodTo: string;
+  reportType?: string;
+}): Promise<ReportImportBatch> => {
+  const form = new FormData();
+  form.append('file', params.file);
+  form.append('periodFrom', params.periodFrom);
+  form.append('periodTo', params.periodTo);
+  if (params.reportType) form.append('reportType', params.reportType);
+
+  const raw = await useRequest<{ success: boolean; data: ReportImportBatch } | ReportImportBatch>(
+    async () =>
+      axiosGatewayBackend.post('/reports/imports', form, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      }),
+  );
+  if (raw && typeof raw === 'object' && 'data' in raw && (raw as { data: ReportImportBatch }).data) {
+    return (raw as { data: ReportImportBatch }).data;
+  }
+  return raw as ReportImportBatch;
+};
+
+export const activateReportImport = async (id: number): Promise<ReportImportBatch> => {
+  const raw = await useRequest<{ success: boolean; data: ReportImportBatch } | ReportImportBatch>(
+    async () => axiosGatewayBackend.post(`/reports/imports/${id}/activate`),
+  );
+  if (raw && typeof raw === 'object' && 'data' in raw && (raw as { data: ReportImportBatch }).data) {
+    return (raw as { data: ReportImportBatch }).data;
+  }
+  return raw as ReportImportBatch;
+};
+
+export const deleteReportImport = async (id: number): Promise<void> => {
+  await useRequest(async () => axiosGatewayBackend.delete(`/reports/imports/${id}`));
 };
 

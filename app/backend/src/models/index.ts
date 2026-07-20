@@ -25,6 +25,8 @@ import RolePermission from './rolePermission';
 import UserRole from './userRole';
 import ExplanatoryNote from './explanatoryNote';
 import EntityActivity from './entityActivity';
+import ReportImportBatch from './reportImportBatch';
+import ReportFact from './reportFact';
 
 // IncidentEvent связи
 IncidentEvent.belongsTo(IncidentEventType, { 
@@ -217,6 +219,24 @@ Department.hasMany(ExplanatoryNote, {
   onDelete: 'SET NULL'
 });
 
+ReportImportBatch.hasMany(ReportFact, {
+  foreignKey: 'batch_id',
+  as: 'facts',
+  onDelete: 'CASCADE',
+});
+ReportFact.belongsTo(ReportImportBatch, {
+  foreignKey: 'batch_id',
+  as: 'batch',
+});
+ReportFact.belongsTo(Department, {
+  foreignKey: 'department_id',
+  as: 'department',
+});
+ReportImportBatch.belongsTo(ReportImportBatch, {
+  foreignKey: 'replaced_by_batch_id',
+  as: 'replacedBy',
+});
+
 Event.hasOne(EventCriminalCase, {
   foreignKey: 'event_id',
   as: 'criminal_case',
@@ -267,5 +287,7 @@ export {
   UserRole,
   ExplanatoryNote,
   EntityActivity,
+  ReportImportBatch,
+  ReportFact,
   sequelize
 }; 

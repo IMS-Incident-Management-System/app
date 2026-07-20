@@ -1,8 +1,6 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import {
   Card,
-  Row,
-  Col,
   DatePicker,
   Button,
   Space,
@@ -13,6 +11,10 @@ import {
   Skeleton,
   Tag,
   Tooltip,
+  Segmented,
+  Upload,
+  Modal,
+  List,
 } from "antd";
 import {
   DownloadOutlined,
@@ -22,19 +24,35 @@ import {
   CheckSquareOutlined,
   BorderOutlined,
   ReloadOutlined,
+  UploadOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { PageHeader } from "../../../components/PageHeader";
-import { getReportTableData, exportReportToExcel, exportDashboardToExcel } from "../../../api/reports/reports";
-import { useQuery } from "react-query";
+import {
+  getReportTableData,
+  exportReportToExcel,
+  exportDashboardToExcel,
+  listReportImports,
+  uploadReportImport,
+  activateReportImport,
+  deleteReportImport,
+  ReportImportBatch,
+} from "../../../api/reports/reports";
+import { useQuery, useQueryClient } from "react-query";
 import { useGetDepartments } from "../../../services/requests/departments/getDepartments";
 import dayjs, { Dayjs } from "dayjs";
 import styles from "./ReportGenerator.module.scss";
 import { ERoutes } from "../../../enums/routes";
-import { selectCanReportExport, selectCanReportDashboard } from "../../../store/features/permissions/selectors";
+import {
+  selectCanReportExport,
+  selectCanReportDashboard,
+  selectCanReportImport,
+} from "../../../store/features/permissions/selectors";
 
 const { RangePicker } = DatePicker;
+
+type DataSourceMode = "live" | "imported";
 
 interface ReportTableRow {
   fieldName: string;
@@ -57,6 +75,17 @@ interface ReportTableResponse {
   paoMtsDepartmentIds?: number[];
   allSelectedArePaoMts?: boolean;
   headerRows?: ReportHeaderCell[][];
+  meta?: {
+    dataSource: "live" | "imported";
+    batchId?: number;
+    batchIds?: number[];
+    batchCount?: number;
+    fileName?: string;
+    fileNames?: string[];
+    uploadedAt?: string;
+    reportType?: string;
+    message?: string;
+  };
 }
 
 function formatCellValue(value: string | number): string {
@@ -273,8 +302,11 @@ function buildDepartmentColumns(
 
 export const ReportGenerator: React.FC = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const canExport = useSelector(selectCanReportExport);
   const canDashboard = useSelector(selectCanReportDashboard);
+  const canImport = useSelector(selectCanReportImport);
+  const [dataSource, setDataSource] = useState<DataSourceMode>("live");
   const [dateRange, setDateRange] = useState<[Dayjs, Dayjs]>([
     dayjs().startOf("month"),
     dayjs().endOf("month"),
@@ -284,28 +316,31 @@ export const ReportGenerator: React.FC = () => {
   const [filterPaoMts, setFilterPaoMts] = useState(false);
   const [pagination, setPagination] = useState({ page: 1, limit: 500 });
   const [isExporting, setIsExporting] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const tableWrapperRef = useRef<HTMLDivElement>(null);
+
+  const periodFromStr = dateRange[0].format("YYYY-MM-DD");
+  const periodToStr = dateRange[1].format("YYYY-MM-DD");
 
   // Получаем список всех департаментов для поиска ID департаментов ПАО МТС
   const { data: departmentsData } = useGetDepartments();
-  
+
   // Названия основных департаментов ПАО МТС (те же, что на бэкенде)
   const PAO_MTS_DEPARTMENT_NAMES = ['КЦ', 'Москва', 'Центр', 'СЗ', 'Поволжье', 'ЕЦКБ', 'Юг', 'Урал', 'Сибирь', 'ДВ'];
-  
+
   // Вычисляем ID департаментов ПАО МТС из списка всех департаментов
   const paoMtsDepartmentIdsArray = useMemo(() => {
     if (!departmentsData?.treeData || !Array.isArray(departmentsData.treeData)) {
       console.log('[ReportGenerator] Departments data not loaded yet');
       return [];
     }
-    
-    // Функция для рекурсивного поиска департаментов по названию в дереве
+
     const findDepartmentsByName = (depts: any[], names: string[]): number[] => {
       const ids: number[] = [];
       for (const dept of depts) {
         if (dept.title && names.includes(dept.title)) {
           ids.push(dept.department_id);
-          console.log(`[ReportGenerator] Found PAO MTS department: ${dept.title} (ID: ${dept.department_id})`);
         }
         if (dept.children && Array.isArray(dept.children) && dept.children.length > 0) {
           ids.push(...findDepartmentsByName(dept.children, names));
@@ -313,10 +348,8 @@ export const ReportGenerator: React.FC = () => {
       }
       return ids;
     };
-    
-    const foundIds = findDepartmentsByName(departmentsData.treeData, PAO_MTS_DEPARTMENT_NAMES);
-    console.log('[ReportGenerator] Found PAO MTS department IDs:', foundIds, 'from', PAO_MTS_DEPARTMENT_NAMES);
-    return foundIds;
+
+    return findDepartmentsByName(departmentsData.treeData, PAO_MTS_DEPARTMENT_NAMES);
   }, [departmentsData?.treeData]);
 
   const {
@@ -325,7 +358,7 @@ export const ReportGenerator: React.FC = () => {
     isFetching: isTableFetching,
     refetch: refetchTable,
   } = useQuery<ReportTableResponse>(
-    ["reportTable", dateRange, pagination, filterPaoMts, paoMtsDepartmentIdsArray],
+    ["reportTable", dataSource, periodFromStr, periodToStr, pagination, filterPaoMts, paoMtsDepartmentIdsArray],
     async ({ signal }) => {
       if (!dateRange[0] || !dateRange[1]) {
         return { rows: [], departments: [], total: 0 };
@@ -341,6 +374,7 @@ export const ReportGenerator: React.FC = () => {
         : undefined;
       
       console.log('[ReportGenerator] Making request', { 
+        dataSource,
         filterPaoMts, 
         paoMtsDepartmentIdsArrayLength: paoMtsDepartmentIdsArray.length,
         departmentIdsToSend 
@@ -348,11 +382,12 @@ export const ReportGenerator: React.FC = () => {
       
       return await getReportTableData(
         {
-          dateFrom: dateRange[0].format("YYYY-MM-DD"),
-          dateTo: dateRange[1].format("YYYY-MM-DD"),
+          dateFrom: periodFromStr,
+          dateTo: periodToStr,
           page: pagination.page,
           limit: pagination.limit,
           departmentIds: departmentIdsToSend,
+          dataSource,
         },
         signal
       );
@@ -376,6 +411,17 @@ export const ReportGenerator: React.FC = () => {
     }
   );
 
+  const { data: importBatches = [], refetch: refetchImports } = useQuery<ReportImportBatch[]>(
+    ["reportImports", periodFromStr, periodToStr],
+    () =>
+      listReportImports({
+        periodFrom: periodFromStr,
+        periodTo: periodToStr,
+        reportType: "rp053_matrix",
+      }),
+    { enabled: dataSource === "imported" }
+  );
+
 
   const rows = tableData?.rows ?? [];
   const total = tableData?.total ?? 0;
@@ -383,6 +429,7 @@ export const ReportGenerator: React.FC = () => {
   
   const hasFilters = !!dateRange[0] && !!dateRange[1];
   const isEmpty = hasFilters && !isTableLoading && rows.length === 0;
+  const tableMeta = tableData?.meta;
 
   const selectAllFields = useCallback(() => {
     if (rows.length === 0) return;
@@ -629,15 +676,16 @@ export const ReportGenerator: React.FC = () => {
     setIsExporting(true);
     try {
       await exportReportToExcel({
-        dateFrom: dateRange[0].format("YYYY-MM-DD"),
-        dateTo: dateRange[1].format("YYYY-MM-DD"),
+        dateFrom: periodFromStr,
+        dateTo: periodToStr,
         departmentIds: Array.from(selectedDepartments),
         fieldKeys: Array.from(selectedFields),
+        dataSource,
       });
       message.success("Отчёт выгружен");
     } catch (error: unknown) {
-      const err = error as { response?: { data?: { message?: string } } };
-      message.error(err?.response?.data?.message || "Ошибка при выгрузке");
+      const err = error as { response?: { data?: { message?: string } }; message?: string };
+      message.error(err?.response?.data?.message || err?.message || "Ошибка при выгрузке");
     } finally {
       setIsExporting(false);
     }
@@ -645,6 +693,10 @@ export const ReportGenerator: React.FC = () => {
 
   const [isDashboardExporting, setIsDashboardExporting] = useState(false);
   const handleExportDashboard = async () => {
+    if (dataSource === "imported") {
+      message.warning("Дашборд недоступен для архивных отчётов");
+      return;
+    }
     if (selectedFields.size === 0 || selectedDepartments.size === 0) {
       message.warning("Выберите хотя бы один показатель и один департамент");
       return;
@@ -652,10 +704,11 @@ export const ReportGenerator: React.FC = () => {
     setIsDashboardExporting(true);
     try {
       await exportDashboardToExcel({
-        dateFrom: dateRange[0].format("YYYY-MM-DD"),
-        dateTo: dateRange[1].format("YYYY-MM-DD"),
+        dateFrom: periodFromStr,
+        dateTo: periodToStr,
         departmentIds: Array.from(selectedDepartments),
         fieldKeys: Array.from(selectedFields),
+        dataSource: "live",
       });
       message.success("Дашборд выгружен");
     } catch (error: unknown) {
@@ -664,6 +717,45 @@ export const ReportGenerator: React.FC = () => {
     } finally {
       setIsDashboardExporting(false);
     }
+  };
+
+  const handleUploadArchive = async (file: File) => {
+    setUploading(true);
+    try {
+      const batch = await uploadReportImport({
+        file,
+        periodFrom: periodFromStr,
+        periodTo: periodToStr,
+        reportType: "rp053_matrix",
+      });
+      // Период берётся из заголовка Excel — переключаем picker на него
+      if (batch.period_from && batch.period_to) {
+        const from = dayjs(String(batch.period_from).slice(0, 10));
+        const to = dayjs(String(batch.period_to).slice(0, 10));
+        if (from.isValid() && to.isValid()) {
+          setDateRange([from.startOf("day"), to.endOf("day")]);
+        }
+      }
+      if (batch.status === "active") {
+        const from = String(batch.period_from ?? "").slice(0, 10);
+        const to = String(batch.period_to ?? "").slice(0, 10);
+        message.success(
+          `Импорт выполнен: ${batch.file_name}${from ? ` → период ${from} — ${to}` : ""}`
+        );
+      } else {
+        message.warning("Импорт завершился с ошибкой — проверьте файл");
+      }
+      await queryClient.invalidateQueries(["reportImports"]);
+      await queryClient.invalidateQueries(["reportTable"]);
+      await refetchImports();
+      await refetchTable();
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } }; message?: string };
+      message.error(err?.response?.data?.message || err?.message || "Ошибка импорта");
+    } finally {
+      setUploading(false);
+    }
+    return false;
   };
 
   return (
@@ -697,8 +789,21 @@ export const ReportGenerator: React.FC = () => {
       />
 
       <Card className={styles.filtersCard} variant="borderless">
-        <Row gutter={[24, 20]}>
-          <Col xs={24} md={10} lg={8}>
+        <div className={styles.filterSource}>
+          <label className={styles.filterLabel}>Источник данных</label>
+          <Segmented
+            className={styles.sourceSegmented}
+            value={dataSource}
+            onChange={(v) => setDataSource(v as DataSourceMode)}
+            options={[
+              { label: "Текущие данные системы", value: "live" },
+              { label: "Архивные отчёты Excel", value: "imported" },
+            ]}
+          />
+        </div>
+
+        <div className={styles.filterGrid}>
+          <div className={styles.filterField}>
             <label className={styles.filterLabel}>
               <CalendarOutlined /> Период
             </label>
@@ -712,17 +817,16 @@ export const ReportGenerator: React.FC = () => {
               placeholder={["Начало", "Окончание"]}
               allowClear={false}
             />
-          </Col>
-          <Col xs={24} md={10} lg={8}>
-            <label className={styles.filterLabel}>
-              Фильтры
-            </label>
-            <Space>
+          </div>
+
+          <div className={styles.filterField}>
+            <label className={styles.filterLabel}>Действия</label>
+            <div className={styles.filterActions}>
               <Checkbox
+                className={styles.paoCheckbox}
                 checked={filterPaoMts}
                 onChange={(e) => {
                   setFilterPaoMts(e.target.checked);
-                  // При включении фильтра очищаем выбор департаментов, чтобы пользователь выбрал нужные из отфильтрованного списка
                   if (e.target.checked) {
                     setSelectedDepartments(new Set());
                   }
@@ -730,10 +834,114 @@ export const ReportGenerator: React.FC = () => {
               >
                 ПАО МТС
               </Checkbox>
-            </Space>
-          </Col>
-        </Row>
+              {dataSource === "imported" && canImport && (
+                <Upload
+                  accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                  showUploadList={false}
+                  beforeUpload={(file) => {
+                    void handleUploadArchive(file);
+                    return false;
+                  }}
+                >
+                  <Button icon={<UploadOutlined />} loading={uploading}>
+                    Загрузить Excel
+                  </Button>
+                </Upload>
+              )}
+              {dataSource === "imported" && (
+                <Button type="default" onClick={() => setHistoryOpen(true)}>
+                  Версии ({importBatches.length})
+                </Button>
+              )}
+            </div>
+            {dataSource === "imported" && (
+              <p className={styles.filterHint}>
+                Период импорта — из заголовка файла. В таблице — сумма по выбранному диапазону.
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div className={styles.sourceMeta}>
+          {dataSource === "imported" ? (
+            (tableMeta?.batchCount ?? 0) > 0 || tableMeta?.batchId ? (
+              <Tag className={styles.sourceTag} color="blue">
+                {tableMeta?.batchCount && tableMeta.batchCount > 1
+                  ? `Сумма ${tableMeta.batchCount} архивных Excel`
+                  : `Архивный Excel «${tableMeta?.fileName ?? ""}»`}
+                {tableMeta?.uploadedAt && (tableMeta.batchCount ?? 1) === 1
+                  ? ` · ${dayjs(tableMeta.uploadedAt).format("DD.MM.YYYY HH:mm")}`
+                  : ""}
+              </Tag>
+            ) : (
+              <Tag className={styles.sourceTag} color="orange">
+                {tableMeta?.message || "Нет активного архива за период — загрузите Excel"}
+              </Tag>
+            )
+          ) : (
+            <Tag className={styles.sourceTag}>Рассчитано из текущих данных системы</Tag>
+          )}
+        </div>
       </Card>
+
+      <Modal
+        title="Версии архивного импорта"
+        open={historyOpen}
+        onCancel={() => setHistoryOpen(false)}
+        footer={null}
+        width={640}
+      >
+        <List
+          dataSource={importBatches}
+          locale={{ emptyText: "Нет загрузок за этот период" }}
+          renderItem={(item) => (
+            <List.Item
+              actions={[
+                item.status === "superseded" ? (
+                  <Button
+                    key="act"
+                    type="link"
+                    onClick={async () => {
+                      try {
+                        await activateReportImport(item.id);
+                        message.success("Батч активирован");
+                        await refetchImports();
+                        await refetchTable();
+                      } catch {
+                        message.error("Не удалось активировать");
+                      }
+                    }}
+                  >
+                    Сделать активным
+                  </Button>
+                ) : null,
+                <Button
+                  key="del"
+                  type="link"
+                  danger
+                  onClick={async () => {
+                    try {
+                      await deleteReportImport(item.id);
+                      message.success("Удалено");
+                      await refetchImports();
+                      await refetchTable();
+                    } catch {
+                      message.error("Не удалось удалить");
+                    }
+                  }}
+                >
+                  Удалить
+                </Button>,
+              ].filter(Boolean)}
+            >
+              <List.Item.Meta
+                title={`${item.file_name} — ${item.status}`}
+                description={`id=${item.id}, ${item.period_from}…${item.period_to}`}
+              />
+            </List.Item>
+          )}
+        />
+      </Modal>
 
       {!hasFilters && (
         <Card className={styles.emptyStateCard} variant="borderless">
@@ -770,7 +978,7 @@ export const ReportGenerator: React.FC = () => {
                   Выгрузить в Excel
                 </Button>
               )}
-              {canDashboard && (
+              {canDashboard && dataSource === "live" && (
                 <Button
                   size="large"
                   icon={<BarChartOutlined />}

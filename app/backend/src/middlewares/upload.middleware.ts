@@ -11,9 +11,10 @@ const UPLOAD_DIR = process.env.UPLOAD_DIR || path.join(process.cwd(), 'uploads')
 // Создаем директории для разных типов вложений
 const INCIDENTS_UPLOAD_DIR = path.join(UPLOAD_DIR, 'incidents');
 const INCIDENT_EVENTS_UPLOAD_DIR = path.join(UPLOAD_DIR, 'incident-events');
+const REPORT_IMPORTS_TMP_DIR = path.join(UPLOAD_DIR, 'report-imports-tmp');
 
 // Создаем директории, если их нет
-[UPLOAD_DIR, INCIDENTS_UPLOAD_DIR, INCIDENT_EVENTS_UPLOAD_DIR].forEach(dir => {
+[UPLOAD_DIR, INCIDENTS_UPLOAD_DIR, INCIDENT_EVENTS_UPLOAD_DIR, REPORT_IMPORTS_TMP_DIR].forEach(dir => {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
@@ -28,6 +29,8 @@ const diskStorage = multer.diskStorage({
     
     if (url.includes('/incident-events/')) {
       uploadDir = INCIDENT_EVENTS_UPLOAD_DIR;
+    } else if (url.includes('/reports/imports')) {
+      uploadDir = REPORT_IMPORTS_TMP_DIR;
     } else {
       uploadDir = INCIDENTS_UPLOAD_DIR;
     }

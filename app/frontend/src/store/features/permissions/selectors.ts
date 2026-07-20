@@ -88,6 +88,8 @@ export const selectCanReportExport = (state: RootState) =>
   Boolean(state.permissions.byEntity.report?.export);
 export const selectCanReportDashboard = (state: RootState) =>
   Boolean(state.permissions.byEntity.report?.dashboard);
+export const selectCanReportImport = (state: RootState) =>
+  Boolean(state.permissions.byEntity.report?.import);
 
 // Пояснительные записки
 export const selectCanCreateExplanatoryNote = (state: RootState) =>

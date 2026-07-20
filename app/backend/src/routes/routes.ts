@@ -216,6 +216,15 @@ router.get('/reports/fields', requirePermission([Permission.REPORT_TABLE, Permis
 router.post('/reports/table', requirePermission([Permission.REPORT_TABLE]), reportController.getReportTable);
 router.post('/reports/export', requirePermission([Permission.REPORT_EXPORT]), reportController.exportReport);
 router.post('/reports/export-dashboard', requirePermission([Permission.REPORT_DASHBOARD]), reportController.exportDashboard);
+router.get('/reports/imports', requirePermission([Permission.REPORT_IMPORT, Permission.REPORT_TABLE]), reportController.listImports);
+router.post(
+  '/reports/imports',
+  requirePermission([Permission.REPORT_IMPORT]),
+  upload.single('file'),
+  reportController.uploadImport
+);
+router.post('/reports/imports/:id/activate', requirePermission([Permission.REPORT_IMPORT]), reportController.activateImport);
+router.delete('/reports/imports/:id', requirePermission([Permission.REPORT_IMPORT]), reportController.deleteImport);
 
 // Explanatory notes
 router
