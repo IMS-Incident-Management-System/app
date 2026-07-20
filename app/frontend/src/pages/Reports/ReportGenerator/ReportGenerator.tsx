@@ -52,7 +52,7 @@ import {
 
 const { RangePicker } = DatePicker;
 
-type DataSourceMode = "live" | "imported";
+type DataSourceMode = "live" | "imported" | "auto";
 
 interface ReportTableRow {
   fieldName: string;
@@ -76,7 +76,7 @@ interface ReportTableResponse {
   allSelectedArePaoMts?: boolean;
   headerRows?: ReportHeaderCell[][];
   meta?: {
-    dataSource: "live" | "imported";
+    dataSource: "live" | "imported" | "auto";
     batchId?: number;
     batchIds?: number[];
     batchCount?: number;
@@ -85,6 +85,8 @@ interface ReportTableResponse {
     uploadedAt?: string;
     reportType?: string;
     message?: string;
+    liveRanges?: Array<{ from: string; to: string }>;
+    archiveRanges?: Array<{ from: string; to: string; fileName: string }>;
   };
 }
 
@@ -476,6 +478,25 @@ export const ReportGenerator: React.FC = () => {
   const headerRows = tableData?.headerRows;
   const useHierarchy = !!(headerRows && headerRows.length > 0 && deptList.length > 0);
 
+  // При смене источника/периода сбрасываем выбор — ниже эффекты снова выберут всё по новым данным
+  useEffect(() => {
+    setSelectedFields(new Set());
+    setSelectedDepartments(new Set());
+  }, [dataSource, periodFromStr, periodToStr, filterPaoMts]);
+
+  // При появлении данных таблицы — выбрать всё, если ещё ничего не выбрано (иначе кнопки выгрузки disabled)
+  useEffect(() => {
+    if (rows.length === 0) return;
+    setSelectedFields((prev) => (prev.size === 0 ? new Set(rows.map((r) => r.fieldKey)) : prev));
+  }, [rows]);
+
+  useEffect(() => {
+    if (deptList.length === 0) return;
+    setSelectedDepartments((prev) =>
+      prev.size === 0 ? new Set(deptList.map((d) => d.id)) : prev
+    );
+  }, [deptList]);
+
   // Отладка: что пришло с бэкенда и какая структура колонок
   useEffect(() => {
     if (!tableData) return;
@@ -693,10 +714,6 @@ export const ReportGenerator: React.FC = () => {
 
   const [isDashboardExporting, setIsDashboardExporting] = useState(false);
   const handleExportDashboard = async () => {
-    if (dataSource === "imported") {
-      message.warning("Дашборд недоступен для архивных отчётов");
-      return;
-    }
     if (selectedFields.size === 0 || selectedDepartments.size === 0) {
       message.warning("Выберите хотя бы один показатель и один департамент");
       return;
@@ -708,12 +725,26 @@ export const ReportGenerator: React.FC = () => {
         dateTo: periodToStr,
         departmentIds: Array.from(selectedDepartments),
         fieldKeys: Array.from(selectedFields),
-        dataSource: "live",
+        dataSource,
       });
-      message.success("Дашборд выгружен");
+      message.success(
+        dataSource === "live"
+          ? "Дашборд выгружен"
+          : "Дашборд выгружен (круговые диаграммы)"
+      );
     } catch (error: unknown) {
-      const err = error as { response?: { data?: { message?: string } } };
-      message.error(err?.response?.data?.message || "Ошибка при выгрузке дашборда");
+      const err = error as {
+        response?: { data?: { message?: string; error?: { message?: string } } };
+        error?: { message?: string };
+        message?: string;
+      };
+      message.error(
+        err?.error?.message ||
+          err?.response?.data?.error?.message ||
+          err?.response?.data?.message ||
+          err?.message ||
+          "Ошибка при выгрузке дашборда"
+      );
     } finally {
       setIsDashboardExporting(false);
     }
@@ -750,8 +781,21 @@ export const ReportGenerator: React.FC = () => {
       await refetchImports();
       await refetchTable();
     } catch (error: unknown) {
-      const err = error as { response?: { data?: { message?: string } }; message?: string };
-      message.error(err?.response?.data?.message || err?.message || "Ошибка импорта");
+      const err = error as {
+        response?: { data?: { message?: string; error?: { message?: string } } };
+        error?: { message?: string };
+        message?: string;
+      };
+      const overlapMsg =
+        err?.error?.message ||
+        err?.response?.data?.error?.message ||
+        err?.response?.data?.message ||
+        err?.message;
+      message.error({
+        content: overlapMsg || "Ошибка импорта",
+        duration: 8,
+        style: { maxWidth: 520 },
+      });
     } finally {
       setUploading(false);
     }
@@ -796,8 +840,16 @@ export const ReportGenerator: React.FC = () => {
             value={dataSource}
             onChange={(v) => setDataSource(v as DataSourceMode)}
             options={[
-              { label: "Текущие данные системы", value: "live" },
-              { label: "Архивные отчёты Excel", value: "imported" },
+              { label: "Текущие данные", value: "live" },
+              { label: "Архив Excel", value: "imported" },
+              {
+                label: (
+                  <Tooltip title="Архив на своих датах (полный снимок) + текущие данные системы на днях без архива">
+                    <span>Авто</span>
+                  </Tooltip>
+                ),
+                value: "auto",
+              },
             ]}
           />
         </div>
@@ -835,28 +887,73 @@ export const ReportGenerator: React.FC = () => {
                 ПАО МТС
               </Checkbox>
               {dataSource === "imported" && canImport && (
-                <Upload
-                  accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                  showUploadList={false}
-                  beforeUpload={(file) => {
-                    void handleUploadArchive(file);
-                    return false;
-                  }}
+                <Tooltip
+                  title={
+                    <div className={styles.uploadTooltip}>
+                      <div className={styles.uploadTooltipTitle}>Загрузка архива</div>
+                      <p>
+                        Период читается из заголовка файла
+                        (например&nbsp;13.02.2024-25.06.2026).
+                      </p>
+                      <p>
+                        Если даты пересекаются с уже активным архивом — файл не будет принят.
+                        Повтор с тем же периодом создаёт новую версию.
+                      </p>
+                    </div>
+                  }
+                  placement="bottom"
                 >
-                  <Button icon={<UploadOutlined />} loading={uploading}>
-                    Загрузить Excel
-                  </Button>
-                </Upload>
+                  <Upload
+                    accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    showUploadList={false}
+                    beforeUpload={(file) => {
+                      void handleUploadArchive(file);
+                      return false;
+                    }}
+                  >
+                    <Button icon={<UploadOutlined />} loading={uploading}>
+                      Загрузить Excel
+                    </Button>
+                  </Upload>
+                </Tooltip>
               )}
               {dataSource === "imported" && (
                 <Button type="default" onClick={() => setHistoryOpen(true)}>
                   Версии ({importBatches.length})
                 </Button>
               )}
+              {canExport && (
+                <Button
+                  type="primary"
+                  icon={<DownloadOutlined />}
+                  onClick={handleExport}
+                  loading={isExporting}
+                  disabled={!hasFilters || selectedFields.size === 0 || selectedDepartments.size === 0}
+                >
+                  Выгрузить в Excel
+                </Button>
+              )}
+              {canDashboard && (
+                <Button
+                  icon={<BarChartOutlined />}
+                  onClick={handleExportDashboard}
+                  loading={isDashboardExporting}
+                  disabled={!hasFilters || selectedFields.size === 0 || selectedDepartments.size === 0}
+                >
+                  Выгрузить дашборд
+                </Button>
+              )}
             </div>
             {dataSource === "imported" && (
               <p className={styles.filterHint}>
-                Период импорта — из заголовка файла. В таблице — сумма по выбранному диапазону.
+                Период импорта — из заголовка файла. Пересечения с активными архивами не
+                допускаются.
+              </p>
+            )}
+            {dataSource === "auto" && (
+              <p className={styles.filterHint}>
+                На датах с архивом — полный снимок Excel; на остальных днях выбранного периода —
+                расчёт из системы.
               </p>
             )}
           </div>
@@ -878,6 +975,10 @@ export const ReportGenerator: React.FC = () => {
                 {tableMeta?.message || "Нет активного архива за период — загрузите Excel"}
               </Tag>
             )
+          ) : dataSource === "auto" ? (
+            <Tag className={styles.sourceTag} color="cyan">
+              {tableMeta?.message || "Авто: архив + текущие данные"}
+            </Tag>
           ) : (
             <Tag className={styles.sourceTag}>Рассчитано из текущих данных системы</Tag>
           )}
@@ -907,8 +1008,18 @@ export const ReportGenerator: React.FC = () => {
                         message.success("Батч активирован");
                         await refetchImports();
                         await refetchTable();
-                      } catch {
-                        message.error("Не удалось активировать");
+                      } catch (error: unknown) {
+                        const err = error as {
+                          error?: { message?: string };
+                          message?: string;
+                        };
+                        message.error({
+                          content:
+                            err?.error?.message ||
+                            err?.message ||
+                            "Не удалось активировать",
+                          duration: 8,
+                        });
                       }
                     }}
                   >
@@ -966,29 +1077,6 @@ export const ReportGenerator: React.FC = () => {
         <Card className={styles.tableCard} variant="borderless">
           <div className={styles.toolbar}>
             <Space wrap>
-              {canExport && (
-                <Button
-                  type="primary"
-                  size="large"
-                  icon={<DownloadOutlined />}
-                  onClick={handleExport}
-                  loading={isExporting}
-                  disabled={selectedFields.size === 0 || selectedDepartments.size === 0}
-                >
-                  Выгрузить в Excel
-                </Button>
-              )}
-              {canDashboard && dataSource === "live" && (
-                <Button
-                  size="large"
-                  icon={<BarChartOutlined />}
-                  onClick={handleExportDashboard}
-                  loading={isDashboardExporting}
-                  disabled={selectedFields.size === 0 || selectedDepartments.size === 0}
-                >
-                  Выгрузить дашборд
-                </Button>
-              )}
               <Space split={<span className={styles.toolbarDivider}>|</span>}>
                 <Tag color="blue">
                   Показателей: {selectedFields.size}

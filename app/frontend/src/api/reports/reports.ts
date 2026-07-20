@@ -51,7 +51,7 @@ export interface GetReportTableRequest {
   departmentIds?: number[];
   page?: number;
   limit?: number;
-  dataSource?: 'live' | 'imported';
+  dataSource?: 'live' | 'imported' | 'auto';
   reportType?: string;
 }
 
@@ -69,7 +69,7 @@ export interface ReportHeaderCell {
 }
 
 export interface ReportTableMeta {
-  dataSource: 'live' | 'imported';
+  dataSource: 'live' | 'imported' | 'auto';
   batchId?: number;
   batchIds?: number[];
   batchCount?: number;
@@ -78,6 +78,8 @@ export interface ReportTableMeta {
   uploadedAt?: string;
   reportType?: string;
   message?: string;
+  liveRanges?: Array<{ from: string; to: string }>;
+  archiveRanges?: Array<{ from: string; to: string; fileName: string }>;
 }
 
 export interface ReportTableResponse {
@@ -96,7 +98,7 @@ export interface ExportReportRequest {
   dateTo: string;
   departmentIds: number[];
   fieldKeys: string[];
-  dataSource?: 'live' | 'imported';
+  dataSource?: 'live' | 'imported' | 'auto';
   reportType?: string;
 }
 

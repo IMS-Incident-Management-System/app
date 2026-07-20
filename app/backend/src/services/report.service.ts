@@ -1,7 +1,7 @@
 import { Op } from 'sequelize';
 import axios from 'axios';
 import ExcelJS from 'exceljs';
-import { Incident, Event, OperationalActivity, Department, ReportFact } from '../models';
+import { Incident, Event, OperationalActivity, Department, ReportFact, IncidentEvent } from '../models';
 import { REPORT_FIELDS, resolveReportFields } from '../constants/reportFields';
 import { computeFieldValueByRule } from './reportCalculator';
 import { reportImportService } from './reportImport.service';
@@ -70,13 +70,98 @@ function toDateOnlyLocal(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
+function parseDateOnlyLocal(iso: string): Date {
+  const [y, m, d] = iso.slice(0, 10).split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+
+function addDaysIso(iso: string, days: number): string {
+  const d = parseDateOnlyLocal(iso);
+  d.setDate(d.getDate() + days);
+  return toDateOnlyLocal(d);
+}
+
+function formatDateRuShort(iso: string): string {
+  const [y, m, d] = iso.slice(0, 10).split('-');
+  if (!y || !m || !d) return iso;
+  return `${d}.${m}.${y}`;
+}
+
+/** Промежутки запроса без архивного покрытия (live считает только здесь). */
+function computeLiveGaps(
+  requestFrom: string,
+  requestTo: string,
+  archiveIntervals: Array<{ from: string; to: string }>
+): Array<{ from: string; to: string }> {
+  const blocks = archiveIntervals
+    .map((a) => ({
+      from: a.from > requestFrom ? a.from : requestFrom,
+      to: a.to < requestTo ? a.to : requestTo,
+    }))
+    .filter((a) => a.from <= a.to)
+    .sort((a, b) => a.from.localeCompare(b.from));
+
+  const merged: Array<{ from: string; to: string }> = [];
+  for (const b of blocks) {
+    const last = merged[merged.length - 1];
+    if (!last || addDaysIso(last.to, 1) < b.from) {
+      merged.push({ ...b });
+    } else if (b.to > last.to) {
+      last.to = b.to;
+    }
+  }
+
+  const gaps: Array<{ from: string; to: string }> = [];
+  let cursor = requestFrom;
+  for (const m of merged) {
+    if (cursor < m.from) {
+      gaps.push({ from: cursor, to: addDaysIso(m.from, -1) });
+    }
+    cursor = addDaysIso(m.to, 1);
+  }
+  if (cursor <= requestTo) {
+    gaps.push({ from: cursor, to: requestTo });
+  }
+  return gaps.filter((g) => g.from <= g.to);
+}
+
+function addToPrecomputed(
+  target: Map<string, Map<number, number>>,
+  fieldKey: string,
+  metricKey: string | undefined,
+  departmentId: number,
+  value: number
+): void {
+  let m = target.get(fieldKey);
+  if (!m) {
+    m = new Map();
+    target.set(fieldKey, m);
+    if (metricKey) target.set(metricKey, m);
+  }
+  m.set(departmentId, (m.get(departmentId) ?? 0) + value);
+}
+
+function mergeTableRowsIntoPrecomputed(
+  target: Map<string, Map<number, number>>,
+  rows: Array<{ fieldKey: string; metricKey?: string; [key: string]: string | number | undefined }>
+): void {
+  for (const row of rows) {
+    for (const [key, raw] of Object.entries(row)) {
+      if (!key.startsWith('dept_') || typeof raw !== 'number') continue;
+      const deptId = Number(key.slice(5));
+      if (!Number.isFinite(deptId)) continue;
+      addToPrecomputed(target, row.fieldKey, row.metricKey, deptId, raw);
+    }
+  }
+}
+
 interface ReportField {
   entity: 'incident' | 'event' | 'operationalActivity';
   field: string;
   label: string;
 }
 
-export type ReportDataSource = 'live' | 'imported';
+export type ReportDataSource = 'live' | 'imported' | 'auto';
 
 interface ReportRequest {
   dateFrom: Date;
@@ -98,6 +183,22 @@ interface TableRequest {
   abortSignal?: AbortSignal;
   dataSource?: ReportDataSource;
   reportType?: string;
+  /** Если задано — live-путь не считает правила, а берёт значения из карты */
+  precomputed?: Map<string, Map<number, number>>;
+  /** Переопределение meta.dataSource (для auto после сборки через live+precomputed) */
+  metaDataSource?: ReportDataSource;
+  metaExtras?: {
+    batchId?: number;
+    batchIds?: number[];
+    batchCount?: number;
+    fileName?: string;
+    fileNames?: string[];
+    uploadedAt?: string;
+    reportType?: string;
+    message?: string;
+    liveRanges?: Array<{ from: string; to: string }>;
+    archiveRanges?: Array<{ from: string; to: string; fileName: string }>;
+  };
 }
 
 interface ExportRequest {
@@ -439,29 +540,52 @@ export const reportService = {
         for (const leafId of excelLeafIds) {
           let value = 0;
           if (field.entity === 'incident') {
-            if (isBooleanField) {
+            const incidentIds = await Incident.findAll({
+              where: { department_id: leafId },
+              attributes: ['id'],
+              include: [
+                {
+                  model: IncidentEvent,
+                  as: 'events',
+                  required: true,
+                  attributes: [],
+                  where: { date: { [Op.between]: [request.dateFrom, dateToEndOfDay] } },
+                },
+              ],
+            }).then((rows) => rows.map((r) => r.id));
+            if (incidentIds.length === 0) {
+              value = 0;
+            } else if (isBooleanField) {
               value = (await Incident.count({
                 where: {
-                  department_id: leafId,
-                  createdAt: { [Op.between]: [request.dateFrom, dateToEndOfDay] },
+                  id: { [Op.in]: incidentIds },
                   [field.field]: true,
                 } as any,
               })) as number;
             } else {
-              const whereOpt = { where: { department_id: leafId, createdAt: { [Op.between]: [request.dateFrom, dateToEndOfDay] } } } as any;
-              value = Number(await Incident.sum(field.field as any, whereOpt)) || 0;
+              value =
+                Number(
+                  await Incident.sum(field.field as any, {
+                    where: { id: { [Op.in]: incidentIds } },
+                  } as any)
+                ) || 0;
             }
           } else if (field.entity === 'event') {
             if (isBooleanField) {
               value = (await Event.count({
                 where: {
                   department_id: leafId,
-                  createdAt: { [Op.between]: [request.dateFrom, dateToEndOfDay] },
+                  date: { [Op.between]: [request.dateFrom, dateToEndOfDay] },
                   [field.field]: true,
                 } as any,
               })) as number;
             } else {
-              const whereOpt = { where: { department_id: leafId, createdAt: { [Op.between]: [request.dateFrom, dateToEndOfDay] } } } as any;
+              const whereOpt = {
+                where: {
+                  department_id: leafId,
+                  date: { [Op.between]: [request.dateFrom, dateToEndOfDay] },
+                },
+              } as any;
               value = Number(await Event.sum(field.field as any, whereOpt)) || 0;
             }
           } else if (field.entity === 'operationalActivity') {
@@ -702,10 +826,15 @@ export const reportService = {
       uploadedAt?: string;
       reportType?: string;
       message?: string;
+      liveRanges?: Array<{ from: string; to: string }>;
+      archiveRanges?: Array<{ from: string; to: string; fileName: string }>;
     };
   }> {
     if (request.dataSource === 'imported') {
       return this.getImportedReportTable(request);
+    }
+    if (request.dataSource === 'auto') {
+      return this.getAutoReportTable(request);
     }
     console.log('[reportService.getReportTable] Starting', { page: request.page, limit: request.limit, departmentIds: request.departmentIds });
     const { dateFrom, dateTo, departmentIds, page, limit } = request;
@@ -858,7 +987,11 @@ export const reportService = {
           console.log(`[reportService.getReportTable] Abort signal detected, stopping computation at leaf ${leafId}`);
           throw new Error('Request aborted');
         }
-        const val = await computeFieldValueByRule(def, leafId, dateFrom, dateTo, request.abortSignal);
+        const val = request.precomputed
+          ? (request.precomputed.get(def.key)?.get(leafId) ??
+              request.precomputed.get(def.metricKey)?.get(leafId) ??
+              0)
+          : await computeFieldValueByRule(def, leafId, dateFrom, dateTo, request.abortSignal);
         if (request.abortSignal?.aborted) {
           console.log(`[reportService.getReportTable] Abort signal detected after computation for leaf ${leafId}`);
           throw new Error('Request aborted');
@@ -887,10 +1020,104 @@ export const reportService = {
       paoMtsDepartmentIds: paoMtsMainIds,
       allSelectedArePaoMts,
       headerRows,
-      meta: { dataSource: 'live' as const },
+      meta: {
+        dataSource: (request.metaDataSource ?? 'live') as ReportDataSource,
+        ...(request.metaExtras ?? {}),
+      },
     };
     console.log('[reportService.getReportTable] Result prepared:', { rowsCount: rows.length, departmentsCount: result.departments.length, headerRowsCount: headerRows.length });
     return result;
+  },
+
+  /**
+   * Auto: полный снимок каждого пересекающегося архива + live только на днях без архива.
+   */
+  async getAutoReportTable(request: TableRequest): Promise<{
+    rows: Array<{ fieldName: string; fieldKey: string; metricKey?: string; [key: string]: string | number | undefined }>;
+    departments: Array<{ id: number; name: string }>;
+    total: number;
+    paoMtsDepartmentIds: number[];
+    allSelectedArePaoMts?: boolean;
+    headerRows?: ReportHeaderCell[][];
+    meta?: {
+      dataSource: ReportDataSource;
+      batchId?: number;
+      batchIds?: number[];
+      batchCount?: number;
+      fileName?: string;
+      fileNames?: string[];
+      uploadedAt?: string;
+      reportType?: string;
+      message?: string;
+      liveRanges?: Array<{ from: string; to: string }>;
+      archiveRanges?: Array<{ from: string; to: string; fileName: string }>;
+    };
+  }> {
+    const reportType = request.reportType || REPORT_TYPE_RP053_MATRIX;
+    const periodFrom = toDateOnlyLocal(request.dateFrom);
+    const periodTo = toDateOnlyLocal(request.dateTo);
+
+    const existing = await reportImportService.findActiveBatchesInRange({
+      reportType,
+      periodFrom,
+      periodTo,
+    });
+
+    if (existing.length === 0) {
+      return this.getReportTable({
+        ...request,
+        dataSource: 'live',
+        metaDataSource: 'auto',
+        metaExtras: {
+          message: 'Архивов за выбранный период нет — показаны текущие данные системы',
+          liveRanges: [{ from: periodFrom, to: periodTo }],
+          archiveRanges: [],
+        },
+      });
+    }
+
+    const { precomputed, batches, liveGaps } = await this.buildAutoPrecomputed({
+      dateFrom: request.dateFrom,
+      dateTo: request.dateTo,
+      departmentIds: request.departmentIds,
+      reportType: request.reportType,
+      abortSignal: request.abortSignal,
+      page: request.page,
+      limit: request.limit,
+    });
+
+    const archiveRanges = batches.map((b) => ({
+      from: String(b.period_from).slice(0, 10),
+      to: String(b.period_to).slice(0, 10),
+      fileName: b.file_name,
+    }));
+    const archiveLabel = archiveRanges
+      .map((a) => `«${a.fileName}» ${formatDateRuShort(a.from)}–${formatDateRuShort(a.to)}`)
+      .join('; ');
+    const liveLabel = liveGaps
+      .map((g) => `${formatDateRuShort(g.from)}–${formatDateRuShort(g.to)}`)
+      .join(', ');
+
+    return this.getReportTable({
+      ...request,
+      dataSource: 'live',
+      precomputed,
+      metaDataSource: 'auto',
+      metaExtras: {
+        batchIds: batches.map((b) => b.id),
+        batchCount: batches.length,
+        fileName: batches.map((b) => b.file_name).join(', '),
+        fileNames: batches.map((b) => b.file_name),
+        uploadedAt:
+          batches[0].createdAt?.toISOString?.() ?? String(batches[0].createdAt ?? ''),
+        reportType: batches[0].report_type,
+        liveRanges: liveGaps,
+        archiveRanges,
+        message: liveGaps.length
+          ? `Авто: архив ${archiveLabel} + система ${liveLabel}`
+          : `Авто: архив ${archiveLabel}`,
+      },
+    });
   },
 
   /**
@@ -1138,6 +1365,17 @@ export const reportService = {
       });
     }
 
+    if (request.dataSource === 'auto') {
+      const { precomputed } = await this.buildAutoPrecomputed(request);
+      return this.generateReport({
+        dateFrom: request.dateFrom,
+        dateTo: request.dateTo,
+        departmentIds: request.departmentIds,
+        fieldKeys: validKeys,
+        precomputed,
+      });
+    }
+
     return this.generateReport({
       dateFrom: request.dateFrom,
       dateTo: request.dateTo,
@@ -1146,14 +1384,97 @@ export const reportService = {
     });
   },
 
+  /** Сборка карты значений для Auto (архивные снимки + live по пробелам). */
+  async buildAutoPrecomputed(request: {
+    dateFrom: Date;
+    dateTo: Date;
+    departmentIds: number[];
+    reportType?: string;
+    abortSignal?: AbortSignal;
+    /** Если задано — live считает только эти страницы полей (для таблицы). Иначе все поля. */
+    page?: number;
+    limit?: number;
+  }): Promise<{
+    precomputed: Map<string, Map<number, number>>;
+    batches: Awaited<ReturnType<typeof reportImportService.findActiveBatchesInRange>>;
+    liveGaps: Array<{ from: string; to: string }>;
+  }> {
+    const reportType = request.reportType || REPORT_TYPE_RP053_MATRIX;
+    const periodFrom = toDateOnlyLocal(request.dateFrom);
+    const periodTo = toDateOnlyLocal(request.dateTo);
+    const batches = await reportImportService.findActiveBatchesInRange({
+      reportType,
+      periodFrom,
+      periodTo,
+    });
+
+    const precomputed = new Map<string, Map<number, number>>();
+    const liveGaps =
+      batches.length === 0
+        ? [{ from: periodFrom, to: periodTo }]
+        : computeLiveGaps(
+            periodFrom,
+            periodTo,
+            batches.map((b) => ({
+              from: String(b.period_from).slice(0, 10),
+              to: String(b.period_to).slice(0, 10),
+            }))
+          );
+
+    const pages: Array<{ page: number; limit: number }> =
+      request.page != null && request.limit != null
+        ? [{ page: request.page, limit: request.limit }]
+        : (() => {
+            const pageSize = 50;
+            const out: Array<{ page: number; limit: number }> = [];
+            for (let page = 1; (page - 1) * pageSize < REPORT_FIELDS.length; page++) {
+              out.push({ page, limit: pageSize });
+            }
+            return out;
+          })();
+
+    for (const gap of liveGaps) {
+      if (request.abortSignal?.aborted) throw new Error('Request aborted');
+      for (const p of pages) {
+        const part = await this.getReportTable({
+          dateFrom: parseDateOnlyLocal(gap.from),
+          dateTo: parseDateOnlyLocal(gap.to),
+          departmentIds: request.departmentIds,
+          page: p.page,
+          limit: p.limit,
+          dataSource: 'live',
+          abortSignal: request.abortSignal,
+        });
+        mergeTableRowsIntoPrecomputed(precomputed, part.rows);
+      }
+    }
+
+    for (const batch of batches) {
+      const facts = await ReportFact.findAll({ where: { batch_id: batch.id } });
+      for (const f of facts) {
+        const def = REPORT_FIELDS.find((x) => x.metricKey === f.metric_key);
+        addToPrecomputed(
+          precomputed,
+          def?.key ?? f.metric_key,
+          def?.metricKey,
+          f.department_id,
+          Number(f.value) || 0
+        );
+      }
+    }
+
+    return { precomputed, batches, liveGaps };
+  },
+
   /**
-   * Выгрузка дашборда в Excel: один столбчатый график (месяцы × показатели) + N круговых (по одному на показатель, группировка по 2-му уровню департаментов).
-   * Таблицу в файл не включаем.
+   * Выгрузка дашборда в Excel.
+   * live: столбчатый (месяцы × показатели) + круговые.
+   * imported/auto: только круговые за выбранный период (как матрица таблицы).
    */
   async exportDashboard(request: ExportRequest): Promise<Buffer> {
-    if (request.dataSource === 'imported') {
-      throw new Error('Дашборд для архивных отчётов недоступен');
-    }
+    const dataSource: ReportDataSource = request.dataSource || 'live';
+    const piesOnly = dataSource === 'imported' || dataSource === 'auto';
+
     const { dateFrom, dateTo, departmentIds, fieldKeys } = request;
     const validKeys = resolveReportFields(fieldKeys).map((d) => d.key);
     if (validKeys.length === 0) {
@@ -1237,62 +1558,84 @@ export const reportService = {
       'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь',
     ];
 
-    // Месяцы в диапазоне
-    const months: Array<{ label: string; dateFrom: Date; dateTo: Date }> = [];
-    const from = new Date(dateFrom);
-    const to = new Date(dateTo);
-    let y = from.getFullYear();
-    let m = from.getMonth();
-    const endY = to.getFullYear();
-    const endM = to.getMonth();
-    while (y < endY || (y === endY && m <= endM)) {
-      const monthStart = new Date(y, m, 1);
-      const monthEnd = new Date(y, m + 1, 0, 23, 59, 59, 999);
-      months.push({
-        label: `${monthNames[m]} ${y}`,
-        dateFrom: monthStart,
-        dateTo: monthEnd,
+    const dateToEnd = new Date(dateTo);
+    dateToEnd.setHours(23, 59, 59, 999);
+
+    // Значения листьев за полный период (для круговых) — из live / архива / auto
+    const fieldDataByLeaf = new Map<string, Map<number, number>>();
+    if (dataSource === 'imported') {
+      const reportType = request.reportType || REPORT_TYPE_RP053_MATRIX;
+      const periodFrom = toDateOnlyLocal(dateFrom);
+      const periodTo = toDateOnlyLocal(dateTo);
+      const batches = await reportImportService.findActiveBatchesInRange({
+        reportType,
+        periodFrom,
+        periodTo,
       });
-      m++;
-      if (m > 11) {
-        m = 0;
-        y++;
+      if (batches.length === 0) {
+        throw new Error('Нет активного архивного отчёта за выбранный период');
       }
-    }
-
-    // Данные для столбчатого графика: по месяцам, суммы по каждому показателю
-    const columnData: Record<string, Record<string, number>> = {};
-    for (const month of months) {
-      const row: Record<string, number> = {};
+      const facts = await ReportFact.findAll({
+        where: { batch_id: { [Op.in]: batches.map((b) => b.id) } },
+      });
+      const precomputed = new Map<string, Map<number, number>>();
+      for (const f of facts) {
+        const def = REPORT_FIELDS.find((x) => x.metricKey === f.metric_key);
+        addToPrecomputed(
+          precomputed,
+          def?.key ?? f.metric_key,
+          def?.metricKey,
+          f.department_id,
+          Number(f.value) || 0
+        );
+      }
       for (const def of defs) {
-        let sum = 0;
+        const dataMap = new Map<number, number>();
         for (const leafId of excelLeafIds) {
-          const v = await computeFieldValueByRule(def, leafId, month.dateFrom, month.dateTo, undefined);
-          sum += v;
+          dataMap.set(
+            leafId,
+            precomputed.get(def.key)?.get(leafId) ??
+              precomputed.get(def.metricKey)?.get(leafId) ??
+              0
+          );
         }
-        row[def.label] = sum;
+        fieldDataByLeaf.set(def.key, dataMap);
       }
-      columnData[month.label] = row;
+    } else if (dataSource === 'auto') {
+      const { precomputed } = await this.buildAutoPrecomputed({
+        dateFrom,
+        dateTo,
+        departmentIds,
+        reportType: request.reportType,
+      });
+      for (const def of defs) {
+        const dataMap = new Map<number, number>();
+        for (const leafId of excelLeafIds) {
+          dataMap.set(
+            leafId,
+            precomputed.get(def.key)?.get(leafId) ??
+              precomputed.get(def.metricKey)?.get(leafId) ??
+              0
+          );
+        }
+        fieldDataByLeaf.set(def.key, dataMap);
+      }
+    } else {
+      for (const def of defs) {
+        const dataMap = new Map<number, number>();
+        for (const leafId of excelLeafIds) {
+          const value = await computeFieldValueByRule(def, leafId, dateFrom, dateToEnd, undefined);
+          dataMap.set(leafId, value);
+        }
+        fieldDataByLeaf.set(def.key, dataMap);
+      }
     }
 
-    // Данные для круговых: полный период по листьям, затем группировка по 2-му уровню (или 1-му при двух уровнях)
     const leafPaths = getLeafPaths(forest, selectedLeafIds);
     const leafToGroup = new Map<number, string>();
     for (const { leafId, path } of leafPaths) {
       const groupLabel = path.length >= 2 ? path[1] : path[0];
       leafToGroup.set(leafId, groupLabel);
-    }
-
-    const fieldDataByLeaf = new Map<string, Map<number, number>>();
-    const dateToEnd = new Date(dateTo);
-    dateToEnd.setHours(23, 59, 59, 999);
-    for (const def of defs) {
-      const dataMap = new Map<number, number>();
-      for (const leafId of excelLeafIds) {
-        const value = await computeFieldValueByRule(def, leafId, dateFrom, dateToEnd, undefined);
-        dataMap.set(leafId, value);
-      }
-      fieldDataByLeaf.set(def.key, dataMap);
     }
 
     const pieDataByField: Array<{ label: string; data: Record<string, Record<string, number>> }> = [];
@@ -1316,54 +1659,115 @@ export const reportService = {
     const gapRows = 2;
     let rowPos = 0;
 
-    // Ограничиваем число показателей в столбчатом графике, иначе QuickChart 400 (лимит запроса)
-    const columnDefs = defs.length > COLUMN_CHART_MAX_DATASETS ? defs.slice(0, COLUMN_CHART_MAX_DATASETS) : defs;
-    const columnDefsNote = defs.length > COLUMN_CHART_MAX_DATASETS ? ` (показаны первые ${COLUMN_CHART_MAX_DATASETS} из ${defs.length})` : '';
+    const fromLabel = `${dateFrom.getDate().toString().padStart(2, '0')}.${(dateFrom.getMonth() + 1)
+      .toString()
+      .padStart(2, '0')}.${dateFrom.getFullYear()}`;
+    const toLabel = `${dateTo.getDate().toString().padStart(2, '0')}.${(dateTo.getMonth() + 1)
+      .toString()
+      .padStart(2, '0')}.${dateTo.getFullYear()}`;
 
-    // Динамические размеры: по ширине — под много месяцев и показателей, по высоте — под легенду вниз
-    const columnChartBaseWidth = 1000;
-    const columnChartBaseHeight = 480;
-    const columnChartWidth = Math.min(
-      QUICKCHART_MAX_WIDTH,
-      columnChartBaseWidth
-        + Math.max(0, months.length - 12) * 90
-        + Math.max(0, columnDefs.length - 25) * 28
-    );
-    const columnChartHeight = Math.min(QUICKCHART_MAX_HEIGHT, columnChartBaseHeight + Math.max(0, columnDefs.length - 25) * 22);
+    if (piesOnly) {
+      const sourceLabel = dataSource === 'auto' ? 'Авто (архив + система)' : 'Архивный Excel';
+      const titleCell = sheet.getRow(1).getCell(1);
+      titleCell.value = `Дашборд — круговые диаграммы · ${sourceLabel} · ${fromLabel} — ${toLabel}`;
+      titleCell.font = { size: 14, bold: true };
+      rowPos = 2;
+    } else {
+      // Месяцы в диапазоне — только для live столбчатого
+      const months: Array<{ label: string; dateFrom: Date; dateTo: Date }> = [];
+      const from = new Date(dateFrom);
+      const to = new Date(dateTo);
+      let y = from.getFullYear();
+      let m = from.getMonth();
+      const endY = to.getFullYear();
+      const endM = to.getMonth();
+      while (y < endY || (y === endY && m <= endM)) {
+        const monthStart = new Date(y, m, 1);
+        const monthEnd = new Date(y, m + 1, 0, 23, 59, 59, 999);
+        months.push({
+          label: `${monthNames[m]} ${y}`,
+          dateFrom: monthStart,
+          dateTo: monthEnd,
+        });
+        m++;
+        if (m > 11) {
+          m = 0;
+          y++;
+        }
+      }
 
-    // Столбчатый график (месяцы × показатели)
-    const columnChartConfig = {
-      type: 'bar',
-      data: {
-        labels: months.map((m) => m.label),
-        datasets: columnDefs.map((d) => ({
-          label: d.label,
-          data: months.map((m) => columnData[m.label]?.[d.label] ?? 0),
-        })),
-      },
-      options: {
-        title: {
-          display: true,
-          text: (months.length ? `Суммы за период ${months[0].label} — ${months[months.length - 1].label}` : 'По месяцам') + columnDefsNote,
-          font: { size: 16 },
+      const columnData: Record<string, Record<string, number>> = {};
+      for (const month of months) {
+        const row: Record<string, number> = {};
+        for (const def of defs) {
+          let sum = 0;
+          for (const leafId of excelLeafIds) {
+            const v = await computeFieldValueByRule(def, leafId, month.dateFrom, month.dateTo, undefined);
+            sum += v;
+          }
+          row[def.label] = sum;
+        }
+        columnData[month.label] = row;
+      }
+
+      const columnDefs = defs.length > COLUMN_CHART_MAX_DATASETS ? defs.slice(0, COLUMN_CHART_MAX_DATASETS) : defs;
+      const columnDefsNote =
+        defs.length > COLUMN_CHART_MAX_DATASETS
+          ? ` (показаны первые ${COLUMN_CHART_MAX_DATASETS} из ${defs.length})`
+          : '';
+
+      const columnChartBaseWidth = 1000;
+      const columnChartBaseHeight = 480;
+      const columnChartWidth = Math.min(
+        QUICKCHART_MAX_WIDTH,
+        columnChartBaseWidth +
+          Math.max(0, months.length - 12) * 90 +
+          Math.max(0, columnDefs.length - 25) * 28
+      );
+      const columnChartHeight = Math.min(
+        QUICKCHART_MAX_HEIGHT,
+        columnChartBaseHeight + Math.max(0, columnDefs.length - 25) * 22
+      );
+
+      const columnChartConfig = {
+        type: 'bar',
+        data: {
+          labels: months.map((mo) => mo.label),
+          datasets: columnDefs.map((d) => ({
+            label: d.label,
+            data: months.map((mo) => columnData[mo.label]?.[d.label] ?? 0),
+          })),
         },
-        legend: { display: true, labels: { font: { size: 12 } } },
-        scales: {
-          xAxes: [{ stacked: false, ticks: { font: { size: 11 }, maxRotation: 45 } }],
-          yAxes: [{ stacked: false, ticks: { font: { size: 11 } } }],
+        options: {
+          title: {
+            display: true,
+            text:
+              (months.length
+                ? `Суммы за период ${months[0].label} — ${months[months.length - 1].label}`
+                : 'По месяцам') + columnDefsNote,
+            font: { size: 16 },
+          },
+          legend: { display: true, labels: { font: { size: 12 } } },
+          scales: {
+            xAxes: [{ stacked: false, ticks: { font: { size: 11 }, maxRotation: 45 } }],
+            yAxes: [{ stacked: false, ticks: { font: { size: 11 } } }],
+          },
         },
-      },
-    };
-    const columnPng = await getChartPng(columnChartConfig, columnChartWidth, columnChartHeight);
-    const columnImageId = workbook.addImage({ base64: columnPng.toString('base64'), extension: 'png' });
-    sheet.addImage(columnImageId, {
-      tl: { col: 0, row: rowPos },
-      ext: { width: columnChartWidth, height: columnChartHeight },
-      editAs: 'oneCell',
-    });
-    rowPos += columnChartHeight / rowHeight + gapRows;
+      };
+      const columnPng = await getChartPng(columnChartConfig, columnChartWidth, columnChartHeight);
+      const columnImageId = workbook.addImage({
+        base64: columnPng.toString('base64'),
+        extension: 'png',
+      });
+      sheet.addImage(columnImageId, {
+        tl: { col: 0, row: rowPos },
+        ext: { width: columnChartWidth, height: columnChartHeight },
+        editAs: 'oneCell',
+      });
+      rowPos += columnChartHeight / rowHeight + gapRows;
+    }
 
-    // Круговые диаграммы — по 4 в строку с небольшим отступом, фиксированный размер
+    // Круговые диаграммы — по 4 в строку
     const pieSize = 420;
     const piesPerRow = 4;
     const colStep = 9.2;
@@ -1382,7 +1786,6 @@ export const reportService = {
         pieLabels = fields;
         pieValues = values;
       }
-      // Конфиг строкой — чтобы formatter (проценты) работал в QuickChart
       const pieConfigStr = `{
         type: 'pie',
         data: { labels: ${JSON.stringify(pieLabels)}, datasets: [{ data: ${JSON.stringify(pieValues)} }] },

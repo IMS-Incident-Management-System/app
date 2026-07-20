@@ -6,6 +6,7 @@ import { ArrowLeftOutlined, EditOutlined } from "@ant-design/icons";
 import { useGetEvent } from "../../services/requests/events/getEvent";
 import { ERoutes } from "../../enums/routes";
 import dayjs from "dayjs";
+import { toDayjsDate } from "../../utils/dateOnly";
 import styles from "./EventView.module.scss";
 import { PrimaryButton } from "../../components/PrimaryButton";
 import { selectCanUpdateEvent } from "../../store/features/permissions/selectors";
@@ -98,11 +99,11 @@ export const EventView = () => {
                 <Tag color="blue">{event.department?.title || "Не указано"}</Tag>
               </Descriptions.Item>
               <Descriptions.Item label="Дата события">
-                {event.date ? dayjs(event.date).format("DD.MM.YYYY") : "-"}
+                {event.date ? toDayjsDate(event.date)?.format("DD.MM.YYYY") : "-"}
               </Descriptions.Item>
               {event.entry_date && (
                 <Descriptions.Item label="Дата внесения">
-                  {dayjs(event.entry_date).format("DD.MM.YYYY")}
+                  {toDayjsDate(event.entry_date)?.format("DD.MM.YYYY")}
                 </Descriptions.Item>
               )}
               <Descriptions.Item label="Тип события">

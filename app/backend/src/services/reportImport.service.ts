@@ -7,6 +7,7 @@ import {
   REPORT_TYPE_RP053_MATRIX,
   ReportImportBatchInstance,
 } from '../models/reportImportBatch';
+import { ApiError } from '../middlewares/errorHandler.middleware';
 import { parseReportWorkbook } from './reportImport';
 import { parsePeriodFromReportTitle } from './reportImport/parsePeriodFromTitle';
 
@@ -28,6 +29,70 @@ function toDateOnly(d: Date | string): string {
   const m = String(x.getMonth() + 1).padStart(2, '0');
   const day = String(x.getDate()).padStart(2, '0');
   return `${y}-${m}-${day}`;
+}
+
+function formatDateRu(iso: string): string {
+  const [y, m, d] = iso.slice(0, 10).split('-');
+  if (!y || !m || !d) return iso;
+  return `${d}.${m}.${y}`;
+}
+
+function periodsOverlap(
+  aFrom: string,
+  aTo: string,
+  bFrom: string,
+  bTo: string
+): boolean {
+  return aFrom <= bTo && aTo >= bFrom;
+}
+
+async function findOverlappingActiveBatches(params: {
+  reportType: string;
+  periodFrom: string;
+  periodTo: string;
+  excludeBatchId?: number;
+}): Promise<ReportImportBatchInstance[]> {
+  const candidates = await ReportImportBatch.findAll({
+    where: {
+      report_type: params.reportType,
+      status: 'active',
+      ...(params.excludeBatchId ? { id: { [Op.ne]: params.excludeBatchId } } : {}),
+      period_from: { [Op.lte]: params.periodTo },
+      period_to: { [Op.gte]: params.periodFrom },
+    },
+    order: [['period_from', 'ASC']],
+  });
+  return candidates.filter((b) => {
+    const bf = toDateOnly(b.period_from as unknown as string);
+    const bt = toDateOnly(b.period_to as unknown as string);
+    // точное совпадение периода — это замена версии, не конфликт
+    if (bf === params.periodFrom && bt === params.periodTo) return false;
+    return periodsOverlap(params.periodFrom, params.periodTo, bf, bt);
+  });
+}
+
+export function buildPeriodOverlapMessage(
+  periodFrom: string,
+  periodTo: string,
+  conflicts: Array<{ file_name: string; period_from: unknown; period_to: unknown }>
+): string {
+  const wanted = `${formatDateRu(periodFrom)} – ${formatDateRu(periodTo)}`;
+  const lines = conflicts.map((c) => {
+    const pf = toDateOnly(c.period_from as string);
+    const pt = toDateOnly(c.period_to as string);
+    return `«${c.file_name}» (${formatDateRu(pf)} – ${formatDateRu(pt)})`;
+  });
+  if (lines.length === 1) {
+    return (
+      `Период ${wanted} пересекается с уже загруженным архивом ${lines[0]}. ` +
+      `Измените даты в заголовке файла или удалите/замените существующий архив ` +
+      `(повторная загрузка с тем же периодом создаёт новую версию).`
+    );
+  }
+  return (
+    `Период ${wanted} пересекается с ${lines.length} архивами: ${lines.join('; ')}. ` +
+    `Проверьте даты в заголовке файла — периоды архивов не должны пересекаться.`
+  );
 }
 
 async function buildLeafDepartmentsByTitle(): Promise<Map<string, number[]>> {
@@ -160,8 +225,31 @@ export const reportImportService = {
       periodTo = toDateOnly(params.periodTo);
       periodSource = 'form_fallback';
     } else {
-      throw new Error(
-        'Не удалось определить период: укажите его в заголовке файла («Результаты работы январь 2025») или в форме загрузки'
+      try {
+        fs.unlinkSync(destPath);
+      } catch {
+        /* ignore */
+      }
+      throw ApiError.badRequest(
+        'Не удалось определить период: укажите его в заголовке файла («Результаты работы 13.02.2024-25.06.2026» или «январь 2025») или в форме загрузки'
+      );
+    }
+
+    const conflicts = await findOverlappingActiveBatches({
+      reportType,
+      periodFrom,
+      periodTo,
+    });
+    if (conflicts.length > 0) {
+      try {
+        fs.unlinkSync(destPath);
+      } catch {
+        /* ignore */
+      }
+      throw new ApiError(
+        buildPeriodOverlapMessage(periodFrom, periodTo, conflicts),
+        409,
+        'PERIOD_OVERLAP'
       );
     }
 
@@ -255,6 +343,22 @@ export const reportImportService = {
     const batch = await ReportImportBatch.findByPk(id);
     if (!batch) throw new Error('Батч не найден');
     if (batch.status === 'failed') throw new Error('Нельзя активировать failed-батч');
+
+    const periodFrom = toDateOnly(batch.period_from as unknown as string);
+    const periodTo = toDateOnly(batch.period_to as unknown as string);
+    const conflicts = await findOverlappingActiveBatches({
+      reportType: batch.report_type,
+      periodFrom,
+      periodTo,
+      excludeBatchId: batch.id,
+    });
+    if (conflicts.length > 0) {
+      throw new ApiError(
+        buildPeriodOverlapMessage(periodFrom, periodTo, conflicts),
+        409,
+        'PERIOD_OVERLAP'
+      );
+    }
 
     await sequelize.transaction(async (t) => {
       const previous = await ReportImportBatch.findAll({

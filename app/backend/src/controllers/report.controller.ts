@@ -279,10 +279,10 @@ export const reportController = {
       });
     }
 
-    if (dataSource !== 'live' && dataSource !== 'imported') {
+    if (dataSource !== 'live' && dataSource !== 'imported' && dataSource !== 'auto') {
       return res.status(400).json({
         success: false,
-        message: 'dataSource должен быть live или imported',
+        message: 'dataSource должен быть live, imported или auto',
       });
     }
 
@@ -354,7 +354,8 @@ export const reportController = {
         page: Number(page),
         limit: Number(limit),
         abortSignal: abortController?.signal,
-        dataSource: dataSource === 'imported' ? 'imported' : 'live',
+        dataSource:
+          dataSource === 'imported' ? 'imported' : dataSource === 'auto' ? 'auto' : 'live',
         reportType,
       });
 
@@ -426,7 +427,8 @@ export const reportController = {
       dateTo: new Date(dateTo),
       departmentIds: departmentIds.map((id: any) => Number(id)),
       fieldKeys: fieldKeys,
-      dataSource: dataSource === 'imported' ? 'imported' : 'live',
+      dataSource:
+        dataSource === 'imported' ? 'imported' : dataSource === 'auto' ? 'auto' : 'live',
       reportType,
     });
 
@@ -455,12 +457,12 @@ export const reportController = {
    * Выгрузка дашборда в Excel (график по месяцам + круговые по показателям)
    */
   exportDashboard: asyncErrorHandler(async (req: Request, res: CustomResponse) => {
-    const { dateFrom, dateTo, departmentIds, fieldKeys, dataSource = 'live' } = req.body;
+    const { dateFrom, dateTo, departmentIds, fieldKeys, dataSource = 'live', reportType } = req.body;
 
-    if (dataSource === 'imported') {
+    if (dataSource !== 'live' && dataSource !== 'imported' && dataSource !== 'auto') {
       return res.status(400).json({
         success: false,
-        message: 'Дашборд для архивных отчётов недоступен',
+        message: 'dataSource должен быть live, imported или auto',
       });
     }
 
@@ -476,7 +478,9 @@ export const reportController = {
       dateTo: new Date(dateTo),
       departmentIds: departmentIds.map((id: unknown) => Number(id)),
       fieldKeys: fieldKeys,
-      dataSource: 'live',
+      dataSource:
+        dataSource === 'imported' ? 'imported' : dataSource === 'auto' ? 'auto' : 'live',
+      reportType,
     });
 
     const now = new Date();

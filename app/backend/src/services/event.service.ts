@@ -9,6 +9,7 @@ import {
 import { EventCreationAttributes } from '../models/event';
 import { paginate, PaginatedQuery } from '../utils/pagination';
 import { generateEventCode } from '../utils/codeGenerator';
+import { parseDateOnly, requireDateOnly } from '../utils/dateOnly';
 
 interface CreateEventData {
   department_id: number;
@@ -149,7 +150,15 @@ export const eventService = {
     options?: { transaction?: Transaction }
   ) {
     const code = await generateEventCode();
-    return await Event.create({ ...data, code }, options);
+    return await Event.create(
+      {
+        ...data,
+        code,
+        date: requireDateOnly(data.date as unknown as string | Date),
+        entry_date: parseDateOnly(data.entry_date as unknown as string | Date | null | undefined),
+      },
+      options
+    );
   },
 
   async updateEvent(
@@ -162,7 +171,7 @@ export const eventService = {
 
     await event.update({
       department_id: data.department_id,
-      date: data.date,
+      date: requireDateOnly(data.date as unknown as string | Date),
       is_service_investigation: data.is_service_investigation,
       is_service_investigation_ib: data.is_service_investigation_ib,
       is_service_investigation_bpio: data.is_service_investigation_bpio,
@@ -174,7 +183,7 @@ export const eventService = {
       is_verification_activity: data.is_verification_activity,
       is_db: data.is_db,
       description: data.description,
-      entry_date: data.entry_date,
+      entry_date: parseDateOnly(data.entry_date as unknown as string | Date | null | undefined),
       detected_damage: data.detected_damage,
       recovered_damage: data.recovered_damage,
       prevented_damage: data.prevented_damage,

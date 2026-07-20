@@ -113,6 +113,26 @@
     color: #64748b;
   }
 
+  .uploadTooltip {
+    max-width: 280px;
+    font-size: 12px;
+    line-height: 1.45;
+
+    p {
+      margin: 0 0 8px;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+  }
+
+  .uploadTooltipTitle {
+    font-weight: 600;
+    margin-bottom: 6px;
+    font-size: 13px;
+  }
+
   .sourceMeta {
     padding-top: 16px;
     border-top: 1px solid #e2e8f0;

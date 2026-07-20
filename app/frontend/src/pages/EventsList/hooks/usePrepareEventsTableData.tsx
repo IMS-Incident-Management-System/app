@@ -1,4 +1,5 @@
 import dayjs from "dayjs";
+import { toDayjsDate } from "../../../utils/dateOnly";
 import { ITable } from "../../../interfaces/common/common";
 import { EventWithRelations } from "../../../interfaces/requests/event";
 import { Modal } from "antd";
@@ -75,7 +76,7 @@ export const usePrepareEventsTableData = (data: ITable<EventWithRelations>) => {
     if (column.key === "date") {
       return {
         ...column,
-        render: (date: string) => (date ? dayjs(date).format("DD.MM.YYYY") : "-"),
+        render: (date: string) => (date ? toDayjsDate(date)?.format("DD.MM.YYYY") ?? "-" : "-"),
       };
     }
     if (column.key === "createdAt") {

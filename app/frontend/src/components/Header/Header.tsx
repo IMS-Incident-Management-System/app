@@ -1,18 +1,28 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, ReactNode } from "react";
 import { Avatar } from "./components/Avatar/Avatar";
 import { Menu as MenuAntd, MenuProps } from "antd";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import Icon from "@ant-design/icons/lib/components/Icon";
 import Logo from "../../assets/svg/logo.svg";
-import { selectUserSelector } from "../../store/features/user/selectors";
 import { selectCan, selectCanReferencesList, selectCanReportGenerate, selectCanReportTable } from "../../store/features/permissions/selectors";
 import { ERoutes } from "../../enums/routes";
 import styles from "./Header.module.scss";
 import { NotificationOutlined, BookOutlined, CalendarOutlined, HomeOutlined, FileTextOutlined, BarChartOutlined } from "@ant-design/icons";
 
+function menuItem(to: string, label: string, icon: ReactNode) {
+  return {
+    key: to,
+    label: (
+      <Link to={to} className={styles.menuLink}>
+        <span className={styles.menuLinkIcon}>{icon}</span>
+        {label}
+      </Link>
+    ),
+  };
+}
+
 export const Header = () => {
-  const user = useSelector(selectUserSelector);
   const canIncidentList = useSelector(selectCan("incident", "list"));
   const canOAList = useSelector(selectCan("operational_activity", "list"));
   const canEventList = useSelector(selectCan("event", "list"));
@@ -22,38 +32,30 @@ export const Header = () => {
 
   const menuItems = useMemo(() => {
     const items: MenuProps["items"] = [
-      { label: "Главная", key: ERoutes.HOME, icon: <HomeOutlined /> },
+      menuItem(ERoutes.HOME, "Главная", <HomeOutlined />),
     ];
     if (canIncidentList) {
-      items.push({ label: "Инциденты", key: ERoutes.INCIDENTS_LIST, icon: <NotificationOutlined /> });
+      items.push(menuItem(ERoutes.INCIDENTS_LIST, "Инциденты", <NotificationOutlined />));
     }
     if (canOAList) {
-      items.push({ label: "Операционная деятельность", key: ERoutes.OPERATIONAL_ACTIVITIES_LIST, icon: <CalendarOutlined /> });
+      items.push(
+        menuItem(ERoutes.OPERATIONAL_ACTIVITIES_LIST, "Операционная деятельность", <CalendarOutlined />)
+      );
     }
     if (canEventList) {
-      items.push({ label: "События", key: ERoutes.EVENTS_LIST, icon: <FileTextOutlined /> });
+      items.push(menuItem(ERoutes.EVENTS_LIST, "События", <FileTextOutlined />));
     }
     if (canReportGenerate || canReportTable) {
-      items.push({ label: "Отчетность", key: ERoutes.REPORTS, icon: <BarChartOutlined /> });
+      items.push(menuItem(ERoutes.REPORTS, "Отчетность", <BarChartOutlined />));
     }
     if (canReferencesList) {
-      items.push({ label: "Справочники", key: ERoutes.REFERENCES, icon: <BookOutlined /> });
+      items.push(menuItem(ERoutes.REFERENCES, "Справочники", <BookOutlined />));
     }
     return items;
   }, [canIncidentList, canOAList, canEventList, canReportGenerate, canReportTable, canReferencesList]);
 
   const location = useLocation();
-  const navigate = useNavigate();
   const [current, setCurrent] = useState("");
-
-  const onMenuClick: MenuProps["onClick"] = (e) => {
-    navigate(e.key as any);
-    setCurrent(e.key);
-  };
-
-  const toHome = () => {
-    navigate(ERoutes.HOME);
-  };
 
   useEffect(() => {
     setCurrent(location.pathname);
@@ -61,16 +63,11 @@ export const Header = () => {
 
   return (
     <div className={styles.container}>
-      <div className={styles.logo} onClick={toHome}>
+      <Link to={ERoutes.HOME} className={styles.logo} aria-label="На главную">
         <Icon component={Logo} />
-      </div>
+      </Link>
       <div className={styles.menu}>
-        <MenuAntd
-          onClick={onMenuClick}
-          selectedKeys={[current]}
-          mode="horizontal"
-          items={menuItems}
-        />
+        <MenuAntd selectedKeys={[current]} mode="horizontal" items={menuItems} />
       </div>
       <div className={styles.controls}>
         <Avatar />

@@ -1,7 +1,9 @@
 /**
- * Парсинг периода из заголовка выгрузки:
- * «Результаты работы январь 2025»
- * «Результаты работы январь 2025 - февраль 2025»
+ * Парсинг периода из заголовка Excel.
+ *
+ * Приоритет:
+ * 1) «13.02.2024-25.06.2026» / «Результаты работы 13.02.2024 - 25.06.2026»
+ * 2) «Результаты работы январь 2025» / «январь 2025 - февраль 2025» (legacy)
  */
 const MONTHS: Record<string, number> = {
   январь: 0,
@@ -40,13 +42,48 @@ function toDateOnly(year: number, monthIndex: number, day: number): string {
   return `${year}-${m}-${d}`;
 }
 
+function parseDotDate(dd: string, mm: string, yyyy: string): string | null {
+  const day = Number(dd);
+  const month = Number(mm);
+  const year = Number(yyyy);
+  if (!Number.isFinite(day) || !Number.isFinite(month) || !Number.isFinite(year)) return null;
+  if (month < 1 || month > 12 || day < 1 || day > 31) return null;
+  const maxDay = lastDayOfMonth(year, month - 1);
+  if (day > maxDay) return null;
+  return toDateOnly(year, month - 1, day);
+}
+
 export interface ParsedReportPeriod {
   periodFrom: string;
   periodTo: string;
   sourceTitle: string;
 }
 
-export function parsePeriodFromReportTitle(title: string): ParsedReportPeriod | null {
+function parseDayRange(title: string): ParsedReportPeriod | null {
+  const raw = String(title || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!raw) return null;
+
+  // 13.02.2024-25.06.2026 or with spaces / en-dash / «Результаты работы»
+  const re =
+    /(?:результаты\s+работы\s+)?(\d{1,2})\.(\d{1,2})\.(\d{4})\s*[-–—]\s*(\d{1,2})\.(\d{1,2})\.(\d{4})/i;
+  const m = raw.match(re);
+  if (!m) return null;
+
+  const periodFrom = parseDotDate(m[1], m[2], m[3]);
+  const periodTo = parseDotDate(m[4], m[5], m[6]);
+  if (!periodFrom || !periodTo) return null;
+  if (periodFrom > periodTo) return null;
+
+  return {
+    periodFrom,
+    periodTo,
+    sourceTitle: raw,
+  };
+}
+
+function parseMonthRange(title: string): ParsedReportPeriod | null {
   const raw = String(title || '')
     .replace(/\s+/g, ' ')
     .trim()
@@ -54,7 +91,6 @@ export function parsePeriodFromReportTitle(title: string): ParsedReportPeriod | 
   if (!raw) return null;
 
   const monthNames = Object.keys(MONTHS).join('|');
-  // «результаты работы январь 2025» or with range
   const re = new RegExp(
     `(?:результаты\\s+работы\\s+)?(${monthNames})\\s+(\\d{4})(?:\\s*[-–—]\\s*(${monthNames})\\s+(\\d{4}))?`,
     'i'
@@ -79,4 +115,8 @@ export function parsePeriodFromReportTitle(title: string): ParsedReportPeriod | 
     periodTo: toDateOnly(toYear, toMonth, lastDayOfMonth(toYear, toMonth)),
     sourceTitle: String(title).trim(),
   };
+}
+
+export function parsePeriodFromReportTitle(title: string): ParsedReportPeriod | null {
+  return parseDayRange(title) ?? parseMonthRange(title);
 }

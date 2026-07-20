@@ -1,4 +1,4 @@
-import { Op, fn, col } from 'sequelize';
+import { Op } from 'sequelize';
 import {
   Event,
   Incident,
@@ -11,7 +11,7 @@ import {
   EventPunishment,
   EventCriminalCase,
 } from '../models';
-import type { ReportFieldDef, ReportRule } from '../constants/reportFields';
+import type { ReportFieldDef } from '../constants/reportFields';
 
 const dateRangeWhere = (dateFrom: Date, dateTo: Date) => {
   const dateToEnd = new Date(dateTo);
@@ -46,6 +46,32 @@ async function getIncidentEventTypeIds(
   return [root.event_type_id, ...children.map((c) => c.event_type_id)];
 }
 
+/** Id инцидентов департамента, у которых есть «событие инцидента» с date в периоде */
+async function findIncidentIdsByEventDate(
+  departmentId: number,
+  dateFrom: Date,
+  dateTo: Date,
+  extraEventWhere: Record<string, unknown> = {}
+): Promise<number[]> {
+  const rows = await Incident.findAll({
+    where: { department_id: departmentId },
+    attributes: ['id'],
+    include: [
+      {
+        model: IncidentEvent,
+        as: 'events',
+        required: true,
+        attributes: [],
+        where: {
+          date: dateRangeWhere(dateFrom, dateTo),
+          ...extraEventWhere,
+        },
+      },
+    ],
+  });
+  return rows.map((r) => r.id);
+}
+
 /** Подсчёт по правилу для одного департамента */
 export async function computeFieldValueByRule(
   def: ReportFieldDef,
@@ -56,9 +82,11 @@ export async function computeFieldValueByRule(
 ): Promise<number> {
   // Проверяем сигнал отмены перед началом вычислений
   checkAbortSignal(abortSignal);
-  
+
   const rule = def.rule;
-  const createdAtWhere = { createdAt: dateRangeWhere(dateFrom, dateTo) };
+  // Event: дата события; IncidentEvent: дата инцидента (не createdAt / entry_date)
+  const eventDateWhere = { date: dateRangeWhere(dateFrom, dateTo) };
+  const incidentEventDateWhere = { date: dateRangeWhere(dateFrom, dateTo) };
 
   switch (rule.type) {
     case 'EVENT_SUM_BOOLEANS': {
@@ -67,7 +95,7 @@ export async function computeFieldValueByRule(
       const count = await Event.count({
         where: {
           department_id: departmentId,
-          ...createdAtWhere,
+          ...eventDateWhere,
           [Op.or]: or,
         } as any,
       });
@@ -80,7 +108,7 @@ export async function computeFieldValueByRule(
       const count = await Event.count({
         where: {
           department_id: departmentId,
-          ...createdAtWhere,
+          ...eventDateWhere,
           [rule.flag]: true,
         } as any,
       });
@@ -94,7 +122,7 @@ export async function computeFieldValueByRule(
       const events = await Event.findAll({
         where: {
           department_id: departmentId,
-          ...createdAtWhere,
+          ...eventDateWhere,
           ...allFlagsTrue,
         } as any,
         include: [
@@ -127,13 +155,17 @@ export async function computeFieldValueByRule(
     case 'SUM_EVENTS_INCIDENTS_ADDITIONALLY': {
       if (abortSignal?.aborted) throw new Error('Request aborted');
       const field = rule.field as string;
+      const incidentIds = await findIncidentIdsByEventDate(departmentId, dateFrom, dateTo);
+      if (abortSignal?.aborted) throw new Error('Request aborted');
       const [evSum, incSum, addIdsRows] = await Promise.all([
         Event.sum(field as any, {
-          where: { department_id: departmentId, ...createdAtWhere },
+          where: { department_id: departmentId, ...eventDateWhere },
         } as any),
-        Incident.sum(field as any, {
-          where: { department_id: departmentId, ...createdAtWhere },
-        } as any),
+        incidentIds.length > 0
+          ? Incident.sum(field as any, {
+              where: { id: { [Op.in]: incidentIds } },
+            } as any)
+          : Promise.resolve(0),
         Additionally.findAll({
           attributes: ['id'],
           include: [{ model: Incident, as: 'incident', where: { department_id: departmentId }, required: true }],
@@ -153,7 +185,7 @@ export async function computeFieldValueByRule(
     case 'EVENT_SUM_FIELD': {
       if (abortSignal?.aborted) throw new Error('Request aborted');
       const sum = await Event.sum(rule.field as any, {
-        where: { department_id: departmentId, ...createdAtWhere },
+        where: { department_id: departmentId, ...eventDateWhere },
       } as any);
       if (abortSignal?.aborted) throw new Error('Request aborted');
       return Number(sum) || 0;
@@ -162,7 +194,7 @@ export async function computeFieldValueByRule(
     case 'EVENT_SUM_VAT': {
       if (abortSignal?.aborted) throw new Error('Request aborted');
       const sum = await Event.sum('vat_deducted', {
-        where: { department_id: departmentId, ...createdAtWhere },
+        where: { department_id: departmentId, ...eventDateWhere },
       } as any);
       if (abortSignal?.aborted) throw new Error('Request aborted');
       return Number(sum) || 0;
@@ -171,7 +203,7 @@ export async function computeFieldValueByRule(
     case 'EVENT_ADDITIONALLY_SUM': {
       checkAbortSignal(abortSignal);
       const eventIds = await Event.findAll({
-        where: { department_id: departmentId, ...createdAtWhere },
+        where: { department_id: departmentId, ...eventDateWhere },
         attributes: ['id'],
       });
       checkAbortSignal(abortSignal);
@@ -200,7 +232,7 @@ export async function computeFieldValueByRule(
     case 'EVENT_ADDITIONALLY_CRIMINAL': {
       if (abortSignal?.aborted) throw new Error('Request aborted');
       const eventIds = await Event.findAll({
-        where: { department_id: departmentId, ...createdAtWhere },
+        where: { department_id: departmentId, ...eventDateWhere },
         attributes: ['id'],
       });
       if (abortSignal?.aborted) throw new Error('Request aborted');
@@ -337,13 +369,16 @@ export async function computeFieldValueByRule(
       if (typeIds.length === 0) return 0;
       if (abortSignal?.aborted) throw new Error('Request aborted');
       const incidents = await Incident.findAll({
-        where: { department_id: departmentId, ...createdAtWhere },
+        where: { department_id: departmentId },
         include: [
           {
             model: IncidentEvent,
             as: 'events',
             required: true,
-            where: { event_type_id: { [Op.in]: typeIds } },
+            where: {
+              event_type_id: { [Op.in]: typeIds },
+              ...incidentEventDateWhere,
+            },
           },
         ],
       });
@@ -356,13 +391,16 @@ export async function computeFieldValueByRule(
       if (typeIds.length === 0) return 0;
       if (abortSignal?.aborted) throw new Error('Request aborted');
       const count = await Incident.count({
-        where: { department_id: departmentId, ...createdAtWhere },
+        where: { department_id: departmentId },
         include: [
           {
             model: IncidentEvent,
             as: 'events',
             required: true,
-            where: { event_type_id: { [Op.in]: typeIds } },
+            where: {
+              event_type_id: { [Op.in]: typeIds },
+              ...incidentEventDateWhere,
+            },
           },
         ],
       });
@@ -374,19 +412,10 @@ export async function computeFieldValueByRule(
       const typeIds = await getIncidentEventTypeIds(rule.eventTypeTitle);
       if (typeIds.length === 0) return 0;
       if (abortSignal?.aborted) throw new Error('Request aborted');
-      const incidentsInDept = await Incident.findAll({
-        where: { department_id: departmentId, createdAt: dateRangeWhere(dateFrom, dateTo) } as any,
-        attributes: ['id'],
+      const incidentIds = await findIncidentIdsByEventDate(departmentId, dateFrom, dateTo, {
+        event_type_id: { [Op.in]: typeIds },
       });
       if (abortSignal?.aborted) throw new Error('Request aborted');
-      const deptIncidentIds = incidentsInDept.map((i) => i.id);
-      if (deptIncidentIds.length === 0) return 0;
-      const withType = await IncidentEvent.findAll({
-        where: { event_type_id: { [Op.in]: typeIds }, incident_id: { [Op.in]: deptIncidentIds } },
-        attributes: ['incident_id'],
-      });
-      if (abortSignal?.aborted) throw new Error('Request aborted');
-      const incidentIds = [...new Set(withType.map((r) => r.incident_id))];
       if (incidentIds.length === 0) return 0;
       const addList = await Additionally.findAll({
         where: {
@@ -417,19 +446,10 @@ export async function computeFieldValueByRule(
       const typeIds = await getIncidentEventTypeIds(rule.eventTypeTitle);
       if (typeIds.length === 0) return 0;
       if (abortSignal?.aborted) throw new Error('Request aborted');
-      const incidentsInDept = await Incident.findAll({
-        where: { department_id: departmentId, createdAt: dateRangeWhere(dateFrom, dateTo) } as any,
-        attributes: ['id'],
+      const incidentIds = await findIncidentIdsByEventDate(departmentId, dateFrom, dateTo, {
+        event_type_id: { [Op.in]: typeIds },
       });
       if (abortSignal?.aborted) throw new Error('Request aborted');
-      const deptIncidentIds = incidentsInDept.map((i) => i.id);
-      if (deptIncidentIds.length === 0) return 0;
-      const withType = await IncidentEvent.findAll({
-        where: { event_type_id: { [Op.in]: typeIds }, incident_id: { [Op.in]: deptIncidentIds } },
-        attributes: ['incident_id'],
-      });
-      if (abortSignal?.aborted) throw new Error('Request aborted');
-      const incidentIds = [...new Set(withType.map((r) => r.incident_id))];
       if (incidentIds.length === 0) return 0;
       const addList = await Additionally.findAll({
         where: {
@@ -476,19 +496,10 @@ export async function computeFieldValueByRule(
       const typeIds = await getIncidentEventTypeIds(rule.eventTypeTitle);
       if (typeIds.length === 0) return 0;
       checkAbortSignal(abortSignal);
-      const incidentsInDept = await Incident.findAll({
-        where: { department_id: departmentId, createdAt: dateRangeWhere(dateFrom, dateTo) } as any,
-        attributes: ['id'],
+      const incidentIds = await findIncidentIdsByEventDate(departmentId, dateFrom, dateTo, {
+        event_type_id: { [Op.in]: typeIds },
       });
       checkAbortSignal(abortSignal);
-      const deptIncidentIds = incidentsInDept.map((i) => i.id);
-      if (deptIncidentIds.length === 0) return 0;
-      const withType = await IncidentEvent.findAll({
-        where: { event_type_id: { [Op.in]: typeIds }, incident_id: { [Op.in]: deptIncidentIds } },
-        attributes: ['incident_id'],
-      });
-      checkAbortSignal(abortSignal);
-      const incidentIds = [...new Set(withType.map((r) => r.incident_id))];
       if (incidentIds.length === 0) return 0;
       const addList = await Additionally.findAll({
         where: {
@@ -520,7 +531,7 @@ export async function computeFieldValueByRule(
         const c = await Event.count({
           where: {
             department_id: departmentId,
-            ...createdAtWhere,
+            ...eventDateWhere,
             [flag]: true,
           } as any,
         });
@@ -538,7 +549,7 @@ export async function computeFieldValueByRule(
         const c = await Event.count({
           where: {
             department_id: departmentId,
-            ...createdAtWhere,
+            ...eventDateWhere,
             [flag]: true,
           } as any,
         });
@@ -554,7 +565,7 @@ export async function computeFieldValueByRule(
       const count = await Event.count({
         where: {
           department_id: departmentId,
-          ...createdAtWhere,
+          ...eventDateWhere,
           ...allFlagsTrue,
         } as any,
       });
@@ -568,22 +579,25 @@ export async function computeFieldValueByRule(
       });
       if (!root) return 0;
       if (abortSignal?.aborted) throw new Error('Request aborted');
-      const incidentIds = await Incident.findAll({
-        where: { department_id: departmentId, ...createdAtWhere },
-        attributes: ['id'],
-      }).then((r) => r.map((i) => i.id));
-      if (incidentIds.length === 0) return 0;
-      if (abortSignal?.aborted) throw new Error('Request aborted');
       const ieWhere: any = {
-        incident_id: { [Op.in]: incidentIds },
         event_type_id: root.event_type_id,
+        ...incidentEventDateWhere,
       };
       if (rule.employeeOnly) {
-        return await IncidentEvent.count({
-          where: { ...ieWhere, employee_number: { [Op.and]: [{ [Op.ne]: null }, { [Op.ne]: '' }] } } as any,
-        });
+        ieWhere.employee_number = { [Op.and]: [{ [Op.ne]: null }, { [Op.ne]: '' }] };
       }
-      return await IncidentEvent.count({ where: ieWhere });
+      return await IncidentEvent.count({
+        where: ieWhere,
+        include: [
+          {
+            model: Incident,
+            as: 'incident',
+            required: true,
+            attributes: [],
+            where: { department_id: departmentId },
+          },
+        ],
+      });
     }
 
     case 'INCIDENT_COUNT_EVENT_TYPE': {
@@ -592,13 +606,16 @@ export async function computeFieldValueByRule(
       if (typeIds.length === 0) return 0;
       if (abortSignal?.aborted) throw new Error('Request aborted');
       const count = await Incident.count({
-        where: { department_id: departmentId, ...createdAtWhere },
+        where: { department_id: departmentId },
         include: [
           {
             model: IncidentEvent,
             as: 'events',
             required: true,
-            where: { event_type_id: { [Op.in]: typeIds } },
+            where: {
+              event_type_id: { [Op.in]: typeIds },
+              ...incidentEventDateWhere,
+            },
           },
         ],
       });

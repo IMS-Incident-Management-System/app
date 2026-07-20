@@ -83,8 +83,9 @@ export interface EventPunishmentAttributes {
 
 export interface CreateEventBody {
   department_id: number;
-  date: Date;
-  entry_date?: Date;
+  /** Календарная дата: YYYY-MM-DD или Date/Dayjs в форме */
+  date: string | Date;
+  entry_date?: string | Date;
   event_type?: string; // Временное поле для радиокнопок, преобразуется в boolean поля
   is_service_investigation: boolean;
   is_service_investigation_ib: boolean;
