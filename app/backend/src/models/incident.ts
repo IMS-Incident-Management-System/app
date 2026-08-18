@@ -23,6 +23,7 @@ export interface IncidentAttributes {
   direction: SecurityDirectionEnum;
   object_type_id?: number;
   is_db: boolean;
+  is_sent_1db: boolean;
   description?: string;
   source_last_name?: string;
   source_first_name?: string;
@@ -49,7 +50,7 @@ export interface IncidentWithRelations extends IncidentAttributes {
   persons?: IncidentPersonAttributes[];
 }
 
-export interface IncidentCreationAttributes extends Optional<IncidentAttributes, 'id'> {}
+export interface IncidentCreationAttributes extends Optional<IncidentAttributes, 'id' | 'is_sent_1db'> {}
 
 export interface IncidentInstance
   extends Model<IncidentAttributes, IncidentCreationAttributes>,
@@ -100,7 +101,13 @@ const Incident = sequelize.define<IncidentInstance>(
       type: DataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: false,
-      comment: 'Флаг "Особо важно" (1ДБ). Указывает на особый статус инцидента, требующий специальной обработки'
+      comment: 'Флаг "Особо важно". Указывает на особый статус инцидента, требующий специальной обработки'
+    },
+    is_sent_1db: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      comment: 'Флаг "Отправлено 1ДБ"',
     },
     description: {
       type: DataTypes.TEXT,

@@ -5,8 +5,8 @@ import { EntityMeta } from "../activity";
 
 // Фильтры для списка операционной деятельности
 export type TOperationalActivityFilter = Partial<{
-  department_id: number;
-  direction: EOperationalActivityDirection;
+  department_id: number[];
+  direction: EOperationalActivityDirection[];
   period_from: string;
   period_to: string;
   created_by: string;

@@ -8,12 +8,20 @@ import {
 } from "../../interfaces/requests/event";
 import { useRequest } from "../../hooks/useRequest";
 
+const serializeListParam = (value?: Array<string | number>) =>
+  value && value.length ? value.join(",") : undefined;
+
 export const getEvents = async (
   filter: IUseGetRequest<TEventFilter>,
 ) => {
+  const { filter: eventFilter, pagination } = filter;
   const response = await useRequest<ITable<EventWithRelations>>(async () =>
     axiosGatewayBackend.get("/events", {
-      params: { ...filter.filter, ...filter.pagination },
+      params: {
+        ...eventFilter,
+        department_id: serializeListParam(eventFilter.department_id),
+        ...pagination,
+      },
     }),
   );
 

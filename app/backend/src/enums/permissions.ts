@@ -11,6 +11,8 @@ export const Permission = {
   INCIDENT_DELETE: 'incident.delete',
   /** Вложения инцидента и вложения к событиям инцидента (incident-events) */
   INCIDENT_ATTACHMENTS: 'incident.attachments',
+  /** Управление флагом «Отправлено 1ДБ» на карточке просмотра */
+  INCIDENT_SENT_1DB: 'incident.sent_1db',
 
   // Дополнения к инцидентам
   ADDITIONALLY_READ: 'additionally.read',
@@ -102,6 +104,7 @@ export const PERMISSION_GROUPS: Record<string, { label: string; permissions: Per
       Permission.INCIDENT_UPDATE,
       Permission.INCIDENT_DELETE,
       Permission.INCIDENT_ATTACHMENTS,
+      Permission.INCIDENT_SENT_1DB,
     ],
   },
   additionally: {

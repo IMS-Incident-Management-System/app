@@ -30,10 +30,10 @@ export const Settings: React.FC = () => {
 
   return (
     <div style={{ padding: "24px 24px 48px", maxWidth: 1200, margin: "0 auto" }}>
-      <Title level={4} style={{ marginBottom: 24 }}>
+      <Title level={3} style={{ marginBottom: 20, fontWeight: 600 }}>
         Настройки
       </Title>
-      <Card>
+      <Card styles={{ body: { padding: 20 } }} style={{ borderRadius: 16, boxShadow: "0 4px 24px rgba(0,0,0,0.08)", border: "none" }}>
         <Tabs activeKey={activeTab} onChange={setActiveTab} items={tabItems} size="middle" />
       </Card>
     </div>

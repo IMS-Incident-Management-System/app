@@ -19,6 +19,7 @@ export type EntityActivityType =
   | 'department_changed'
   | 'description_changed'
   | 'is_db_changed'
+  | 'is_sent_1db_changed'
   | 'financial_fields_changed'
   | 'object_types_changed'
   | 'period_changed'

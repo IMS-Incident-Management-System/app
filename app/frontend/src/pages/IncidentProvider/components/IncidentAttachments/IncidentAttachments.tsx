@@ -1,4 +1,4 @@
-import { Upload, Card, Button, message, Space, Typography } from "antd";
+import { Upload, Card, Button, message, Typography } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import React, { useState, useImperativeHandle, forwardRef } from "react";
 import type { UploadFile, UploadProps } from "antd/es/upload/interface";
@@ -129,7 +129,7 @@ export const IncidentAttachments = forwardRef<IncidentAttachmentsRef, IncidentAt
 
   return (
     <Card className={styles.sectionCard} title="Вложения">
-      <Space direction="vertical" style={{ width: "100%" }} size="large">
+      <div className={styles.uploadZone}>
         <Upload
           fileList={fileList}
           onChange={handleChange}
@@ -143,7 +143,7 @@ export const IncidentAttachments = forwardRef<IncidentAttachmentsRef, IncidentAt
           </Button>
         </Upload>
 
-        {fileList.length > 0 && (
+        {fileList.length > 0 && id && (
           <Button
             type="primary"
             onClick={handleUpload}
@@ -154,12 +154,10 @@ export const IncidentAttachments = forwardRef<IncidentAttachmentsRef, IncidentAt
           </Button>
         )}
 
-        <div className={styles.info}>
-          <Text type="secondary">
-            Максимум {MAX_FILES} файлов, каждый не более 5 МБ
-          </Text>
-        </div>
-      </Space>
+        <Text className={styles.info}>
+          Максимум {MAX_FILES} файлов, каждый не более 5 МБ
+        </Text>
+      </div>
     </Card>
   );
 });

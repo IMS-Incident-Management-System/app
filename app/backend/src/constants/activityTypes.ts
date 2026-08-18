@@ -4,6 +4,7 @@ export const ActivityTypes = {
   DEPARTMENT_CHANGED: 'department_changed',
   DESCRIPTION_CHANGED: 'description_changed',
   IS_DB_CHANGED: 'is_db_changed',
+  IS_SENT_1DB_CHANGED: 'is_sent_1db_changed',
   FINANCIAL_FIELDS_CHANGED: 'financial_fields_changed',
   OBJECT_TYPES_CHANGED: 'object_types_changed',
   PERIOD_CHANGED: 'period_changed',

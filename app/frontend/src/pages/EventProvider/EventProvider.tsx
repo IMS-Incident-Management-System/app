@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useSelector } from "react-redux";
 import {
   Form,
@@ -8,7 +8,6 @@ import {
   message,
   Spin,
   Typography,
-  Checkbox,
 } from "antd";
 import { InfoCircleOutlined, EyeOutlined } from "@ant-design/icons";
 import { useGetEvent } from "../../services/requests/events/getEvent";
@@ -44,17 +43,6 @@ export const EventProvider = () => {
     createEvent,
     updateEvent,
   });
-
-  const [isDbChecked, setIsDbChecked] = useState(false);
-
-  // Синхронизируем локальное состояние с формой
-  useEffect(() => {
-    const value = form.getFieldValue('is_db');
-    setIsDbChecked(value ?? false);
-  }, [form, event]);
-
-  // Слушаем изменения в форме
-  Form.useWatch('is_db', form);
 
   const handleSubmit = async () => {
     try {
@@ -122,22 +110,6 @@ export const EventProvider = () => {
                     Просмотр события
                   </PrimaryButton>
                 )}
-              </div>
-              <div className={styles.headerBottom}>
-                <Checkbox 
-                  className={styles.dbCheckbox}
-                  checked={isDbChecked}
-                  disabled={!!id}
-                  onChange={(e) => {
-                    if (!id) {
-                      const newValue = e.target.checked;
-                      setIsDbChecked(newValue);
-                      form.setFieldValue('is_db', newValue);
-                    }
-                  }}
-                >
-                  <span className={styles.dbLabel}>Особо важно (1ДБ)</span>
-                </Checkbox>
               </div>
             </>
           )}

@@ -19,6 +19,16 @@ IMS использует Keycloak для аутентификации и авт�
 4. Введите имя realm: `ims`
 5. Включите переключатель **"Enabled"**
 6. Нажмите **"Create"**
+7. **Важно для local/dev (HTTP):** в Realm settings → **General** → **Require SSL** поставьте `None`.  
+   Иначе Keycloak за Docker отвечает `HTTPS required` (режим `external` считает запросы с хоста «внешними»).
+
+   Через CLI:
+   ```bash
+   docker exec ims-keycloak /opt/keycloak/bin/kcadm.sh config credentials \
+     --server http://localhost:8080 --realm master --user admin --password "$KC_OWN_KEYCLOAK_ADMIN_PASSWORD"
+   docker exec ims-keycloak /opt/keycloak/bin/kcadm.sh update realms/ims -s sslRequired=none
+   docker exec ims-keycloak /opt/keycloak/bin/kcadm.sh update realms/master -s sslRequired=none
+   ```
 
 ### 2. Создание клиента для Frontend (`ims_client`)
 

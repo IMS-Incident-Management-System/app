@@ -16,6 +16,8 @@ export const selectCanDeleteIncident = (state: RootState) =>
   Boolean(state.permissions.byEntity.incident?.delete);
 export const selectCanIncidentAttachments = (state: RootState) =>
   Boolean(state.permissions.byEntity.incident?.attachments);
+export const selectCanManageIncidentSent1db = (state: RootState) =>
+  Boolean(state.permissions.byEntity.incident?.sent_1db);
 
 // Дополнения к инцидентам
 export const selectCanReadAdditionally = (state: RootState) =>

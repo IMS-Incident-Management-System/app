@@ -369,7 +369,10 @@ export const updateIncident = asyncErrorHandler(
         }
       }
 
-      const afterRootSnapshot = snapshotIncidentRootFromBody(data as unknown as Record<string, unknown>);
+      const afterRootSnapshot = {
+        ...snapshotIncidentRootFromBody(data as unknown as Record<string, unknown>),
+        is_sent_1db: Boolean(existingIncident.is_sent_1db),
+      };
       await activityBuilderService.recordFromChanges(
         EntityType.INCIDENT,
         incidentId,

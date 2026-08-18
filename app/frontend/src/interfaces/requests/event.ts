@@ -1,7 +1,7 @@
 import { EntityMeta } from '../activity';
 
 export type TEventFilter = Partial<{
-  department_id: number;
+  department_id: number[];
   date_from: string;
   date_to: string;
   code?: string;

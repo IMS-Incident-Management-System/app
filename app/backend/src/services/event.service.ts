@@ -63,19 +63,29 @@ interface UpdateEventData {
 }
 
 interface GetEventsFilters {
-  department_id?: number;
+  department_id?: number | number[];
   date_from?: Date;
   date_to?: Date;
   code?: string;
   is_db?: boolean;
 }
 
+function toNumberList(value?: number | number[]): number[] {
+  if (value == null) return [];
+  return (Array.isArray(value) ? value : [value]).filter((item) => Number.isFinite(item));
+}
+
+function inFilter<T>(values: T[]) {
+  return values.length === 1 ? values[0] : { [Op.in]: values };
+}
+
 export const eventService = {
   async getEvents({ filters, pagination }: PaginatedQuery<GetEventsFilters>) {
     const where: any = {};
-    
-    if (filters?.department_id) {
-      where.department_id = filters.department_id;
+
+    const departmentIds = toNumberList(filters?.department_id);
+    if (departmentIds.length) {
+      where.department_id = inFilter(departmentIds);
     }
     if (filters?.date_from || filters?.date_to) {
       where.date = {

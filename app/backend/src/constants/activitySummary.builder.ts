@@ -33,7 +33,7 @@ function formatDirection(value: unknown, entityType?: EntityType): string {
 function formatValue(field: string, value: unknown, entityType?: EntityType): string {
   if (value == null || value === '') return '—';
   if (field === 'direction') return formatDirection(value, entityType);
-  if (field === 'is_db') return value ? 'да' : 'нет';
+  if (field === 'is_db' || field === 'is_sent_1db') return value ? 'да' : 'нет';
   if (field === 'object_type_ids') {
     const arr = Array.isArray(value) ? value : [];
     return arr.length ? `${arr.length} шт.` : '—';
@@ -59,6 +59,8 @@ export function buildSummary(activityType: ActivityType, context: SummaryContext
       return 'Изменено описание';
     case ActivityTypes.IS_DB_CHANGED:
       return `Изменён признак «Особо важно»: ${formatValue('is_db', oldValue)} → ${formatValue('is_db', newValue)}`;
+    case ActivityTypes.IS_SENT_1DB_CHANGED:
+      return `Изменён признак «Отправлено 1ДБ»: ${formatValue('is_sent_1db', oldValue)} → ${formatValue('is_sent_1db', newValue)}`;
     case ActivityTypes.FINANCIAL_FIELDS_CHANGED:
       return 'Изменены финансовые показатели';
     case ActivityTypes.OBJECT_TYPES_CHANGED:
@@ -111,6 +113,8 @@ export function fieldToActivityType(field: string): ActivityType {
       return ActivityTypes.DESCRIPTION_CHANGED;
     case 'is_db':
       return ActivityTypes.IS_DB_CHANGED;
+    case 'is_sent_1db':
+      return ActivityTypes.IS_SENT_1DB_CHANGED;
     case 'object_type_ids':
       return ActivityTypes.OBJECT_TYPES_CHANGED;
     case 'period':

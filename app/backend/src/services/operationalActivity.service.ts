@@ -10,12 +10,28 @@ interface CreateOperationalActivityData extends Omit<OperationalActivityCreation
 interface UpdateOperationalActivityData extends Partial<Omit<OperationalActivityCreationAttributes, 'id'>> {}
 
 interface GetOperationalActivitiesFilters {
-  department_id?: number;
-  direction?: OperationalActivityDirectionEnum;
+  department_id?: number | number[];
+  direction?: OperationalActivityDirectionEnum | OperationalActivityDirectionEnum[];
   period_from?: Date;
   period_to?: Date;
   created_by?: string;
   code?: string;
+}
+
+function toNumberList(value?: number | number[]): number[] {
+  if (value == null) return [];
+  return (Array.isArray(value) ? value : [value]).filter((item) => Number.isFinite(item));
+}
+
+function toDirectionList(
+  value?: OperationalActivityDirectionEnum | OperationalActivityDirectionEnum[]
+): OperationalActivityDirectionEnum[] {
+  if (value == null) return [];
+  return Array.isArray(value) ? value.filter(Boolean) : [value];
+}
+
+function inFilter<T>(values: T[]) {
+  return values.length === 1 ? values[0] : { [Op.in]: values };
 }
 
 export const operationalActivityService = {
@@ -25,11 +41,14 @@ export const operationalActivityService = {
   async getOperationalActivities({ filters, pagination }: PaginatedQuery<GetOperationalActivitiesFilters>) {
     const where: any = {};
 
-    if (filters?.department_id) {
-      where.department_id = filters.department_id;
+    const departmentIds = toNumberList(filters?.department_id);
+    if (departmentIds.length) {
+      where.department_id = inFilter(departmentIds);
     }
-    if (filters?.direction) {
-      where.direction = filters.direction;
+
+    const directions = toDirectionList(filters?.direction);
+    if (directions.length) {
+      where.direction = inFilter(directions);
     }
     if (filters?.created_by) {
       where.created_by = filters.created_by;

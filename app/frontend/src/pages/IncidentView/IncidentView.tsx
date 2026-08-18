@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { Card, Typography, Spin, Space, Divider, Row, Col, Tag, Descriptions, Tabs } from "antd";
+import { Card, Typography, Spin, Space, Divider, Row, Col, Tag, Descriptions, Tabs, Switch } from "antd";
 import { ArrowLeftOutlined, EditOutlined, FileTextOutlined } from "@ant-design/icons";
 import { useGetIncident } from "../../services/requests/initiators/getIncident";
+import { usePatchIncident } from "../../services/requests/initiators/patchIncident";
 import { ERoutes } from "../../enums/routes";
 import { EIncidentDirection } from "../../enums/incident";
 import dayjs from "dayjs";
@@ -11,7 +12,7 @@ import styles from "./IncidentView.module.scss";
 import { IncidentEventAttachmentsView } from "../IncidentProvider/components/IncidentEvents/IncidentEventAttachmentsView";
 import { IncidentAttachmentsView } from "../IncidentProvider/components/IncidentAttachments/IncidentAttachmentsView";
 import { PrimaryButton } from "../../components/PrimaryButton";
-import { selectCanUpdateIncident, selectCanIncidentAttachments, selectCanReadAdditionally } from "../../store/features/permissions/selectors";
+import { selectCanUpdateIncident, selectCanIncidentAttachments, selectCanReadAdditionally, selectCanManageIncidentSent1db } from "../../store/features/permissions/selectors";
 import { EntityMetaHeader } from "../../components/EntityMetaHeader/EntityMetaHeader";
 import { EntityActivityTimeline } from "../../components/EntityActivityTimeline/EntityActivityTimeline";
 
@@ -21,7 +22,10 @@ export const IncidentView = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { data: incident, isLoading } = useGetIncident(id);
+  const patchIncidentMutation = usePatchIncident();
+  const [isSent1db, setIsSent1db] = useState(false);
   const canUpdateIncident = useSelector(selectCanUpdateIncident);
+  const canManageIncidentSent1db = useSelector(selectCanManageIncidentSent1db);
   const canIncidentAttachments = useSelector(selectCanIncidentAttachments);
   const canReadAdditionally = useSelector(selectCanReadAdditionally);
 
@@ -35,6 +39,15 @@ export const IncidentView = () => {
 
   const handleOpenAdditionally = () => {
     navigate(`${ERoutes.INCIDENT_CREATE}/${id}`, { state: { activeTab: "additions" } });
+  };
+
+  useEffect(() => {
+    setIsSent1db(Boolean(incident?.is_sent_1db));
+  }, [incident?.id, incident?.is_sent_1db]);
+
+  const handleSaveSent1db = () => {
+    if (!id) return;
+    patchIncidentMutation.mutate({ id: Number(id), is_sent_1db: isSent1db });
   };
 
   const getDirectionText = (direction: string) => {
@@ -176,12 +189,45 @@ export const IncidentView = () => {
                   <Tag color="purple">{incident.object_type?.title || "Не указан"}</Tag>
                 )}
               </Descriptions.Item>
-              <Descriptions.Item label="Особо важно">
-                <Tag color={incident.is_db ? "red" : "default"}>
-                  {incident.is_db ? "Да (1ДБ)" : "Нет"}
-                </Tag>
-              </Descriptions.Item>
             </Descriptions>
+            <div className={styles.flagsRow}>
+              <div className={`${styles.flagChip} ${incident.is_db ? styles.flagChipImportant : ""}`}>
+                <div className={styles.flagMeta}>
+                  <span className={styles.flagLabel}>Особо важно</span>
+                  <span className={styles.flagValue}>{incident.is_db ? "Да" : "Нет"}</span>
+                </div>
+                <span className={`${styles.flagDot} ${incident.is_db ? styles.flagDotOn : ""}`} />
+              </div>
+              <div
+                className={[
+                  styles.flagChip,
+                  isSent1db ? styles.flagChipSent : "",
+                  canManageIncidentSent1db && isSent1db !== Boolean(incident.is_sent_1db) ? styles.flagChipDirty : "",
+                ].filter(Boolean).join(" ")}
+              >
+                <div className={styles.flagMeta}>
+                  <span className={styles.flagLabel}>Отправлено 1ДБ</span>
+                  <span className={styles.flagValue}>{isSent1db ? "Да" : "Нет"}</span>
+                </div>
+                <div className={styles.flagActions}>
+                  {canManageIncidentSent1db && isSent1db !== Boolean(incident.is_sent_1db) && (
+                    <PrimaryButton
+                      size="small"
+                      className={styles.flagSave}
+                      loading={patchIncidentMutation.isLoading}
+                      onClick={handleSaveSent1db}
+                    >
+                      Сохранить
+                    </PrimaryButton>
+                  )}
+                  <Switch
+                    checked={isSent1db}
+                    disabled={!canManageIncidentSent1db}
+                    onChange={setIsSent1db}
+                  />
+                </div>
+              </div>
+            </div>
           </Card>
 
 

@@ -8,12 +8,23 @@ import {
 } from "../../interfaces/requests/incident";
 import { useRequest } from "../../hooks/useRequest";
 
+const serializeListParam = (value?: Array<string | number>) =>
+  value && value.length ? value.join(",") : undefined;
+
 export const getInitiators = async (
   filter: IUseGetRequest<TIncidentFilter>,
 ) => {
+  const { filter: incidentFilter, pagination } = filter;
   const response = await useRequest<ITable<IncidentWithRelations>>(async () =>
     axiosGatewayBackend.get("/incidents", {
-      params: { ...filter.filter, ...filter.pagination },
+      params: {
+        ...incidentFilter,
+        department_id: serializeListParam(incidentFilter.department_id),
+        direction: serializeListParam(incidentFilter.direction),
+        object_type_id: serializeListParam(incidentFilter.object_type_id),
+        event_type_id: serializeListParam(incidentFilter.event_type_id),
+        ...pagination,
+      },
     }),
   );
 
@@ -42,6 +53,17 @@ export const updateIncident = async (
 ) => {
   const response = await useRequest<CreateIncidentResponse>(async () =>
     axiosGatewayBackend.put(`/incidents/${id}`, data),
+  );
+
+  return response;
+};
+
+export const patchIncident = async (
+  id: number,
+  data: { is_sent_1db: boolean },
+) => {
+  const response = await useRequest<IncidentWithRelations>(async () =>
+    axiosGatewayBackend.patch(`/incidents/${id}`, data),
   );
 
   return response;

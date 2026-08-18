@@ -1,30 +1,176 @@
 .filterForm {
   margin-bottom: 24px;
+  border-radius: 16px;
+  border: 1px solid #f0f0f0;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+
+  :global(.ant-card-head) {
+    min-height: auto;
+    padding: 14px 20px;
+    border-bottom: 1px solid #f0f0f0;
+    background: #fafafa;
+    border-radius: 16px 16px 0 0;
+  }
+
+  :global(.ant-card-head-title) {
+    font-size: 15px;
+    font-weight: 600;
+    color: #262626;
+    padding: 0;
+  }
+
+  :global(.ant-card-body) {
+    padding: 20px;
+  }
+
+  :global(.ant-form-item) {
+    margin-bottom: 0;
+  }
+
+  :global(.ant-form-item-label) {
+    padding-bottom: 6px;
+  }
+
+  :global(.ant-form-item-label > label) {
+    height: auto;
+    font-size: 13px;
+    font-weight: 500;
+    color: #8c8c8c;
+  }
+
+  :global(.ant-input) {
+    height: 36px;
+    line-height: 36px;
+    padding: 0 11px;
+    border-radius: 8px;
+  }
+
+  :global(.ant-input-affix-wrapper) {
+    height: 36px;
+    padding: 0 11px;
+    border-radius: 8px;
+
+    :global(.ant-input) {
+      height: 34px;
+      line-height: 34px;
+      padding: 0;
+    }
+  }
+
+  :global(.ant-select-selector) {
+    min-height: 36px !important;
+    padding-block: 0 !important;
+    align-items: center !important;
+    border-radius: 8px !important;
+  }
+
+  :global(.ant-select-selection-placeholder),
+  :global(.ant-select-selection-item) {
+    line-height: 34px !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+
+  :global(.ant-select-multiple .ant-select-selection-placeholder) {
+    inset-inline-start: 11px !important;
+  }
+
+  :global(.ant-select-multiple .ant-select-selection-overflow) {
+    align-items: center;
+    min-height: 34px;
+  }
+
+  :global(.ant-picker) {
+    height: 36px;
+    width: 100%;
+    padding: 0 11px;
+    border-radius: 8px;
+    align-items: center;
+  }
+
+  :global(.ant-picker-input > input) {
+    height: 34px;
+    line-height: 34px;
+  }
+
+  :global(.ant-picker-range) {
+    height: 36px;
+  }
 }
 
-.filterFormGroup {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+.fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.field,
+.fieldId,
+.fieldPeriod {
+  margin-bottom: 0;
+  min-width: 0;
+}
+
+.field {
+  flex: 1 1 200px;
+}
+
+.fieldId {
+  flex: 0.65 1 140px;
+}
+
+.fieldPeriod {
+  flex: 1 1 220px;
+
+  :global(.ant-picker) {
+    width: 100%;
+  }
+}
+
+.flagsRow {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
   gap: 16px;
-  margin-bottom: 16px;
-}
-
-.formInput {
-  width: 100%;
-}
-
-.filterFormItem {
-  margin-bottom: 0;
-}
-
-.button {
-  margin-bottom: 0;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid #f0f0f0;
 }
 
 .buttonGroup {
   display: flex;
   gap: 8px;
-  justify-content: flex-end;
+  flex-shrink: 0;
+
+  :global(.ant-btn) {
+    height: 36px;
+    border-radius: 8px;
+    font-weight: 500;
+    padding: 0 16px;
+  }
 }
 
+@media (max-width: 720px) {
+  .field,
+  .fieldId,
+  .fieldPeriod {
+    flex-basis: calc(50% - 6px);
+  }
+}
 
+@media (max-width: 520px) {
+  .field,
+  .fieldId,
+  .fieldPeriod {
+    flex-basis: 100%;
+  }
+
+  .flagsRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .buttonGroup {
+    justify-content: flex-end;
+  }
+}

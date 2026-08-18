@@ -7,6 +7,7 @@ import { getIncidents } from '../controllers/incident/getIncidents.controller';
 import { createIncident } from '../controllers/incident/createIncident.controller';
 import { getIncident } from '../controllers/incident/getIncident.controller';
 import { updateIncident } from '../controllers/incident/updateIncident.controller';
+import { patchIncident } from '../controllers/incident/patchIncident.controller';
 import { deleteIncident } from '../controllers/incident/deleteIncident.controller';
 import { getIncidentAttachments } from '../controllers/incident/getIncidentAttachments.controller';
 import { uploadIncidentAttachments } from '../controllers/incident/uploadIncidentAttachments.controller';
@@ -86,6 +87,7 @@ router
     ]),
     updateIncident
   )
+  .patch(requirePermission([Permission.INCIDENT_SENT_1DB]), patchIncident)
   .delete(requirePermission([Permission.INCIDENT_DELETE]), deleteIncident);
 
 router.get(

@@ -35,6 +35,7 @@ const INCIDENT_ROOT_FIELDS = [
   'department_id',
   'description',
   'is_db',
+  'is_sent_1db',
   ...INCIDENT_FINANCIAL_FIELDS,
   'object_type_ids',
 ] as const;

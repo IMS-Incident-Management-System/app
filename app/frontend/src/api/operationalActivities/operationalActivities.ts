@@ -8,12 +8,21 @@ import {
 } from "../../interfaces/requests/operationalActivity";
 import { useRequest } from "../../hooks/useRequest";
 
+const serializeListParam = (value?: Array<string | number>) =>
+  value && value.length ? value.join(",") : undefined;
+
 export const getOperationalActivities = async (
   filter: IUseGetRequest<TOperationalActivityFilter>,
 ) => {
+  const { filter: activityFilter, pagination } = filter;
   const response = await useRequest<ITable<OperationalActivityWithRelations>>(async () =>
     axiosGatewayBackend.get("/operational-activities", {
-      params: { ...filter.filter, ...filter.pagination },
+      params: {
+        ...activityFilter,
+        department_id: serializeListParam(activityFilter.department_id),
+        direction: serializeListParam(activityFilter.direction),
+        ...pagination,
+      },
     }),
   );
 

@@ -2,14 +2,12 @@ import React, { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "react-query";
 import {
   Button,
-  Card,
   Table,
   Modal,
   Form,
   Input,
   Checkbox,
   message,
-  Space,
   Typography,
   Select,
   Tag,
@@ -19,6 +17,7 @@ import {
   Tabs,
 } from "antd";
 import { SearchOutlined, TeamOutlined, SafetyCertificateOutlined } from "@ant-design/icons";
+import styles from "./AccessManagementTab.module.scss";
 import type { ColumnsType } from "antd/es/table";
 import {
   getRoles,
@@ -42,6 +41,7 @@ const ACTION_LABELS: Record<string, string> = {
   update: "Редактирование",
   delete: "Удаление",
   attachments: "Вложения",
+  sent_1db: "Отправлено 1ДБ",
   generate: "Формирование",
   table: "Таблица",
   export: "Экспорт",
@@ -316,37 +316,49 @@ export const AccessManagementTab: React.FC = () => {
   };
 
   const roleColumns: ColumnsType<RoleDto> = [
-    { title: "Название", dataIndex: "name", key: "name", ellipsis: true },
-    { title: "Код", dataIndex: "code", key: "code", width: 140, ellipsis: true },
+    {
+      title: "Название",
+      dataIndex: "name",
+      key: "name",
+      width: 200,
+      render: (name: string) => <span className={styles.roleName}>{name}</span>,
+    },
+    {
+      title: "Код",
+      dataIndex: "code",
+      key: "code",
+      width: 160,
+      render: (code: string) => <span className={styles.roleCode}>{code}</span>,
+    },
     {
       title: "Права",
       key: "permissions",
       render: (_, r) => (
-        <Space wrap size={[4, 6]}>
-          {(r.permissions || []).slice(0, 8).map((p) => (
-            <Tag key={p} style={{ margin: 0 }}>
+        <div className={styles.tags}>
+          {(r.permissions || []).slice(0, 5).map((p) => (
+            <Tag key={p} className={styles.tag}>
               {formatPermissionLabel(p, permissionGroups?.groups ?? undefined)}
             </Tag>
           ))}
-          {(r.permissions?.length || 0) > 8 && (
-            <Tag style={{ margin: 0 }}>+{(r.permissions?.length || 0) - 8}</Tag>
+          {(r.permissions?.length || 0) > 5 && (
+            <Tag className={styles.moreTag}>+{(r.permissions?.length || 0) - 5}</Tag>
           )}
-        </Space>
+        </div>
       ),
     },
     {
       title: "Действия",
       key: "actions",
-      width: 180,
+      width: 196,
       render: (_, record) => (
-        <Space size="small">
-          <Button type="link" size="small" onClick={() => openEditRole(record)} style={{ padding: 0 }}>
+        <div className={styles.actions}>
+          <Button size="small" onClick={() => openEditRole(record)}>
             Изменить
           </Button>
-          <Button type="link" size="small" danger onClick={() => handleDeleteRole(record)} style={{ padding: 0 }}>
+          <Button size="small" danger onClick={() => handleDeleteRole(record)}>
             Удалить
           </Button>
-        </Space>
+        </div>
       ),
     },
   ];
@@ -356,18 +368,22 @@ export const AccessManagementTab: React.FC = () => {
       title: "ФИО / Логин",
       key: "display",
       ellipsis: true,
-      render: (_, u) => u.display_name || u.preferred_username || u.external_id,
+      render: (_, u) => (
+        <span className={styles.roleName}>
+          {u.display_name || u.preferred_username || u.external_id}
+        </span>
+      ),
     },
     {
       title: "Роли",
       key: "roles",
       render: (_, u) => (
-        <Space wrap size={[4, 6]}>
+        <div className={styles.tags}>
           {u.roles?.map((r) => (
-            <Tag key={r.id} style={{ margin: 0 }}>{r.name}</Tag>
+            <Tag key={r.id} className={styles.tag}>{r.name}</Tag>
           ))}
-          {(!u.roles || u.roles.length === 0) && <Text type="secondary">—</Text>}
-        </Space>
+          {(!u.roles || u.roles.length === 0) && <span className={styles.emptyRoles}>Нет ролей</span>}
+        </div>
       ),
     },
     {
@@ -375,9 +391,11 @@ export const AccessManagementTab: React.FC = () => {
       key: "actions",
       width: 140,
       render: (_, record) => (
-        <Button type="link" size="small" onClick={() => openUserRoles(record)} style={{ padding: 0 }}>
-          Назначить роли
-        </Button>
+        <div className={styles.actions}>
+          <Button size="small" onClick={() => openUserRoles(record)}>
+            Назначить
+          </Button>
+        </div>
       ),
     },
   ];
@@ -394,13 +412,6 @@ export const AccessManagementTab: React.FC = () => {
         }))
       : [];
 
-  const cardStyle = {
-    maxWidth: 960,
-    borderRadius: 12,
-    boxShadow: "0 1px 2px rgba(0,0,0,0.03), 0 6px 16px rgba(0,0,0,0.08)",
-    overflow: "hidden" as const,
-  };
-
   const tabItems = [
     {
       key: TAB_ROLES,
@@ -411,7 +422,7 @@ export const AccessManagementTab: React.FC = () => {
       ),
       children: (
         <>
-          <div style={{ marginBottom: 20 }}>
+          <div className={styles.toolbar}>
             <Button type="primary" onClick={openCreateRole}>
               Создать роль
             </Button>
@@ -423,7 +434,7 @@ export const AccessManagementTab: React.FC = () => {
             dataSource={roles || []}
             pagination={{ pageSize: 30, showSizeChanger: false, showTotal: (t) => `Всего: ${t}` }}
             locale={{ emptyText: "Нет ролей. Создайте первую роль." }}
-            scroll={{ y: 360 }}
+            tableLayout="fixed"
           />
         </>
       ),
@@ -437,14 +448,14 @@ export const AccessManagementTab: React.FC = () => {
       ),
       children: (
         <>
-          <div style={{ marginBottom: 16 }}>
+          <div className={styles.toolbar}>
             <Input
+              className={styles.search}
               placeholder="Поиск по ФИО, логину, ролям..."
               prefix={<SearchOutlined style={{ color: "#bfbfbf" }} />}
               allowClear
               value={userSearchQuery}
               onChange={(e) => setUserSearchQuery(e.target.value)}
-              style={{ maxWidth: 320 }}
             />
           </div>
           <Table
@@ -461,6 +472,7 @@ export const AccessManagementTab: React.FC = () => {
               onChange: handleUsersTableChange,
             }}
             locale={{ emptyText: "Нет пользователей (появятся после входа в систему)." }}
+            tableLayout="fixed"
           />
         </>
       ),
@@ -468,16 +480,13 @@ export const AccessManagementTab: React.FC = () => {
   ];
 
   return (
-    <Space direction="vertical" size="large" style={{ width: "100%" }}>
-      <Card style={cardStyle} styles={{ body: { padding: "24px 24px 24px 0" } }}>
-        <Tabs
-          activeKey={activeTab}
-          onChange={setActiveTab}
-          tabPosition="left"
-          items={tabItems}
-          style={{ minHeight: 400 }}
-        />
-      </Card>
+    <div className={styles.panel}>
+      <Tabs
+        activeKey={activeTab}
+        onChange={setActiveTab}
+        tabPosition="left"
+        items={tabItems}
+      />
 
       <Modal
         title={roleEditing ? "Редактировать роль" : "Создать роль"}
@@ -551,6 +560,6 @@ export const AccessManagementTab: React.FC = () => {
           </Form.Item>
         </Form>
       </Modal>
-    </Space>
+    </div>
   );
 };

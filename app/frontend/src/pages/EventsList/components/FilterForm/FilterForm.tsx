@@ -1,9 +1,13 @@
 import React, { useEffect } from "react";
 import { TEventFilter } from "../../../../interfaces/requests/event";
-import { Button, Card, Checkbox, Form, DatePicker, TreeSelect, Input } from "antd";
-import styles from "./FilterForm.module.scss";
+import { Button, Card, Form, DatePicker, TreeSelect, Input } from "antd";
+import { FilterOutlined } from "@ant-design/icons";
+import type { Dayjs } from "dayjs";
 import dayjs from "dayjs";
+import styles from "./FilterForm.module.scss";
 import { useGetDepartments } from "../../../../services/requests/departments/getDepartments";
+
+const { RangePicker } = DatePicker;
 
 export const FilterForm = ({
   filter,
@@ -17,28 +21,24 @@ export const FilterForm = ({
     useGetDepartments();
 
   useEffect(() => {
-    const formattedFilter = {
+    form.setFieldsValue({
       ...filter,
-      date_from: filter.date_from ? dayjs(filter.date_from) : null,
-      date_to: filter.date_to ? dayjs(filter.date_to) : null,
-    };
-
-    form.setFieldsValue(formattedFilter);
+      date_range:
+        filter.date_from && filter.date_to
+          ? [dayjs(filter.date_from), dayjs(filter.date_to)]
+          : undefined,
+    });
   }, [filter, form]);
 
   const handleSubmit = () => {
     const values = form.getFieldsValue();
+    const range = values.date_range as [Dayjs, Dayjs] | undefined;
 
     onFilter({
-      code: values.code,
-      department_id: values.department_id,
-      date_from: values.date_from
-        ? values.date_from.format("YYYY-MM-DD")
-        : undefined,
-      date_to: values.date_to
-        ? values.date_to.format("YYYY-MM-DD")
-        : undefined,
-      is_db: values.is_db === true ? true : undefined,
+      code: values.code || undefined,
+      department_id: values.department_id?.length ? values.department_id : undefined,
+      date_from: range?.[0] ? range[0].format("YYYY-MM-DD") : undefined,
+      date_to: range?.[1] ? range[1].format("YYYY-MM-DD") : undefined,
     });
   };
 
@@ -48,71 +48,53 @@ export const FilterForm = ({
   };
 
   return (
-    <Card title="Фильтр" className={styles.filterForm}>
+    <Card
+      title={
+        <span>
+          <FilterOutlined style={{ marginRight: 8 }} />
+          Фильтры
+        </span>
+      }
+      className={styles.filterForm}
+    >
       <Form form={form} layout="vertical">
-        <div className={styles.filterFormGroup}>
-          <Form.Item label="ID" name="code">
-            <Input
-              placeholder="Поиск по ID (например: EV-15032024-143025)"
-              className={styles.formInput}
-            />
+        <div className={styles.fields}>
+          <Form.Item label="ID" name="code" className={styles.fieldId}>
+            <Input placeholder="EV-…" allowClear />
           </Form.Item>
 
-          <Form.Item label="Подразделение" name="department_id">
+          <Form.Item label="Подразделение" name="department_id" className={styles.field}>
             <TreeSelect
               showSearch
+              multiple
+              treeCheckable
               dropdownStyle={{ maxHeight: 400, overflow: "auto" }}
               placeholder="Выберите подразделение"
               allowClear
               treeDefaultExpandAll
               treeData={departments?.treeData}
               loading={isDepartmentsLoading}
-              className={styles.formInput}
+              maxTagCount={2}
             />
           </Form.Item>
 
-          <Form.Item
-            name="date_from"
-            label="Дата от"
-            className={styles.filterFormItem}
-          >
-            <DatePicker
-              format="YYYY-MM-DD"
-              placeholder="Дата от"
-              style={{ width: "100%" }}
+          <Form.Item label="Период" name="date_range" className={styles.fieldPeriod}>
+            <RangePicker
+              format="DD.MM.YYYY"
+              placeholder={["От", "До"]}
             />
-          </Form.Item>
-
-          <Form.Item
-            name="date_to"
-            label="Дата до"
-            className={styles.filterFormItem}
-          >
-            <DatePicker
-              format="YYYY-MM-DD"
-              placeholder="Дата до"
-              style={{ width: "100%" }}
-            />
-          </Form.Item>
-
-          <Form.Item name="is_db" valuePropName="checked" className={styles.dbFilter}>
-            <Checkbox>Особо важно (1ДБ)</Checkbox>
           </Form.Item>
         </div>
 
-        <Form.Item className={styles.button}>
+        <div className={styles.flagsRow}>
           <div className={styles.buttonGroup}>
-            <Button type="default" onClick={handleReset}>
-              Сбросить
-            </Button>
+            <Button onClick={handleReset}>Сбросить</Button>
             <Button type="primary" onClick={handleSubmit}>
               Применить
             </Button>
           </div>
-        </Form.Item>
+        </div>
       </Form>
     </Card>
   );
 };
-
-

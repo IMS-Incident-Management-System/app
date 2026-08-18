@@ -6,14 +6,15 @@ import { AdditionallyPersonAttributes } from "./additionallyPerson";
 import { EntityMeta } from "../activity";
 
 export type TIncidentFilter = Partial<{
-  department_id: number;
-  direction: EIncidentDirection;
-  object_type_id: number;
-  event_type_id: number;
+  department_id: number[];
+  direction: EIncidentDirection[];
+  object_type_id: number[];
+  event_type_id: number[];
   date_from: string;
   date_to: string;
   code?: string;
   is_db?: boolean;
+  is_sent_1db?: boolean;
 }>;
 
 export interface IncidentAttributes {
@@ -23,6 +24,7 @@ export interface IncidentAttributes {
   direction: EIncidentDirection;
   object_type_id?: number;
   is_db: boolean;
+  is_sent_1db: boolean;
   description?: string;
   source_last_name?: string;
   source_first_name?: string;

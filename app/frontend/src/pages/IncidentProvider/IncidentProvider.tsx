@@ -254,7 +254,7 @@ export const IncidentProvider = () => {
                     }
                   }}
                 >
-                  <span className={styles.dbLabel}>Особо важно (1ДБ)</span>
+                  <span className={styles.dbLabel}>Особо важно</span>
                 </Checkbox>
               </div>
             </>

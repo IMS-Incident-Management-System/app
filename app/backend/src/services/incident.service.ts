@@ -54,29 +54,48 @@ interface UpdateIncidentData {
 }
 
 interface GetIncidentsFilters {
-  department_id?: number;
-  direction?: SecurityDirectionEnum;
-  object_type_id?: number;
-  event_type_id?: number;
+  department_id?: number | number[];
+  direction?: SecurityDirectionEnum | SecurityDirectionEnum[];
+  object_type_id?: number | number[];
+  event_type_id?: number | number[];
   date_from?: Date;
   date_to?: Date;
   code?: string;
   is_db?: boolean;
+  is_sent_1db?: boolean;
+}
+
+function toNumberList(value?: number | number[]): number[] {
+  if (value == null) return [];
+  return (Array.isArray(value) ? value : [value]).filter((item) => Number.isFinite(item));
+}
+
+function toDirectionList(
+  value?: SecurityDirectionEnum | SecurityDirectionEnum[]
+): SecurityDirectionEnum[] {
+  if (value == null) return [];
+  return Array.isArray(value) ? value.filter(Boolean) : [value];
+}
+
+function inFilter<T>(values: T[]) {
+  return values.length === 1 ? values[0] : { [Op.in]: values };
 }
 
 export const incidentService = {
   async getIncidents({ filters, pagination }: PaginatedQuery<GetIncidentsFilters>) {
     const where: any = {};
-    
-    if (filters?.department_id) {
-      where.department_id = filters.department_id;
+    const idConstraints: number[][] = [];
+
+    const departmentIds = toNumberList(filters?.department_id);
+    if (departmentIds.length) {
+      where.department_id = inFilter(departmentIds);
     }
-    if (filters?.direction) {
-      where.direction = filters.direction;
+
+    const directions = toDirectionList(filters?.direction);
+    if (directions.length) {
+      where.direction = inFilter(directions);
     }
-    if (filters?.object_type_id) {
-      where.object_type_id = filters.object_type_id;
-    }
+
     if (filters?.code) {
       // Экранируем специальные символы для LIKE
       const escapedCode = filters.code.replace(/[%_\\]/g, '\\$&');
@@ -87,23 +106,41 @@ export const incidentService = {
     if (filters?.is_db !== undefined) {
       where.is_db = filters.is_db;
     }
+    if (filters?.is_sent_1db !== undefined) {
+      where.is_sent_1db = filters.is_sent_1db;
+    }
 
-    // Если есть фильтры по событиям (даты или тип события), используем подзапрос
-    let incidentIds: number[] | undefined;
-    if (filters?.date_from || filters?.date_to || filters?.event_type_id) {
+    const objectTypeIds = toNumberList(filters?.object_type_id);
+    if (objectTypeIds.length) {
+      const junctionRows = await IncidentObjectType.findAll({
+        where: { object_type_id: { [Op.in]: objectTypeIds } },
+        attributes: ['incident_id'],
+        group: ['incident_id'],
+      });
+      const matchedIds = new Set(junctionRows.map((row) => row.incident_id));
+      const legacyRows = await Incident.findAll({
+        where: { object_type_id: { [Op.in]: objectTypeIds } },
+        attributes: ['id'],
+      });
+      legacyRows.forEach((row) => matchedIds.add(row.id));
+      idConstraints.push([...matchedIds]);
+    }
+
+    const eventTypeIds = toNumberList(filters?.event_type_id);
+    if (filters?.date_from || filters?.date_to || eventTypeIds.length) {
       const eventWhere: any = {};
-      
-      if (filters.date_from || filters.date_to) {
+
+      if (filters?.date_from || filters?.date_to) {
         eventWhere.date = {
           [Op.between]: [
-            filters.date_from || new Date(0),
-            filters.date_to || new Date()
+            filters?.date_from || new Date(0),
+            filters?.date_to || new Date()
           ]
         };
       }
-      
-      if (filters.event_type_id) {
-        eventWhere.event_type_id = filters.event_type_id;
+
+      if (eventTypeIds.length) {
+        eventWhere.event_type_id = inFilter(eventTypeIds);
       }
 
       const events = await IncidentEvent.findAll({
@@ -111,16 +148,21 @@ export const incidentService = {
         attributes: ['incident_id'],
         group: ['incident_id']
       });
-      
-      incidentIds = events.map(event => event.incident_id);
-      
-      if (incidentIds.length === 0) {
-        // Если нет событий, соответствующих фильтрам, возвращаем пустой результат
-        return { incidents: [], total: 0 };
-      }
+
+      idConstraints.push(events.map((event) => event.incident_id));
     }
 
-    if (incidentIds) {
+    if (idConstraints.length) {
+      let incidentIds = idConstraints[0];
+      for (const next of idConstraints.slice(1)) {
+        const nextSet = new Set(next);
+        incidentIds = incidentIds.filter((id) => nextSet.has(id));
+      }
+
+      if (incidentIds.length === 0) {
+        return { incidents: [], total: 0 };
+      }
+
       where.id = { [Op.in]: incidentIds };
     }
 
@@ -322,6 +364,25 @@ export const incidentService = {
 
     await incident.destroy(options);
     return true;
+  },
+
+  async patchIncident(
+    id: number,
+    data: { is_sent_1db?: boolean; updated_by?: string },
+    options?: { transaction?: Transaction }
+  ) {
+    const incident = await Incident.findByPk(id);
+    if (!incident) return null;
+
+    await incident.update(
+      {
+        ...(data.is_sent_1db !== undefined ? { is_sent_1db: data.is_sent_1db } : {}),
+        updated_by: data.updated_by,
+      },
+      options
+    );
+
+    return incident;
   },
 
   // Вспомогательные методы для проверки существования связанных сущностей

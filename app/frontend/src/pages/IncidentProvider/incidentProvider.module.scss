@@ -213,6 +213,9 @@
 .tabContent {
   padding: 32px;
   min-height: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
 .tabActions {
